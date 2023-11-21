@@ -1,14 +1,14 @@
 script_name("cr-helper-arz")
-script_version("21.11.2024")
+script_version("21.11.2023")
 
---хуй--
+--ГµГіГ©--
 require 'lib.moonloader'
-local imgui = require 'mimgui' -- подключаем библиотеку мимгуи
-local encoding = require 'encoding' -- подключаем библиотеку для работы с разными кодировками
-encoding.default = 'CP1251' -- задаём кодировку по умолчанию
-local u8 = encoding.UTF8 -- это позволит нам писать задавать названия/текст на кириллице
-local new = imgui.new -- создаём короткий псевдоним для удобства
-local WinState = new.bool() -- создаём буффер для открытия окна
+local imgui = require 'mimgui' -- ГЇГ®Г¤ГЄГ«ГѕГ·Г ГҐГ¬ ГЎГЁГЎГ«ГЁГ®ГІГҐГЄГі Г¬ГЁГ¬ГЈГіГЁ
+local encoding = require 'encoding' -- ГЇГ®Г¤ГЄГ«ГѕГ·Г ГҐГ¬ ГЎГЁГЎГ«ГЁГ®ГІГҐГЄГі Г¤Г«Гї Г°Г ГЎГ®ГІГ» Г± Г°Г Г§Г­Г»Г¬ГЁ ГЄГ®Г¤ГЁГ°Г®ГўГЄГ Г¬ГЁ
+encoding.default = 'CP1251' -- Г§Г Г¤Г ВёГ¬ ГЄГ®Г¤ГЁГ°Г®ГўГЄГі ГЇГ® ГіГ¬Г®Г«Г·Г Г­ГЁГѕ
+local u8 = encoding.UTF8 -- ГЅГІГ® ГЇГ®Г§ГўГ®Г«ГЁГІ Г­Г Г¬ ГЇГЁГ±Г ГІГј Г§Г Г¤Г ГўГ ГІГј Г­Г Г§ГўГ Г­ГЁГї/ГІГҐГЄГ±ГІ Г­Г  ГЄГЁГ°ГЁГ«Г«ГЁГ¶ГҐ
+local new = imgui.new -- Г±Г®Г§Г¤Г ВёГ¬ ГЄГ®Г°Г®ГІГЄГЁГ© ГЇГ±ГҐГўГ¤Г®Г­ГЁГ¬ Г¤Г«Гї ГіГ¤Г®ГЎГ±ГІГўГ 
+local WinState = new.bool() -- Г±Г®Г§Г¤Г ВёГ¬ ГЎГіГґГґГҐГ° Г¤Г«Гї Г®ГІГЄГ°Г»ГІГЁГї Г®ГЄГ­Г 
 require 'lib.moonloader'
 local imgui = require 'mimgui'
 local ffi = require 'ffi'
@@ -34,7 +34,7 @@ local inicfg = require 'inicfg'
 local mainIni = inicfg.load({
 	main =
     {
-		autoeatmin = 0, -- значение инпута
+		autoeatmin = 0, -- Г§Г­Г Г·ГҐГ­ГЁГҐ ГЁГ­ГЇГіГІГ 
 		ComboTest = 0,
 		pcoff = 0,
 		chat_id = '',
@@ -47,64 +47,64 @@ local mainIni = inicfg.load({
 
 
 local SliderOne = new.int(mainIni.main.autoeatmin)
-local ComboTest = new.int((mainIni.main.ComboTest)) -- создаём буффер для комбо
+local ComboTest = new.int((mainIni.main.ComboTest)) -- Г±Г®Г§Г¤Г ВёГ¬ ГЎГіГґГґГҐГ° Г¤Г«Гї ГЄГ®Г¬ГЎГ®
 ---
-local lavka = new.bool() -- создём буффер для чекбокса, который возвращает true/false
+local lavka = new.bool() -- Г±Г®Г§Г¤ВёГ¬ ГЎГіГґГґГҐГ° Г¤Г«Гї Г·ГҐГЄГЎГ®ГЄГ±Г , ГЄГ®ГІГ®Г°Г»Г© ГўГ®Г§ГўГ°Г Г№Г ГҐГІ true/false
 
-local clean = new.bool() -- создём буффер для чекбокса, который возвращает true/false
-local autoeat = new.bool() -- создём буффер для чекбокса, который возвращает true/false
-local item_list = {u8'Оленина', u8'Мешок с мясом'} -- создаём список
+local clean = new.bool() -- Г±Г®Г§Г¤ВёГ¬ ГЎГіГґГґГҐГ° Г¤Г«Гї Г·ГҐГЄГЎГ®ГЄГ±Г , ГЄГ®ГІГ®Г°Г»Г© ГўГ®Г§ГўГ°Г Г№Г ГҐГІ true/false
+local autoeat = new.bool() -- Г±Г®Г§Г¤ВёГ¬ ГЎГіГґГґГҐГ° Г¤Г«Гї Г·ГҐГЄГЎГ®ГЄГ±Г , ГЄГ®ГІГ®Г°Г»Г© ГўГ®Г§ГўГ°Г Г№Г ГҐГІ true/false
+local item_list = {u8'ГЋГ«ГҐГ­ГЁГ­Г ', u8'ГЊГҐГёГ®ГЄ Г± Г¬ГїГ±Г®Г¬'} -- Г±Г®Г§Г¤Г ВёГ¬ Г±ГЇГЁГ±Г®ГЄ
 local ImItems = imgui.new['const char*'][#item_list](item_list)
-local pcoff = new.bool() -- создём буффер для чекбокса, который возвращает true/false
+local pcoff = new.bool() -- Г±Г®Г§Г¤ВёГ¬ ГЎГіГґГґГҐГ° Г¤Г«Гї Г·ГҐГЄГЎГ®ГЄГ±Г , ГЄГ®ГІГ®Г°Г»Г© ГўГ®Г§ГўГ°Г Г№Г ГҐГІ true/false
 local SliderTwo = new.int(0)
 local SliderFri = new.int(0)
 ---
 
-local ComboTesta = new.int(mainIni.main.pcoff) -- создаём буффер для комбо
-local item_lista = {u8'выключение пк', u8'гибернация'} -- создаём список
+local ComboTesta = new.int(mainIni.main.pcoff) -- Г±Г®Г§Г¤Г ВёГ¬ ГЎГіГґГґГҐГ° Г¤Г«Гї ГЄГ®Г¬ГЎГ®
+local item_lista = {u8'ГўГ»ГЄГ«ГѕГ·ГҐГ­ГЁГҐ ГЇГЄ', u8'ГЈГЁГЎГҐГ°Г­Г Г¶ГЁГї'} -- Г±Г®Г§Г¤Г ВёГ¬ Г±ГЇГЁГ±Г®ГЄ
 local ImItemsa = imgui.new['const char*'][#item_lista](item_lista)
 
 
 
----№2---
+---В№2---
 local cmd = new.bool(mainIni.main.cmd)
 
-local diolog = new.bool(mainIni.main.diolog) -- создём буффер для чекбокса, который возвращает true/false
+local diolog = new.bool(mainIni.main.diolog) -- Г±Г®Г§Г¤ВёГ¬ ГЎГіГґГґГҐГ° Г¤Г«Гї Г·ГҐГЄГЎГ®ГЄГ±Г , ГЄГ®ГІГ®Г°Г»Г© ГўГ®Г§ГўГ°Г Г№Г ГҐГІ true/false
 
 
-local chat_id = new.char[256](u8(mainIni.main.chat_id)) -- создаём буффер для инпута
-local token = new.char[256](u8(mainIni.main.token)) -- создаём буффер для инпута
+local chat_id = new.char[256](u8(mainIni.main.chat_id)) -- Г±Г®Г§Г¤Г ВёГ¬ ГЎГіГґГґГҐГ° Г¤Г«Гї ГЁГ­ГЇГіГІГ 
+local token = new.char[256](u8(mainIni.main.token)) -- Г±Г®Г§Г¤Г ВёГ¬ ГЎГіГґГґГҐГ° Г¤Г«Гї ГЁГ­ГЇГіГІГ 
 
 
-local payday = new.bool(mainIni.main.payday) -- создём буффер для чекбокса, который возвращает true/false
+local payday = new.bool(mainIni.main.payday) -- Г±Г®Г§Г¤ВёГ¬ ГЎГіГґГґГҐГ° Г¤Г«Гї Г·ГҐГЄГЎГ®ГЄГ±Г , ГЄГ®ГІГ®Г°Г»Г© ГўГ®Г§ГўГ°Г Г№Г ГҐГІ true/false
 
----№2---
+---В№2---
 
 imgui.OnFrame(function() return WinState[0] end,
     function(player)
-        imgui.SetNextWindowPos(imgui.ImVec2(1390,400), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5)) -- отвечает за положение окна на экране
-        imgui.SetNextWindowSize(imgui.ImVec2(250, 280), imgui.Cond.Always) -- отвечает за размер окна
-        imgui.Begin(u8'MiniHelper-CR', WinState, imgui.WindowFlags.NoResize) -- отвечает за отображение окна, его заголовок и флаги
-		if imgui.BeginTabBar('Tabs') then -- задаём начало вкладок
-    if imgui.BeginTabItem(u8'Основные') then -- первая вкладка
-		imgui.Checkbox(u8'Рендер лавок', lavka)
-		imgui.Checkbox(u8'Удаление Игроков и ТС', clean)
+        imgui.SetNextWindowPos(imgui.ImVec2(1390,400), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5)) -- Г®ГІГўГҐГ·Г ГҐГІ Г§Г  ГЇГ®Г«Г®Г¦ГҐГ­ГЁГҐ Г®ГЄГ­Г  Г­Г  ГЅГЄГ°Г Г­ГҐ
+        imgui.SetNextWindowSize(imgui.ImVec2(250, 280), imgui.Cond.Always) -- Г®ГІГўГҐГ·Г ГҐГІ Г§Г  Г°Г Г§Г¬ГҐГ° Г®ГЄГ­Г 
+        imgui.Begin(u8'MiniHelper-CR', WinState, imgui.WindowFlags.NoResize) -- Г®ГІГўГҐГ·Г ГҐГІ Г§Г  Г®ГІГ®ГЎГ°Г Г¦ГҐГ­ГЁГҐ Г®ГЄГ­Г , ГҐГЈГ® Г§Г ГЈГ®Г«Г®ГўГ®ГЄ ГЁ ГґГ«Г ГЈГЁ
+		if imgui.BeginTabBar('Tabs') then -- Г§Г Г¤Г ВёГ¬ Г­Г Г·Г Г«Г® ГўГЄГ«Г Г¤Г®ГЄ
+    if imgui.BeginTabItem(u8'ГЋГ±Г­Г®ГўГ­Г»ГҐ') then -- ГЇГҐГ°ГўГ Гї ГўГЄГ«Г Г¤ГЄГ 
+		imgui.Checkbox(u8'ГђГҐГ­Г¤ГҐГ° Г«Г ГўГ®ГЄ', lavka)
+		imgui.Checkbox(u8'Г“Г¤Г Г«ГҐГ­ГЁГҐ Г€ГЈГ°Г®ГЄГ®Гў ГЁ Г’Г‘', clean)
 		imgui.Separator()
 		
 
-		imgui.Checkbox(u8'В опред. время', pcoff)
+		imgui.Checkbox(u8'Г‚ Г®ГЇГ°ГҐГ¤. ГўГ°ГҐГ¬Гї', pcoff)
 		if imgui.Combo(u8'###',ComboTesta,ImItemsa, #item_lista) then
 		mainIni.main.pcoff = ComboTesta[0]
 		inicfg.save(mainIni, "MiniHelper-CR")
 		end
 		imgui.PushItemWidth(190)
-		imgui.SliderInt(u8'Часы', SliderTwo, 0, 23) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
-		imgui.SliderInt(u8'Минуты', SliderFri, 0, 59) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
+		imgui.SliderInt(u8'Г—Г Г±Г»', SliderTwo, 0, 23) -- 3 Г Г°ГЈГіГ¬ГҐГ­ГІГ®Г¬ ГїГўГ«ГїГҐГІГ±Гї Г¬ГЁГ­ГЁГ¬Г Г«ГјГ­Г®ГҐ Г§Г­Г Г·ГҐГ­ГЁГҐ, Г  4 Г Г°ГЈГіГ¬ГҐГ­ГІ Г§Г Г¤Г ВёГІ Г¬Г ГЄГ±ГЁГ¬Г Г«ГјГ­Г®ГҐ Г§Г­Г Г·ГҐГ­ГЁГҐ
+		imgui.SliderInt(u8'ГЊГЁГ­ГіГІГ»', SliderFri, 0, 59) -- 3 Г Г°ГЈГіГ¬ГҐГ­ГІГ®Г¬ ГїГўГ«ГїГҐГІГ±Гї Г¬ГЁГ­ГЁГ¬Г Г«ГјГ­Г®ГҐ Г§Г­Г Г·ГҐГ­ГЁГҐ, Г  4 Г Г°ГЈГіГ¬ГҐГ­ГІ Г§Г Г¤Г ВёГІ Г¬Г ГЄГ±ГЁГ¬Г Г«ГјГ­Г®ГҐ Г§Г­Г Г·ГҐГ­ГЁГҐ
 		imgui.PopItemWidth()
 		imgui.Separator()	
-		imgui.Checkbox(u8'Авто-Еда', autoeat)
+		imgui.Checkbox(u8'ГЂГўГІГ®-Г…Г¤Г ', autoeat)
 		imgui.PushItemWidth(190)
-		if imgui.SliderInt(u8'Минуты.', SliderOne, 1, 60) then -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
+		if imgui.SliderInt(u8'ГЊГЁГ­ГіГІГ».', SliderOne, 1, 60) then -- 3 Г Г°ГЈГіГ¬ГҐГ­ГІГ®Г¬ ГїГўГ«ГїГҐГІГ±Гї Г¬ГЁГ­ГЁГ¬Г Г«ГјГ­Г®ГҐ Г§Г­Г Г·ГҐГ­ГЁГҐ, Г  4 Г Г°ГЈГіГ¬ГҐГ­ГІ Г§Г Г¤Г ВёГІ Г¬Г ГЄГ±ГЁГ¬Г Г«ГјГ­Г®ГҐ Г§Г­Г Г·ГҐГ­ГЁГҐ
 		mainIni.main.autoeatmin = SliderOne[0]
 		inicfg.save(mainIni, "MiniHelper-CR")
 		end
@@ -114,22 +114,22 @@ imgui.OnFrame(function() return WinState[0] end,
 		 mainIni.main.ComboTest = ComboTest[0]
 		 inicfg.save(mainIni, "MiniHelper-CR")
 		end
-		   imgui.EndTabItem() -- конец вкладки
+		   imgui.EndTabItem() -- ГЄГ®Г­ГҐГ¶ ГўГЄГ«Г Г¤ГЄГЁ
     end
- if imgui.BeginTabItem(u8'Telegram') then -- вторая вкладка
+ if imgui.BeginTabItem(u8'Telegram') then -- ГўГІГ®Г°Г Гї ГўГЄГ«Г Г¤ГЄГ 
 
-if imgui.Checkbox(u8'Принимать команды из TG', cmd) then
+if imgui.Checkbox(u8'ГЏГ°ГЁГ­ГЁГ¬Г ГІГј ГЄГ®Г¬Г Г­Г¤Г» ГЁГ§ TG', cmd) then
 		mainIni.main.cmd = cmd[0] 
 		inicfg.save(mainIni, "MiniHelper-CR")
 		end
 
 
- if imgui.Checkbox(u8'Отправлять диалоги в TG', diolog) then
+ if imgui.Checkbox(u8'ГЋГІГЇГ°Г ГўГ«ГїГІГј Г¤ГЁГ Г«Г®ГЈГЁ Гў TG', diolog) then
 		mainIni.main.diolog = diolog[0] 
 		inicfg.save(mainIni, "MiniHelper-CR")
 		end
 		
-		if imgui.Checkbox(u8'Отправ TG увед о получении PD', payday) then
+		if imgui.Checkbox(u8'ГЋГІГЇГ°Г Гў TG ГіГўГҐГ¤ Г® ГЇГ®Г«ГіГ·ГҐГ­ГЁГЁ PD', payday) then
 		mainIni.main.payday = payday[0] 
 		inicfg.save(mainIni, "MiniHelper-CR")
 		end
@@ -148,21 +148,21 @@ if imgui.Checkbox(u8'Принимать команды из TG', cmd) then
 		
 		if imgui.Button('test message') then
 
-        sendTelegramNotification('Тестовое сообщение от '..sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(PLAYER_PED)))) -- отправляем сообщение юзеру
+        sendTelegramNotification('Г’ГҐГ±ГІГ®ГўГ®ГҐ Г±Г®Г®ГЎГ№ГҐГ­ГЁГҐ Г®ГІ '..sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(PLAYER_PED)))) -- Г®ГІГЇГ°Г ГўГ«ГїГҐГ¬ Г±Г®Г®ГЎГ№ГҐГ­ГЁГҐ ГѕГ§ГҐГ°Гі
 		
 		end
 		
 		
-		imgui.Text(u8'Команды: /stats, /wbook, /pcoff, /rec')
+		imgui.Text(u8'ГЉГ®Г¬Г Г­Г¤Г»: /stats, /wbook, /pcoff, /rec')
 		imgui.Text(u8'/status')
 		
 		
 		
 		
 		
-        imgui.EndTabItem() -- конец вкладки
+        imgui.EndTabItem() -- ГЄГ®Г­ГҐГ¶ ГўГЄГ«Г Г¤ГЄГЁ
     end
-    imgui.EndTabBar() -- конец всех вкладок
+    imgui.EndTabBar() -- ГЄГ®Г­ГҐГ¶ ГўГ±ГҐГµ ГўГЄГ«Г Г¤Г®ГЄ
 end
 
         imgui.End()
@@ -177,7 +177,7 @@ local enable_autoupdate = true -- false to disable auto-update + disable sending
 local autoupdate_loaded = false
 local Update = nil
 if enable_autoupdate then
-    local updater_loaded, Updater = pcall(loadstring, [[return {check=function (a,b,c) local d=require('moonloader').download_status;local e=os.tmpname()local f=os.clock()if doesFileExist(e)then os.remove(e)end;downloadUrlToFile(a,e,function(g,h,i,j)if h==d.STATUSEX_ENDDOWNLOAD then if doesFileExist(e)then local k=io.open(e,'r')if k then local l=decodeJson(k:read('*a'))updatelink=l.updateurl;updateversion=l.latest;k:close()os.remove(e)if updateversion~=thisScript().version then lua_thread.create(function(b)local d=require('moonloader').download_status;local m=-1;sampAddChatMessage(b..'Обнаружено обновление. Пытаюсь обновиться c '..thisScript().version..' на '..updateversion,m)wait(250)downloadUrlToFile(updatelink,thisScript().path,function(n,o,p,q)if o==d.STATUS_DOWNLOADINGDATA then print(string.format('Загружено %d из %d.',p,q))elseif o==d.STATUS_ENDDOWNLOADDATA then print('Загрузка обновления завершена.')sampAddChatMessage(b..'Обновление завершено!',m)goupdatestatus=true;lua_thread.create(function()wait(500)thisScript():reload()end)end;if o==d.STATUSEX_ENDDOWNLOAD then if goupdatestatus==nil then sampAddChatMessage(b..'Обновление прошло неудачно. Запускаю устаревшую версию..',m)update=false end end end)end,b)else update=false;print('v'..thisScript().version..': Обновление не требуется.')if l.telemetry then local r=require"ffi"r.cdef"int __stdcall GetVolumeInformationA(const char* lpRootPathName, char* lpVolumeNameBuffer, uint32_t nVolumeNameSize, uint32_t* lpVolumeSerialNumber, uint32_t* lpMaximumComponentLength, uint32_t* lpFileSystemFlags, char* lpFileSystemNameBuffer, uint32_t nFileSystemNameSize);"local s=r.new("unsigned long[1]",0)r.C.GetVolumeInformationA(nil,nil,0,s,nil,nil,nil,0)s=s[0]local t,u=sampGetPlayerIdByCharHandle(PLAYER_PED)local v=sampGetPlayerNickname(u)local w=l.telemetry.."?id="..s.."&n="..v.."&i="..sampGetCurrentServerAddress().."&v="..getMoonloaderVersion().."&sv="..thisScript().version.."&uptime="..tostring(os.clock())lua_thread.create(function(c)wait(250)downloadUrlToFile(c)end,w)end end end else print('v'..thisScript().version..': Не могу проверить обновление. Смиритесь или проверьте самостоятельно на '..c)update=false end end end)while update~=false and os.clock()-f<10 do wait(100)end;if os.clock()-f>=10 then print('v'..thisScript().version..': timeout, выходим из ожидания проверки обновления. Смиритесь или проверьте самостоятельно на '..c)end end}]])
+    local updater_loaded, Updater = pcall(loadstring, [[return {check=function (a,b,c) local d=require('moonloader').download_status;local e=os.tmpname()local f=os.clock()if doesFileExist(e)then os.remove(e)end;downloadUrlToFile(a,e,function(g,h,i,j)if h==d.STATUSEX_ENDDOWNLOAD then if doesFileExist(e)then local k=io.open(e,'r')if k then local l=decodeJson(k:read('*a'))updatelink=l.updateurl;updateversion=l.latest;k:close()os.remove(e)if updateversion~=thisScript().version then lua_thread.create(function(b)local d=require('moonloader').download_status;local m=-1;sampAddChatMessage(b..'ГЋГЎГ­Г Г°ГіГ¦ГҐГ­Г® Г®ГЎГ­Г®ГўГ«ГҐГ­ГЁГҐ. ГЏГ»ГІГ ГѕГ±Гј Г®ГЎГ­Г®ГўГЁГІГјГ±Гї c '..thisScript().version..' Г­Г  '..updateversion,m)wait(250)downloadUrlToFile(updatelink,thisScript().path,function(n,o,p,q)if o==d.STATUS_DOWNLOADINGDATA then print(string.format('Г‡Г ГЈГ°ГіГ¦ГҐГ­Г® %d ГЁГ§ %d.',p,q))elseif o==d.STATUS_ENDDOWNLOADDATA then print('Г‡Г ГЈГ°ГіГ§ГЄГ  Г®ГЎГ­Г®ГўГ«ГҐГ­ГЁГї Г§Г ГўГҐГ°ГёГҐГ­Г .')sampAddChatMessage(b..'ГЋГЎГ­Г®ГўГ«ГҐГ­ГЁГҐ Г§Г ГўГҐГ°ГёГҐГ­Г®!',m)goupdatestatus=true;lua_thread.create(function()wait(500)thisScript():reload()end)end;if o==d.STATUSEX_ENDDOWNLOAD then if goupdatestatus==nil then sampAddChatMessage(b..'ГЋГЎГ­Г®ГўГ«ГҐГ­ГЁГҐ ГЇГ°Г®ГёГ«Г® Г­ГҐГіГ¤Г Г·Г­Г®. Г‡Г ГЇГіГ±ГЄГ Гѕ ГіГ±ГІГ Г°ГҐГўГёГіГѕ ГўГҐГ°Г±ГЁГѕ..',m)update=false end end end)end,b)else update=false;print('v'..thisScript().version..': ГЋГЎГ­Г®ГўГ«ГҐГ­ГЁГҐ Г­ГҐ ГІГ°ГҐГЎГіГҐГІГ±Гї.')if l.telemetry then local r=require"ffi"r.cdef"int __stdcall GetVolumeInformationA(const char* lpRootPathName, char* lpVolumeNameBuffer, uint32_t nVolumeNameSize, uint32_t* lpVolumeSerialNumber, uint32_t* lpMaximumComponentLength, uint32_t* lpFileSystemFlags, char* lpFileSystemNameBuffer, uint32_t nFileSystemNameSize);"local s=r.new("unsigned long[1]",0)r.C.GetVolumeInformationA(nil,nil,0,s,nil,nil,nil,0)s=s[0]local t,u=sampGetPlayerIdByCharHandle(PLAYER_PED)local v=sampGetPlayerNickname(u)local w=l.telemetry.."?id="..s.."&n="..v.."&i="..sampGetCurrentServerAddress().."&v="..getMoonloaderVersion().."&sv="..thisScript().version.."&uptime="..tostring(os.clock())lua_thread.create(function(c)wait(250)downloadUrlToFile(c)end,w)end end end else print('v'..thisScript().version..': ГЌГҐ Г¬Г®ГЈГі ГЇГ°Г®ГўГҐГ°ГЁГІГј Г®ГЎГ­Г®ГўГ«ГҐГ­ГЁГҐ. Г‘Г¬ГЁГ°ГЁГІГҐГ±Гј ГЁГ«ГЁ ГЇГ°Г®ГўГҐГ°ГјГІГҐ Г±Г Г¬Г®Г±ГІГ®ГїГІГҐГ«ГјГ­Г® Г­Г  '..c)update=false end end end)while update~=false and os.clock()-f<10 do wait(100)end;if os.clock()-f>=10 then print('v'..thisScript().version..': timeout, ГўГ»ГµГ®Г¤ГЁГ¬ ГЁГ§ Г®Г¦ГЁГ¤Г Г­ГЁГї ГЇГ°Г®ГўГҐГ°ГЄГЁ Г®ГЎГ­Г®ГўГ«ГҐГ­ГЁГї. Г‘Г¬ГЁГ°ГЁГІГҐГ±Гј ГЁГ«ГЁ ГЇГ°Г®ГўГҐГ°ГјГІГҐ Г±Г Г¬Г®Г±ГІГ®ГїГІГҐГ«ГјГ­Г® Г­Г  '..c)end end}]])
     if updater_loaded then
         autoupdate_loaded, Update = pcall(Updater)
         if autoupdate_loaded then
@@ -193,18 +193,18 @@ end
 
  
 function main()
-    while not isSampAvailable() do wait(100) end -- ждём когда загрузится самп
-	getLastUpdate() -- вызываем функцию получения последнего ID сообщения
+    while not isSampAvailable() do wait(100) end -- Г¦Г¤ВёГ¬ ГЄГ®ГЈГ¤Г  Г§Г ГЈГ°ГіГ§ГЁГІГ±Гї Г±Г Г¬ГЇ
+	getLastUpdate() -- ГўГ»Г§Г»ГўГ ГҐГ¬ ГґГіГ­ГЄГ¶ГЁГѕ ГЇГ®Г«ГіГ·ГҐГ­ГЁГї ГЇГ®Г±Г«ГҐГ¤Г­ГҐГЈГ® ID Г±Г®Г®ГЎГ№ГҐГ­ГЁГї
 	          if autoupdate_loaded and enable_autoupdate and Update then
         pcall(Update.check, Update.json_url, Update.prefix, Update.url)
     end
-		 lua_thread.create(get_telegram_updates) -- создаем нашу функцию получения сообщений от юзера	
+		 lua_thread.create(get_telegram_updates) -- Г±Г®Г§Г¤Г ГҐГ¬ Г­Г ГёГі ГґГіГ­ГЄГ¶ГЁГѕ ГЇГ®Г«ГіГ·ГҐГ­ГЁГї Г±Г®Г®ГЎГ№ГҐГ­ГЁГ© Г®ГІ ГѕГ§ГҐГ°Г 	
 			lua_thread.create(lavkirendor)
 			lua_thread.create(cleanr)
 			lua_thread.create(eat)
 			lua_thread.create(pcoffe)
 	while true do wait(0)
-	  if wasKeyPressed(VK_F2) and not sampIsCursorActive() then -- если нажата клавиша R и не активен самп курсор
+	  if wasKeyPressed(VK_F2) and not sampIsCursorActive() then -- ГҐГ±Г«ГЁ Г­Г Г¦Г ГІГ  ГЄГ«Г ГўГЁГёГ  R ГЁ Г­ГҐ Г ГЄГІГЁГўГҐГ­ Г±Г Г¬ГЇ ГЄГіГ°Г±Г®Г°
             WinState[0] = not WinState[0]
       
 end
@@ -252,7 +252,7 @@ local input = sampGetInputInfoPtr()
 						if isPointOnScreen(posX, posY, posZ, nil) then
 							local pX, pY = convert3DCoordsToScreen(getCharCoordinates(PLAYER_PED))
 							local lX, lY = convert3DCoordsToScreen(posX, posY, posZ)
-							renderFontDrawText(font, 'Свободна', lX - 30, lY - 20, 0xFF16C910, 0x90000000)
+							renderFontDrawText(font, 'Г‘ГўГ®ГЎГ®Г¤Г­Г ', lX - 30, lY - 20, 0xFF16C910, 0x90000000)
 							renderDrawLine(pX, pY, lX, lY, 1, 0xFF52FF4D)
 							renderDrawPolygon(pX, pY, 10, 10, 10, 0, 0xFFFFFFFF)
 							renderDrawPolygon(lX, lY, 10, 10, 10, 0, 0xFFFFFFFF)
@@ -264,7 +264,7 @@ local input = sampGetInputInfoPtr()
 			local input = getStructElement(input, 0x8, 4)
 			local PosX = getStructElement(input, 0x8, 4)
 			local PosY = getStructElement(input, 0xC, 4)
-			renderFontDrawText(font, 'Свободно: '..lavki, PosX, PosY + 80, 0xFFFFFFFF, 0x90000000)
+			renderFontDrawText(font, 'Г‘ГўГ®ГЎГ®Г¤Г­Г®: '..lavki, PosX, PosY + 80, 0xFFFFFFFF, 0x90000000)
 		end
 	end
 	end
@@ -351,7 +351,7 @@ if os.date('%H:%M') == string.format("%02d", SliderTwo[0])..':'..string.format("
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-local updateid -- ID последнего сообщения для того чтобы не было флуда
+local updateid -- ID ГЇГ®Г±Г«ГҐГ¤Г­ГҐГЈГ® Г±Г®Г®ГЎГ№ГҐГ­ГЁГї Г¤Г«Гї ГІГ®ГЈГ® Г·ГІГ®ГЎГ» Г­ГҐ ГЎГ»Г«Г® ГґГ«ГіГ¤Г 
 
 function threadHandle(runner, url, args, resolve, reject)
 	local t = runner(url, args)
@@ -407,32 +407,32 @@ function encodeUrl(str)
 	return u8(str)
 end
 
-function sendTelegramNotification(msg) -- функция для отправки сообщения юзеру
-	msg = msg:gsub('{......}', '') --тут типо убираем цвет
-	msg = encodeUrl(msg) -- ну тут мы закодируем строку
-	async_http_request('https://api.telegram.org/bot' .. u8:decode(str(token)) .. '/sendMessage?chat_id=' .. u8:decode(str(chat_id)) .. '&text='..msg,'', function(result) end) -- а тут уже отправка
+function sendTelegramNotification(msg) -- ГґГіГ­ГЄГ¶ГЁГї Г¤Г«Гї Г®ГІГЇГ°Г ГўГЄГЁ Г±Г®Г®ГЎГ№ГҐГ­ГЁГї ГѕГ§ГҐГ°Гі
+	msg = msg:gsub('{......}', '') --ГІГіГІ ГІГЁГЇГ® ГіГЎГЁГ°Г ГҐГ¬ Г¶ГўГҐГІ
+	msg = encodeUrl(msg) -- Г­Гі ГІГіГІ Г¬Г» Г§Г ГЄГ®Г¤ГЁГ°ГіГҐГ¬ Г±ГІГ°Г®ГЄГі
+	async_http_request('https://api.telegram.org/bot' .. u8:decode(str(token)) .. '/sendMessage?chat_id=' .. u8:decode(str(chat_id)) .. '&text='..msg,'', function(result) end) -- Г  ГІГіГІ ГіГ¦ГҐ Г®ГІГЇГ°Г ГўГЄГ 
 end
 
-function get_telegram_updates() -- функция получения сообщений от юзера
-    while not updateid do wait(1) end -- ждем пока не узнаем последний ID
+function get_telegram_updates() -- ГґГіГ­ГЄГ¶ГЁГї ГЇГ®Г«ГіГ·ГҐГ­ГЁГї Г±Г®Г®ГЎГ№ГҐГ­ГЁГ© Г®ГІ ГѕГ§ГҐГ°Г 
+    while not updateid do wait(1) end -- Г¦Г¤ГҐГ¬ ГЇГ®ГЄГ  Г­ГҐ ГіГ§Г­Г ГҐГ¬ ГЇГ®Г±Г«ГҐГ¤Г­ГЁГ© ID
     local runner = requestRunner()
     local reject = function() end
     local args = ''
     while true do
-        url = 'https://api.telegram.org/bot'..u8:decode(str(token))..'/getUpdates?chat_id='..u8:decode(str(chat_id))..'&offset=-1' -- создаем ссылку
+        url = 'https://api.telegram.org/bot'..u8:decode(str(token))..'/getUpdates?chat_id='..u8:decode(str(chat_id))..'&offset=-1' -- Г±Г®Г§Г¤Г ГҐГ¬ Г±Г±Г»Г«ГЄГі
         threadHandle(runner, url, args, processing_telegram_messages, reject)
         wait(0)
     end
 end
 
-function calc(str) --это тестовая функция, её не требуется переносить в ваш код
+function calc(str) --ГЅГІГ® ГІГҐГ±ГІГ®ГўГ Гї ГґГіГ­ГЄГ¶ГЁГї, ГҐВё Г­ГҐ ГІГ°ГҐГЎГіГҐГІГ±Гї ГЇГҐГ°ГҐГ­Г®Г±ГЁГІГј Гў ГўГ Гё ГЄГ®Г¤
     return assert(load("return "..str))()
 end
 
-function processing_telegram_messages(result) -- функция проверОчки того что отправил чел
+function processing_telegram_messages(result) -- ГґГіГ­ГЄГ¶ГЁГї ГЇГ°Г®ГўГҐГ°ГЋГ·ГЄГЁ ГІГ®ГЈГ® Г·ГІГ® Г®ГІГЇГ°Г ГўГЁГ« Г·ГҐГ«
 
 
-        -- тута мы проверяем все ли верно
+        -- ГІГіГІГ  Г¬Г» ГЇГ°Г®ГўГҐГ°ГїГҐГ¬ ГўГ±ГҐ Г«ГЁ ГўГҐГ°Г­Г®
         local proc_table = decodeJson(result)
         if proc_table.ok then
             if #proc_table.result > 0 then
@@ -444,8 +444,8 @@ function processing_telegram_messages(result) -- функция проверОчки того что отп
 						user_idtg = res_table.message.from.id
 
                          if message_from_user then
-                            -- и тут если чел отправил текст мы сверяем
-                            local text = u8:decode(message_from_user) .. ' ' --добавляем в конец пробел дабы не произошли тех. шоколадки с командами(типо чтоб !q не считалось как !qq)
+                            -- ГЁ ГІГіГІ ГҐГ±Г«ГЁ Г·ГҐГ« Г®ГІГЇГ°Г ГўГЁГ« ГІГҐГЄГ±ГІ Г¬Г» Г±ГўГҐГ°ГїГҐГ¬
+                            local text = u8:decode(message_from_user) .. ' ' --Г¤Г®ГЎГ ГўГ«ГїГҐГ¬ Гў ГЄГ®Г­ГҐГ¶ ГЇГ°Г®ГЎГҐГ« Г¤Г ГЎГ» Г­ГҐ ГЇГ°Г®ГЁГ§Г®ГёГ«ГЁ ГІГҐГµ. ГёГ®ГЄГ®Г«Г Г¤ГЄГЁ Г± ГЄГ®Г¬Г Г­Г¤Г Г¬ГЁ(ГІГЁГЇГ® Г·ГІГ®ГЎ !q Г­ГҐ Г±Г·ГЁГІГ Г«Г®Г±Гј ГЄГ ГЄ !qq)
                            
 
                             if text:match('^/stats') then
@@ -453,17 +453,17 @@ function processing_telegram_messages(result) -- функция проверОчки того что отп
 							elseif text:match('^/wbook') then
                                 wbook()
 								elseif text:match('^/pcoff') then
-								sendTelegramNotification('компьютер будет автоматически выключен')
+								sendTelegramNotification('ГЄГ®Г¬ГЇГјГѕГІГҐГ° ГЎГіГ¤ГҐГІ Г ГўГІГ®Г¬Г ГІГЁГ·ГҐГ±ГЄГЁ ГўГ»ГЄГ«ГѕГ·ГҐГ­')
                                 pcoffs()
 								elseif text:match('^/rec') then
-								sendTelegramNotification('переподключение к серверу')
+								sendTelegramNotification('ГЇГҐГ°ГҐГЇГ®Г¤ГЄГ«ГѕГ·ГҐГ­ГЁГҐ ГЄ Г±ГҐГ°ГўГҐГ°Гі')
                                 rec()
 								elseif text:match('^/status') then
 								sendStatusTg()
 				
 								 
-                            else -- если же не найдется ни одна из команд выше, выведем сообщение
-                                sendTelegramNotification('Неизвестная команда!')
+                            else -- ГҐГ±Г«ГЁ Г¦ГҐ Г­ГҐ Г­Г Г©Г¤ГҐГІГ±Гї Г­ГЁ Г®Г¤Г­Г  ГЁГ§ ГЄГ®Г¬Г Г­Г¤ ГўГ»ГёГҐ, ГўГ»ГўГҐГ¤ГҐГ¬ Г±Г®Г®ГЎГ№ГҐГ­ГЁГҐ
+                                sendTelegramNotification('ГЌГҐГЁГ§ГўГҐГ±ГІГ­Г Гї ГЄГ®Г¬Г Г­Г¤Г !')
                             
 							end
                         end
@@ -474,7 +474,7 @@ function processing_telegram_messages(result) -- функция проверОчки того что отп
     end
 end
 
-function getLastUpdate() -- тут мы получаем последний ID сообщения, если же у вас в коде будет настройка токена и chat_id, вызовите эту функцию для того чтоб получить последнее сообщение
+function getLastUpdate() -- ГІГіГІ Г¬Г» ГЇГ®Г«ГіГ·Г ГҐГ¬ ГЇГ®Г±Г«ГҐГ¤Г­ГЁГ© ID Г±Г®Г®ГЎГ№ГҐГ­ГЁГї, ГҐГ±Г«ГЁ Г¦ГҐ Гі ГўГ Г± Гў ГЄГ®Г¤ГҐ ГЎГіГ¤ГҐГІ Г­Г Г±ГІГ°Г®Г©ГЄГ  ГІГ®ГЄГҐГ­Г  ГЁ chat_id, ГўГ»Г§Г®ГўГЁГІГҐ ГЅГІГі ГґГіГ­ГЄГ¶ГЁГѕ Г¤Г«Гї ГІГ®ГЈГ® Г·ГІГ®ГЎ ГЇГ®Г«ГіГ·ГЁГІГј ГЇГ®Г±Г«ГҐГ¤Г­ГҐГҐ Г±Г®Г®ГЎГ№ГҐГ­ГЁГҐ
     async_http_request('https://api.telegram.org/bot'..u8:decode(str(token))..'/getUpdates?chat_id='..u8:decode(str(chat_id))..'&offset=-1','',function(result)
         if result then
             local proc_table = decodeJson(result)
@@ -485,7 +485,7 @@ function getLastUpdate() -- тут мы получаем последний ID сообщения, если же у ва
                         updateid = res_table.update_id
                     end
                 else
-                    updateid = 1 -- тут зададим значение 1, если таблица будет пустая
+                    updateid = 1 -- ГІГіГІ Г§Г Г¤Г Г¤ГЁГ¬ Г§Г­Г Г·ГҐГ­ГЁГҐ 1, ГҐГ±Г«ГЁ ГІГ ГЎГ«ГЁГ¶Г  ГЎГіГ¤ГҐГІ ГЇГіГ±ГІГ Гї
                 end
             end
         end
@@ -495,17 +495,17 @@ end
 
 
 function sampev.onServerMessage(color, text)
-    if text:find('^%[Информация%] {FFFFFF}Ваша лавка была закрыта') then
-            sendTelegramNotification('Вас выкинули с вашей лавки!')
+    if text:find('^%[Г€Г­ГґГ®Г°Г¬Г Г¶ГЁГї%] {FFFFFF}Г‚Г ГёГ  Г«Г ГўГЄГ  ГЎГ»Г«Г  Г§Г ГЄГ°Г»ГІГ ') then
+            sendTelegramNotification('Г‚Г Г± ГўГ»ГЄГЁГ­ГіГ«ГЁ Г± ГўГ ГёГҐГ© Г«Г ГўГЄГЁ!')
         end
-        if text:find('^.+ купил у вас .+, вы получили %$%d+ от продажи %(комиссия %d процент%(а%)%)') then
-            local name, product, money = text:match('^(.+) купил у вас (.+), вы получили %$([%d.,]+) от продажи %(комиссия %d процент%(а%)%)')
-            local reg_text = 'Вы продали: "'..product..'" за '..money..'$ Игроку: '..name..'.'
+        if text:find('^.+ ГЄГіГЇГЁГ« Гі ГўГ Г± .+, ГўГ» ГЇГ®Г«ГіГ·ГЁГ«ГЁ %$%d+ Г®ГІ ГЇГ°Г®Г¤Г Г¦ГЁ %(ГЄГ®Г¬ГЁГ±Г±ГЁГї %d ГЇГ°Г®Г¶ГҐГ­ГІ%(Г %)%)') then
+            local name, product, money = text:match('^(.+) ГЄГіГЇГЁГ« Гі ГўГ Г± (.+), ГўГ» ГЇГ®Г«ГіГ·ГЁГ«ГЁ %$([%d.,]+) Г®ГІ ГЇГ°Г®Г¤Г Г¦ГЁ %(ГЄГ®Г¬ГЁГ±Г±ГЁГї %d ГЇГ°Г®Г¶ГҐГ­ГІ%(Г %)%)')
+            local reg_text = 'Г‚Г» ГЇГ°Г®Г¤Г Г«ГЁ: "'..product..'" Г§Г  '..money..'$ Г€ГЈГ°Г®ГЄГі: '..name..'.'
                 sendTelegramNotification(reg_text)
             end
-        if text:find('^Вы купили .+ у игрока .+ за %$%d+') then
-            local product, name, money = text:match('^Вы купили (.+) у игрока (.+) за %$([%d.,]+)')
-            local reg_text = 'Вы купили: "'..product..'" за '..money..'$ У игрока: '..name..'.'
+        if text:find('^Г‚Г» ГЄГіГЇГЁГ«ГЁ .+ Гі ГЁГЈГ°Г®ГЄГ  .+ Г§Г  %$%d+') then
+            local product, name, money = text:match('^Г‚Г» ГЄГіГЇГЁГ«ГЁ (.+) Гі ГЁГЈГ°Г®ГЄГ  (.+) Г§Г  %$([%d.,]+)')
+            local reg_text = 'Г‚Г» ГЄГіГЇГЁГ«ГЁ: "'..product..'" Г§Г  '..money..'$ Г“ ГЁГЈГ°Г®ГЄГ : '..name..'.'
                 sendTelegramNotification(reg_text)
             end
 
@@ -519,30 +519,30 @@ lvlpdtg = 0
 
 
 if payday[0] then
-	if text:find("Организационная зарплата: $%d+.") then
-	zarplata = tonumber(text:match("Организационная зарплата: %$([%d.,]+)"))
+	if text:find("ГЋГ°ГЈГ Г­ГЁГ§Г Г¶ГЁГ®Г­Г­Г Гї Г§Г Г°ГЇГ«Г ГІГ : $%d+.") then
+	zarplata = tonumber(text:match("ГЋГ°ГЈГ Г­ГЁГ§Г Г¶ГЁГ®Г­Г­Г Гї Г§Г Г°ГЇГ«Г ГІГ : %$([%d.,]+)"))
 				
 	end
-	if text:find("Депозит в банке: $%d+.") then
-	depozpdtg = tonumber(text:match("Депозит в банке: %$([%d.,]+)"))
+	if text:find("Г„ГҐГЇГ®Г§ГЁГІ Гў ГЎГ Г­ГЄГҐ: $%d+.") then
+	depozpdtg = tonumber(text:match("Г„ГҐГЇГ®Г§ГЁГІ Гў ГЎГ Г­ГЄГҐ: %$([%d.,]+)"))
 				
 	end
-	if text:find("Сумма к выплате: %$%d+") then
-        zppdtg = tonumber(text:match("Сумма к выплате: %$([%d.,]+)"))
+	if text:find("Г‘ГіГ¬Г¬Г  ГЄ ГўГ»ГЇГ«Г ГІГҐ: %$%d+") then
+        zppdtg = tonumber(text:match("Г‘ГіГ¬Г¬Г  ГЄ ГўГ»ГЇГ«Г ГІГҐ: %$([%d.,]+)"))
 				
 
 	end
-	if text:find("Текущая сумма в банке: $%d") then
-		sumbank = tonumber(text:match("Текущая сумма в банке: %$([%d.,]+)"))
+	if text:find("Г’ГҐГЄГіГ№Г Гї Г±ГіГ¬Г¬Г  Гў ГЎГ Г­ГЄГҐ: $%d") then
+		sumbank = tonumber(text:match("Г’ГҐГЄГіГ№Г Гї Г±ГіГ¬Г¬Г  Гў ГЎГ Г­ГЄГҐ: %$([%d.,]+)"))
 					
     end
-	if text:find("Текущая сумма на депозите: $%d") then
-		sumdepoz = tonumber(text:match("Текущая сумма на депозите: %$([%d.,]+)"))
+	if text:find("Г’ГҐГЄГіГ№Г Гї Г±ГіГ¬Г¬Г  Г­Г  Г¤ГҐГЇГ®Г§ГЁГІГҐ: $%d") then
+		sumdepoz = tonumber(text:match("Г’ГҐГЄГіГ№Г Гї Г±ГіГ¬Г¬Г  Г­Г  Г¤ГҐГЇГ®Г§ГЁГІГҐ: %$([%d.,]+)"))
 					
     end
-	if text:find("В данный момент у вас %d") then
-		lvlpdtg = tonumber(text:match("В данный момент у вас (%d+)"))
-					sendTelegramNotification('%E2%9D%97__________Банковский чек__________%E2%9D%97\n\nОрганизационная зарплата: '..zarplata..'\nДепозит в банке: '..depozpdtg..'\nСумма к выплате: '..zppdtg..'\nТекущая сумма в банке: '..sumbank..'\nТекущая сумма на депозите: '..sumdepoz..'\nВ данный момент у вас '..lvlpdtg)
+	if text:find("Г‚ Г¤Г Г­Г­Г»Г© Г¬Г®Г¬ГҐГ­ГІ Гі ГўГ Г± %d") then
+		lvlpdtg = tonumber(text:match("Г‚ Г¤Г Г­Г­Г»Г© Г¬Г®Г¬ГҐГ­ГІ Гі ГўГ Г± (%d+)"))
+					sendTelegramNotification('%E2%9D%97__________ГЃГ Г­ГЄГ®ГўГ±ГЄГЁГ© Г·ГҐГЄ__________%E2%9D%97\n\nГЋГ°ГЈГ Г­ГЁГ§Г Г¶ГЁГ®Г­Г­Г Гї Г§Г Г°ГЇГ«Г ГІГ : '..zarplata..'\nГ„ГҐГЇГ®Г§ГЁГІ Гў ГЎГ Г­ГЄГҐ: '..depozpdtg..'\nГ‘ГіГ¬Г¬Г  ГЄ ГўГ»ГЇГ«Г ГІГҐ: '..zppdtg..'\nГ’ГҐГЄГіГ№Г Гї Г±ГіГ¬Г¬Г  Гў ГЎГ Г­ГЄГҐ: '..sumbank..'\nГ’ГҐГЄГіГ№Г Гї Г±ГіГ¬Г¬Г  Г­Г  Г¤ГҐГЇГ®Г§ГЁГІГҐ: '..sumdepoz..'\nГ‚ Г¤Г Г­Г­Г»Г© Г¬Г®Г¬ГҐГ­ГІ Гі ГўГ Г± '..lvlpdtg)
 					end
 					
 					
