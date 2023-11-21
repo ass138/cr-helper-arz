@@ -1,6 +1,7 @@
 script_name("cr-helper-arz")
-script_version("21.11.2023")
+script_version("21.11.2024")
 
+--хуй--
 require 'lib.moonloader'
 local imgui = require 'mimgui' -- подключаем библиотеку мимгуи
 local encoding = require 'encoding' -- подключаем библиотеку для работы с разными кодировками
