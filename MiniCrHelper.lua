@@ -1,5 +1,5 @@
 script_name("cr-helper-arz")
-script_version("21.11.2023")
+script_version("22.11.2023")
 
 --хуй--
 require 'lib.moonloader'
@@ -42,6 +42,7 @@ local mainIni = inicfg.load({
 		diolog = false,
 		cmd = false,
 		payday = false,
+		info = false,
     }}, 'MiniHelper-CR.ini')
 
 
@@ -63,7 +64,6 @@ local SliderFri = new.int(0)
 local ComboTesta = new.int(mainIni.main.pcoff) -- создаём буффер для комбо
 local item_lista = {u8'выключение пк', u8'гибернация'} -- создаём список
 local ImItemsa = imgui.new['const char*'][#item_lista](item_lista)
-
 
 
 ---№2---
@@ -108,14 +108,23 @@ imgui.OnFrame(function() return WinState[0] end,
 		mainIni.main.autoeatmin = SliderOne[0]
 		inicfg.save(mainIni, "MiniHelper-CR")
 		end
+		
 		imgui.PopItemWidth()
 		
 		if imgui.Combo(u8'##',ComboTest,ImItems, #item_list) then
 		 mainIni.main.ComboTest = ComboTest[0]
 		 inicfg.save(mainIni, "MiniHelper-CR")
 		end
+		
 		   imgui.EndTabItem() -- конец вкладки
     end
+	if imgui.BeginTabItem(u8'тут ничего нет') then -- вторая вкладка
+
+	
+	 imgui.EndTabItem() -- конец вкладки
+    end
+	
+	
  if imgui.BeginTabItem(u8'Telegram') then -- вторая вкладка
 
 if imgui.Checkbox(u8'Принимать команды из TG', cmd) then
@@ -264,7 +273,7 @@ local input = sampGetInputInfoPtr()
 			local input = getStructElement(input, 0x8, 4)
 			local PosX = getStructElement(input, 0x8, 4)
 			local PosY = getStructElement(input, 0xC, 4)
-			renderFontDrawText(font, 'Свободно: '..lavki, PosX, PosY + 80, 0xFFFFFFFF, 0x90000000)
+			renderFontDrawText(font, 'Свободно: '..lavki, 95, 510 + 80, 0xFFFF1493, 0x90000000)
 		end
 	end
 	end
