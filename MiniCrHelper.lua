@@ -1,5 +1,5 @@
 script_name("cr-helper-arz")
-script_version("22.11.2023")
+script_version("22.12.2023")
 
 --хуй--
 require 'lib.moonloader'
@@ -11,6 +11,7 @@ local new = imgui.new -- создаём короткий псевдоним для удобства
 local WinState = new.bool() -- создаём буффер для открытия окна
 require 'lib.moonloader'
 local imgui = require 'mimgui'
+local audio = loadAudioStream("moonloader/bell.mp3")
 local ffi = require 'ffi'
 local encoding = require 'encoding'
 encoding.default = 'CP1251'
@@ -29,6 +30,7 @@ local effil = require("effil")
 local encoding = require("encoding")
 encoding.default = 'CP1251'
 u8 = encoding.UTF8
+
 
 local inicfg = require 'inicfg'
 local mainIni = inicfg.load({
@@ -64,6 +66,39 @@ local SliderFri = new.int(0)
 local ComboTesta = new.int(mainIni.main.pcoff) -- создаём буффер для комбо
 local item_lista = {u8'выключение пк', u8'гибернация'} -- создаём список
 local ImItemsa = imgui.new['const char*'][#item_lista](item_lista)
+
+
+
+
+
+
+
+
+
+---spawn---
+local spawn = new.bool() -- создём буффер для чекбокса, который возвращает true/false
+local Combospawn = new.int() -- создаём буфер для комбо
+local item_spawn = {u8'Отель', u8'Дом', u8'Организация', u8'Семейная-кв', u8'Вокзал', u8'Трейлер'} -- создаём таблицу с содержимым списка
+local ImItemsspawn = imgui.new['const char*'][#item_spawn](item_spawn)
+---spawn---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ---№2---
@@ -118,34 +153,34 @@ imgui.OnFrame(function() return WinState[0] end,
 		
 		   imgui.EndTabItem() -- конец вкладки
     end
-	if imgui.BeginTabItem(u8'тут ничего нет') then -- вторая вкладка
-
 	
+	
+	
+	
+	
+	
+	if imgui.BeginTabItem(u8'Спавн меню') then -- вторая вкладка
+       if imgui.Checkbox(u8'Спавн', spawn) then
+	   
+	    spawner()
+	  end	
+	imgui.Combo(u8'Список',Combospawn,ImItemsspawn, #item_spawn)
 	 imgui.EndTabItem() -- конец вкладки
-    end
-	
-	
- if imgui.BeginTabItem(u8'Telegram') then -- вторая вкладка
-
-if imgui.Checkbox(u8'Принимать команды из TG', cmd) then
+      end	
+        if imgui.BeginTabItem(u8'Telegram') then -- вторая вкладка
+        if imgui.Checkbox(u8'Принимать команды из TG', cmd) then
 		mainIni.main.cmd = cmd[0] 
 		inicfg.save(mainIni, "MiniHelper-CR")
-		end
-
-
- if imgui.Checkbox(u8'Отправлять диалоги в TG', diolog) then
+	  end
+        if imgui.Checkbox(u8'Отправлять диалоги в TG', diolog) then
 		mainIni.main.diolog = diolog[0] 
 		inicfg.save(mainIni, "MiniHelper-CR")
-		end
-		
-		if imgui.Checkbox(u8'Отправ TG увед о получении PD', payday) then
+	  end	
+        if imgui.Checkbox(u8'Отправ TG увед о получении PD', payday) then
 		mainIni.main.payday = payday[0] 
 		inicfg.save(mainIni, "MiniHelper-CR")
-		end
-		
-		
-		
-      if imgui.InputText(u8"TG ID", chat_id, 256) then 
+	  end	
+        if imgui.InputText(u8"TG ID", chat_id, 256) then 
 	    mainIni.main.chat_id = u8:decode(str(chat_id))
 		inicfg.save(mainIni, "MiniHelper-CR")
 	  end
@@ -154,28 +189,21 @@ if imgui.Checkbox(u8'Принимать команды из TG', cmd) then
 		
 		inicfg.save(mainIni, "MiniHelper-CR")
 	  end
-		
 		if imgui.Button('test message') then
-
         sendTelegramNotification('Тестовое сообщение от '..sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(PLAYER_PED)))) -- отправляем сообщение юзеру
-		
-		end
-		
-		
+	  end
+		if imgui.Button('test') then
+		setAudioStreamVolume(audio, 100)
+          setAudioStreamState(audio, 1)
+	  end
 		imgui.Text(u8'Команды: /stats, /wbook, /pcoff, /rec')
 		imgui.Text(u8'/status')
-		
-		
-		
-		
-		
         imgui.EndTabItem() -- конец вкладки
-    end
+      end
     imgui.EndTabBar() -- конец всех вкладок
-end
-
+      end
         imgui.End()
-    end
+      end
 
 )
 
@@ -212,6 +240,9 @@ function main()
 			lua_thread.create(cleanr)
 			lua_thread.create(eat)
 			lua_thread.create(pcoffe)
+			
+	
+		
 	while true do wait(0)
 	  if wasKeyPressed(VK_F2) and not sampIsCursorActive() then -- если нажата клавиша R и не активен самп курсор
             WinState[0] = not WinState[0]
@@ -222,37 +253,27 @@ end
 
 
 
+function spawner()
+ sampSendChat('/setspawn')
+end
 
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+local sound_state = require "moonloader".audiostream_state
 
 
 
 function lavkirendor()
 while true do wait(0)
-        if lavka[0] then
-		
+        if lavka[0] then		
 local input = sampGetInputInfoPtr()
 			local input = getStructElement(input, 0x8, 4)
 			local PosX = getStructElement(input, 0x8, 4)
 			local PosY = getStructElement(input, 0xC, 4)
-			local lavki = 0
+	        local lavki = 1
 			for id = 0, 2304 do
 				if sampIs3dTextDefined(id) then
 					local text, _, posX, posY, posZ, _, _, _, _ = sampGet3dTextInfoById(id)
@@ -262,9 +283,9 @@ local input = sampGetInputInfoPtr()
 							local pX, pY = convert3DCoordsToScreen(getCharCoordinates(PLAYER_PED))
 							local lX, lY = convert3DCoordsToScreen(posX, posY, posZ)
 							renderFontDrawText(font, 'Свободна', lX - 30, lY - 20, 0xFF16C910, 0x90000000)
-							renderDrawLine(pX, pY, lX, lY, 1, 0xFF52FF4D)
+				            renderDrawLine(pX, pY, lX, lY, 1, 0xFF52FF4D)
 							renderDrawPolygon(pX, pY, 10, 10, 10, 0, 0xFFFFFFFF)
-							renderDrawPolygon(lX, lY, 10, 10, 10, 0, 0xFFFFFFFF)
+							renderDrawPolygon(lX, lY, 10, 10, 10, 0, 0xFFFFFFFF)  
 						end
 					end
 				end
@@ -274,15 +295,17 @@ local input = sampGetInputInfoPtr()
 			local PosX = getStructElement(input, 0x8, 4)
 			local PosY = getStructElement(input, 0xC, 4)
 			renderFontDrawText(font, 'Свободно: '..lavki, 95, 510 + 80, 0xFFFF1493, 0x90000000)
+			if lavki > 0 then
+	        test = not test
+ if test then
+        setAudioStreamState(audio, 1)
+            
+			end
+		end
 		end
 	end
 	end
 	
-	
-
-
-
-
 
 function cleanr()
 while true do wait(0)
@@ -517,6 +540,10 @@ function sampev.onServerMessage(color, text)
             local reg_text = 'Вы купили: "'..product..'" за '..money..'$ У игрока: '..name..'.'
                 sendTelegramNotification(reg_text)
             end
+			if text:find('{FFFFFF}У вас есть 3 минуты, чтобы настроить товар, иначе аренда ларька будет отменена.') then
+			lavka = new.bool(false)
+			
+        end
 
 zarplata = 0
 depozpdtg = 0
@@ -610,23 +637,97 @@ end
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+local sampev = require 'lib.samp.events'
 
 function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
-if diolog[0] then
 
-		if style == 1 or style == 3 then
+if diolog[0] then
+if style == 1 or style == 3 then
 			sendTelegramNotification('' .. title .. '\n' .. text .. '\n\n[______________]\n\n[' .. button1 .. '] | [' .. button2 .. ']' )
 		else
 			if style == 0 then
 				sendTelegramNotification('' .. title .. '\n' .. text .. '\n\n[' .. button1 .. '] | [' .. button2 .. ']' )
 			else
 				sendTelegramNotification('' .. title .. '\n' .. text .. '\n\n[' .. button1 .. '] | [' .. button2 .. ']' )
-			end
-        end
-		end
-		end
+
+end
+
+if spawn[0] then
+if title == '{BFBBBA}Выберите место спавна' then
+		if Combospawn[0] == 0 then -- комбо возвращает значение, поэтому следует указывать при каком пункте выполняется условие
+        lua_thread.create(function()
+        wait(0)
+		sampSendDialogResponse(dialogId, 1, 1, 1); 
+		sampCloseCurrentDialogWithButton(0)
+		wait(200)
+		sampSendChat('/rec 5')
+	end)
+spawn = new.bool(false)
 		
+		
+        elseif Combospawn[0] == 1 then
+        lua_thread.create(function()
+        wait(0)
+		sampSendDialogResponse(dialogId, 1, 2, 2); 
+		sampCloseCurrentDialogWithButton(0)
+		wait(200)
+		sampSendChat('/rec 5')
+	end)
+spawn = new.bool(false)
+		
+		
+		elseif Combospawn[0] == 2 then
+        lua_thread.create(function()
+        wait(0)
+		sampSendDialogResponse(dialogId, 1, 3, 3); 
+		sampCloseCurrentDialogWithButton(0)
+		wait(200)
+		sampSendChat('/rec 5')
+	end)
+spawn = new.bool(false)
+		
+		
+		elseif Combospawn[0] == 3 then
+        lua_thread.create(function()
+        wait(0)
+		sampSendDialogResponse(dialogId, 1, 4, 4); 
+		sampCloseCurrentDialogWithButton(0)
+		wait(200)
+		sampSendChat('/rec 5')
+	end)
+spawn = new.bool(false)
+		
+		
+		elseif Combospawn[0] == 4 then
+        lua_thread.create(function()
+        wait(0)
+		sampSendDialogResponse(dialogId, 1, 5, 5); 
+		sampCloseCurrentDialogWithButton(0)
+		wait(200)
+		sampSendChat('/rec 5')
+	end)
+spawn = new.bool(false)
+		
+		
+		elseif Combospawn[0] == 5 then
+        lua_thread.create(function()
+        wait(0)
+		sampSendDialogResponse(dialogId, 1, 6, 6); 
+		sampCloseCurrentDialogWithButton(0)
+		wait(200)
+		sampSendChat('/rec 5')
+	end)
+spawn = new.bool(false)
+end
+end
+end
+end
+end
+end
+
+
+	
+
 
 
 
