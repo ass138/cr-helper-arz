@@ -1,5 +1,5 @@
 script_name("cr-helper-arz")
-script_version("22.12.2023")
+script_version("04.01.2024")
 
 --хуй--
 require 'lib.moonloader'
@@ -11,7 +11,6 @@ local new = imgui.new -- создаём короткий псевдоним для удобства
 local WinState = new.bool() -- создаём буффер для открытия окна
 require 'lib.moonloader'
 local imgui = require 'mimgui'
-local audio = loadAudioStream("moonloader/bell.mp3")
 local ffi = require 'ffi'
 local encoding = require 'encoding'
 encoding.default = 'CP1251'
@@ -54,6 +53,7 @@ local ComboTest = new.int((mainIni.main.ComboTest)) -- создаём буффер для комбо
 ---
 local lavka = new.bool() -- создём буффер для чекбокса, который возвращает true/false
 
+
 local clean = new.bool() -- создём буффер для чекбокса, который возвращает true/false
 local autoeat = new.bool() -- создём буффер для чекбокса, который возвращает true/false
 local item_list = {u8'Оленина', u8'Мешок с мясом'} -- создаём список
@@ -83,6 +83,16 @@ local ImItemsspawn = imgui.new['const char*'][#item_spawn](item_spawn)
 ---spawn---
 
 
+---chests---
+local autochests = new.bool() -- создём буфер для чекбокса, который возвращает true/false
+
+
+
+
+
+
+
+---chests---
 
 
 
@@ -92,6 +102,15 @@ local ImItemsspawn = imgui.new['const char*'][#item_spawn](item_spawn)
 
 
 
+
+
+
+
+
+
+local WinState = imgui.new.bool()
+
+local tab = 1 -- в этой переменной будет хранится номер открытой вкладки
 
 
 
@@ -103,26 +122,36 @@ local ImItemsspawn = imgui.new['const char*'][#item_spawn](item_spawn)
 
 ---№2---
 local cmd = new.bool(mainIni.main.cmd)
-
 local diolog = new.bool(mainIni.main.diolog) -- создём буффер для чекбокса, который возвращает true/false
-
-
 local chat_id = new.char[256](u8(mainIni.main.chat_id)) -- создаём буффер для инпута
 local token = new.char[256](u8(mainIni.main.token)) -- создаём буффер для инпута
-
-
 local payday = new.bool(mainIni.main.payday) -- создём буффер для чекбокса, который возвращает true/false
-
 ---№2---
 
-imgui.OnFrame(function() return WinState[0] end,
-    function(player)
-        imgui.SetNextWindowPos(imgui.ImVec2(1390,400), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5)) -- отвечает за положение окна на экране
-        imgui.SetNextWindowSize(imgui.ImVec2(250, 280), imgui.Cond.Always) -- отвечает за размер окна
-        imgui.Begin(u8'MiniHelper-CR', WinState, imgui.WindowFlags.NoResize) -- отвечает за отображение окна, его заголовок и флаги
-		if imgui.BeginTabBar('Tabs') then -- задаём начало вкладок
-    if imgui.BeginTabItem(u8'Основные') then -- первая вкладка
-		imgui.Checkbox(u8'Рендер лавок', lavka)
+imgui.OnFrame(function() return WinState[0] end, function(player)
+    imgui.SetNextWindowPos(imgui.ImVec2(500, 500), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
+    imgui.SetNextWindowSize(imgui.ImVec2(370, 290), imgui.Cond.Always)
+    imgui.Begin(u8'Пример', WinState, imgui.WindowFlags.NoResize)
+    for numberTab,nameTab in pairs({'Main','Spawn','Chests','Auto','Telegram','Shit'}) do -- создаём и парсим таблицу с названиями будущих вкладок
+        if imgui.Button(u8(nameTab), imgui.ImVec2(80,40)) then -- 2ым аргументом настраивается размер кнопок (подробнее в гайде по мимгуи)
+            tab = numberTab -- меняем значение переменной tab на номер нажатой кнопки
+        end
+    end
+    imgui.SetCursorPos(imgui.ImVec2(95, 28)) -- [Для декора] Устанавливаем позицию для чайлда ниже
+    if imgui.BeginChild('Name##'..tab, imgui.ImVec2(265, 255), true) then -- [Для декора] Создаём чайлд в который поместим содержимое
+        -- == [Основное] Содержимое вкладок == --
+            if tab == 1 then -- если значение tab == 1
+            -- == Содержимое вкладки №1
+            imgui.Checkbox(u8'Рендер лавок', lavka)
+	
+		
+		
+
+		
+		
+		
+		
+		
 		imgui.Checkbox(u8'Удаление Игроков и ТС', clean)
 		imgui.Separator()
 		
@@ -150,25 +179,58 @@ imgui.OnFrame(function() return WinState[0] end,
 		 mainIni.main.ComboTest = ComboTest[0]
 		 inicfg.save(mainIni, "MiniHelper-CR")
 		end
-		
-		   imgui.EndTabItem() -- конец вкладки
-    end
-	
-	
-	
-	
-	
-	
-	if imgui.BeginTabItem(u8'Спавн меню') then -- вторая вкладка
-       if imgui.Checkbox(u8'Спавн', spawn) then
+			
+			
+            elseif tab == 2 then -- если значение tab == 2
+            -- == Содержимое вкладки №2
+            if imgui.Checkbox(u8'Спавн', spawn) then
 	   
 	    spawner()
 	  end	
+
+	  
 	imgui.Combo(u8'Список',Combospawn,ImItemsspawn, #item_spawn)
-	 imgui.EndTabItem() -- конец вкладки
-      end	
-        if imgui.BeginTabItem(u8'Telegram') then -- вторая вкладка
-        if imgui.Checkbox(u8'Принимать команды из TG', cmd) then
+	
+	
+			 elseif tab == 3 then -- если значение tab == 2
+            -- == Содержимое вкладки №2
+            
+			
+			imgui.Checkbox(u8'Авто открытие сундуков', autochests)
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			 elseif tab == 4 then -- если значение tab == 2
+            -- == Содержимое вкладки №2
+            imgui.Text(u8'Открыта первая вкладка "Настройки"')
+            if imgui.Button(u8'Кнопка') then
+                sampAddChatMessage('Вы нажали кнопку во вкладке номер '..tab, -1)
+            end
+			 elseif tab == 5 then -- если значение tab == 2
+            -- == Содержимое вкладки №2
+            if imgui.Checkbox(u8'Принимать команды из TG', cmd) then
 		mainIni.main.cmd = cmd[0] 
 		inicfg.save(mainIni, "MiniHelper-CR")
 	  end
@@ -192,20 +254,37 @@ imgui.OnFrame(function() return WinState[0] end,
 		if imgui.Button('test message') then
         sendTelegramNotification('Тестовое сообщение от '..sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(PLAYER_PED)))) -- отправляем сообщение юзеру
 	  end
-		if imgui.Button('test') then
-		setAudioStreamVolume(audio, 100)
-          setAudioStreamState(audio, 1)
-	  end
+		
 		imgui.Text(u8'Команды: /stats, /wbook, /pcoff, /rec')
 		imgui.Text(u8'/status')
-        imgui.EndTabItem() -- конец вкладки
-      end
-    imgui.EndTabBar() -- конец всех вкладок
-      end
-        imgui.End()
-      end
+			
 
-)
+            elseif tab == 6 then -- если значение tab == 3
+            -- == Содержимое вкладки №3
+            imgui.Text(u8'Открыта первая вкладка "Инфа"')
+            if imgui.Button(u8'Кнопка') then
+                sampAddChatMessage('Вы нажали кнопку во вкладке номер '..tab, -1)
+            end
+        end
+        -- == [Основное] Содержимое вкладок закончилось == --
+        imgui.EndChild()
+    end
+    imgui.End()
+end)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -240,12 +319,14 @@ function main()
 			lua_thread.create(cleanr)
 			lua_thread.create(eat)
 			lua_thread.create(pcoffe)
-			
-	
+
+
+
 		
 	while true do wait(0)
 	  if wasKeyPressed(VK_F2) and not sampIsCursorActive() then -- если нажата клавиша R и не активен самп курсор
             WinState[0] = not WinState[0]
+			
       
 end
 end
@@ -262,10 +343,6 @@ end
 
 
 
-local sound_state = require "moonloader".audiostream_state
-
-
-
 function lavkirendor()
 while true do wait(0)
         if lavka[0] then		
@@ -273,7 +350,8 @@ local input = sampGetInputInfoPtr()
 			local input = getStructElement(input, 0x8, 4)
 			local PosX = getStructElement(input, 0x8, 4)
 			local PosY = getStructElement(input, 0xC, 4)
-	        local lavki = 1
+	        local lavki = 0
+			
 			for id = 0, 2304 do
 				if sampIs3dTextDefined(id) then
 					local text, _, posX, posY, posZ, _, _, _, _ = sampGet3dTextInfoById(id)
@@ -295,17 +373,13 @@ local input = sampGetInputInfoPtr()
 			local PosX = getStructElement(input, 0x8, 4)
 			local PosY = getStructElement(input, 0xC, 4)
 			renderFontDrawText(font, 'Свободно: '..lavki, 95, 510 + 80, 0xFFFF1493, 0x90000000)
-			if lavki > 0 then
-	        test = not test
- if test then
-        setAudioStreamState(audio, 1)
-            
-			end
-		end
-		end
+			
+	   
+           
+		
 	end
 	end
-	
+end
 
 function cleanr()
 while true do wait(0)
@@ -544,6 +618,7 @@ function sampev.onServerMessage(color, text)
 			lavka = new.bool(false)
 			
         end
+
 
 zarplata = 0
 depozpdtg = 0
