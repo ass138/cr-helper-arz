@@ -1,5 +1,5 @@
 script_name("cr-helper-arz")
-script_version("04.01.2024")
+script_version("07.01.2024")
 
 --хуй--
 require 'lib.moonloader'
@@ -84,7 +84,23 @@ local ImItemsspawn = imgui.new['const char*'][#item_spawn](item_spawn)
 
 
 ---chests---
-local autochests = new.bool() -- создём буфер для чекбокса, который возвращает true/false
+local Chest = new.bool()
+
+local Chest1 = new.bool() -- Сундук рулетки
+local Chest2 = new.bool() -- Сундук платиновой рулетки
+local Chest3 = new.bool() -- Сундук рулетки (донат)
+local Chest4 = new.bool() -- Тайник Илона Маска
+local Chest5 = new.bool() -- Тайник Лос Сантоса
+local Chest6 = new.bool() -- Тайник Vice City
+
+
+local Chestmin1 = new.int(1) -- создаём буфер для SliderInt со значением 2 по умолчанию
+local Chestmin2 = new.int(1) -- создаём буфер для SliderInt со значением 2 по умолчанию
+local Chestmin3 = new.int(1) -- создаём буфер для SliderInt со значением 2 по умолчанию
+local Chestmin4 = new.int(1) -- создаём буфер для SliderInt со значением 2 по умолчанию
+local Chestmin5 = new.int(1) -- создаём буфер для SliderInt со значением 2 по умолчанию
+local Chestmin6 = new.int(1) -- создаём буфер для SliderInt со значением 2 по умолчанию
+
 
 
 
@@ -195,16 +211,25 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
 			 elseif tab == 3 then -- если значение tab == 2
             -- == Содержимое вкладки №2
             
+			imgui.Checkbox(u8'Вкл/Выкл###001', Chest) 
+
+			imgui.Checkbox(u8'Сундук рулетки', Chest1) 
+			imgui.SliderInt(u8'Час##0', Chestmin1, 1, 2) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
 			
-			imgui.Checkbox(u8'Авто открытие сундуков', autochests)
+			imgui.Checkbox(u8'Сундук платиновой рулетки', Chest2)
+			imgui.SliderInt(u8'Час##1', Chestmin2, 1, 2) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
 			
+			imgui.Checkbox(u8'Сундук рулетки (донат)', Chest3)
+			imgui.SliderInt(u8'Час##2', Chestmin3, 1, 2) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
 			
+			imgui.Checkbox(u8'Тайник Илона Маска', Chest4)
+			imgui.SliderInt(u8'Час##3', Chestmin4, 1, 2) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
 			
+			imgui.Checkbox(u8'Тайник Лос Сантоса', Chest5)
+			imgui.SliderInt(u8'Час##4', Chestmin5, 1, 2) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
 			
-			
-			
-			
-			
+			imgui.Checkbox(u8'Тайник Vice City', Chest6)
+			imgui.SliderInt(u8'Час##5', Chestmin6, 1, 2) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
 			
 			
 			
@@ -319,7 +344,8 @@ function main()
 			lua_thread.create(cleanr)
 			lua_thread.create(eat)
 			lua_thread.create(pcoffe)
-
+			lua_thread.create(chestautos)
+    
 
 
 		
@@ -341,6 +367,110 @@ end
 
 
 
+
+
+
+
+function chestautos()
+while true do wait(0)
+chestauto1()
+end
+end
+
+
+
+
+
+function chestauto1()
+if Chest [0] then
+if Chest1[0] then 
+sampAddChatMessage('открываю Сундук рулетки',-1) 
+sampSendClickTextdraw(2133)
+wait(5000)
+sampSendClickTextdraw(2302)
+sampAddChatMessage('Запушен таймер',-1) 
+wait(Chestmin1[0]*3780000)
+sampAddChatMessage('пришло время открывать Сундук рулетки',-1) 
+sampSendClickTextdraw(2133)
+wait(5000)
+sampSendClickTextdraw(2302)
+wait(10000)
+
+if Chest2[0] then
+sampAddChatMessage('открываю Сундук платиновой рулетки',-1) 
+sampSendClickTextdraw(2135)
+wait(5000)
+sampSendClickTextdraw(2302)
+sampAddChatMessage('Запушен таймер',-1) 
+wait(Chestmin2[0]*3780000)
+sampAddChatMessage('пришло время открывать Сундук платиновой рулетки',-1) 
+sampSendClickTextdraw(2135)
+wait(5000)
+sampSendClickTextdraw(2302)
+wait(10000) 
+
+
+if Chest3[0] then 
+sampAddChatMessage('открываю Сундук рулетки (донат)',-1) 
+sampSendClickTextdraw(2137)
+wait(5000)
+sampSendClickTextdraw(2302)
+sampAddChatMessage('Запушен таймер',-1) 
+wait(Chestmin3[0]*3780000)
+sampAddChatMessage('пришло время открывать Сундук рулетки (донат)',-1) 
+sampSendClickTextdraw(2137)
+wait(5000)
+sampSendClickTextdraw(2302)
+wait(10000)
+
+
+if Chest4[0] then 
+sampAddChatMessage('открываю Тайник Илона Маска',-1) 
+sampSendClickTextdraw(2140)
+wait(5000)
+sampSendClickTextdraw(2302)
+sampAddChatMessage('Запушен таймер',-1) 
+wait(Chestmin4[0]*3780000)
+sampAddChatMessage('пришло время открывать Тайник Илона Маска',-1) 
+sampSendClickTextdraw(2140)
+wait(5000)
+sampSendClickTextdraw(2302)
+wait(10000)
+
+if Chest5[0] then 
+sampAddChatMessage('открываю Тайник Лос Сантоса',-1) 
+sampSendClickTextdraw(2142)
+wait(5000)
+sampSendClickTextdraw(2302)
+sampAddChatMessage('Запушен таймер',-1) 
+wait(Chestmin5[0]*3780000)
+sampAddChatMessage('пришло время открывать Тайник Лос Сантоса',-1) 
+sampSendClickTextdraw(2142)
+wait(5000)
+sampSendClickTextdraw(2302)
+wait(10000)
+
+if Chest6[0] then 
+sampAddChatMessage('открываю Тайник Vice City',-1) 
+sampSendClickTextdraw(2143)
+wait(5000)
+sampSendClickTextdraw(2302)
+sampAddChatMessage('Запушен таймер',-1) 
+wait(Chestmin6[0]*3780000)
+sampAddChatMessage('пришло время открывать Тайник Лос Сантоса ',-1) 
+sampSendClickTextdraw(2143)
+wait(5000)
+sampSendClickTextdraw(2302)
+wait(10000)
+
+end
+end
+end
+end
+end
+end
+end
+end
 
 
 function lavkirendor()
@@ -556,19 +686,17 @@ function processing_telegram_messages(result) -- функция проверОчки того что отп
 
                             if text:match('^/stats') then
                                 telegrams()
-							elseif text:match('^/wbook') then
-                                wbook()
 								elseif text:match('^/pcoff') then
 								sendTelegramNotification('компьютер будет автоматически выключен')
                                 pcoffs()
 								elseif text:match('^/rec') then
-								sendTelegramNotification('переподключение к серверу')
+								sendTelegramNotification('переподключение к серверу 15 сек')
                                 rec()
 								elseif text:match('^/status') then
 								sendStatusTg()
-				
-								 
-                            else -- если же не найдется ни одна из команд выше, выведем сообщение
+								elseif text:match('^/help') then
+								sendTelegramNotification('Команды: /stats /pcoff /rec /status')	 
+                                else -- если же не найдется ни одна из команд выше, выведем сообщение
                                 sendTelegramNotification('Неизвестная команда!')
                             
 							end
@@ -671,13 +799,6 @@ sampSendChat('/stats')
 end
 end
 
-function wbook()
-if cmd[0] then
-sampSendChat('/wbook')
-sampSendDialogResponse(25228, 1, 0, 1); return false
-end
-end
-
 
 function pcoffs()
 if cmd[0] then
@@ -687,7 +808,9 @@ end
 
 function rec()
 if cmd[0] then
-sampSendChat('/rec')
+sampDisconnectWithReason(quit)
+wait(15000)
+sampSetGamestate(1)
 end
 end
 
