@@ -1,5 +1,5 @@
 script_name("cr-helper-arz")
-script_version("07.01.2024")
+script_version("09.01.2024")
 
 --хуй--
 require 'lib.moonloader'
@@ -21,6 +21,8 @@ local sampev = require 'samp.events'
 local f = require 'moonloader'.font_flag
 local font = renderCreateFont('Arial', 15, f.BOLD + f.SHADOW)
 local clean = false
+local setspawnrec = false
+local   ev          = require 'lib.samp.events'
 local lavki = {}
 local keys = require "vkeys"
 local ffi = require 'ffi'
@@ -44,6 +46,12 @@ local mainIni = inicfg.load({
 		cmd = false,
 		payday = false,
 		info = false,
+		standart = false,
+        platina = false,
+        mask = false,
+        donate = false,
+		tainik = false,
+		vice = false,
     }}, 'MiniHelper-CR.ini')
 
 
@@ -76,49 +84,49 @@ local ImItemsa = imgui.new['const char*'][#item_lista](item_lista)
 
 
 ---spawn---
-local spawn = new.bool() -- создём буффер для чекбокса, который возвращает true/false
-local Combospawn = new.int() -- создаём буфер для комбо
-local item_spawn = {u8'Отель', u8'Дом', u8'Организация', u8'Семейная-кв', u8'Вокзал', u8'Трейлер'} -- создаём таблицу с содержимым списка
-local ImItemsspawn = imgui.new['const char*'][#item_spawn](item_spawn)
+local spawn = false 
+
+local spawn1 = false 
+local spawn2 = false 
+local spawn3 = false 
+local spawn4 = false 
+local spawn5 = false 
+local spawn6 = false 
+
 ---spawn---
 
 
 ---chests---
+
+
+local checkbox_standart = new.bool(mainIni.main.standart) -- Сундук рулетки
+local checkbox_donate = new.bool(mainIni.main.donate) -- Сундук платиновой рулетки
+local checkbox_tainik = new.bool(mainIni.main.tainik) -- Сундук рулетки (донат)
+local checkbox_mask = new.bool(mainIni.main.mask) -- Тайник Илона Маска
+local checkbox_platina = new.bool(mainIni.main.platina) -- Тайник Лос Сантоса
+local checkbox_vice = new.bool(mainIni.main.vice) -- Тайник Vice City
+
+
+local textdraw = {
+    [1] = {_, _, 1000},
+    [2] = {_, _, 1000},
+    [3] = {_, _, 1000},
+    [4] = {_, _, 1000},
+	[5] = {_, _, 1000},
+	[6] = {_, _, 1000},
+} 
+
+
+
+
+
 local Chest = new.bool()
 
-local Chest1 = new.bool() -- Сундук рулетки
-local Chest2 = new.bool() -- Сундук платиновой рулетки
-local Chest3 = new.bool() -- Сундук рулетки (донат)
-local Chest4 = new.bool() -- Тайник Илона Маска
-local Chest5 = new.bool() -- Тайник Лос Сантоса
-local Chest6 = new.bool() -- Тайник Vice City
 
-
-local Chestmin1 = new.int(1) -- создаём буфер для SliderInt со значением 2 по умолчанию
-local Chestmin2 = new.int(1) -- создаём буфер для SliderInt со значением 2 по умолчанию
-local Chestmin3 = new.int(1) -- создаём буфер для SliderInt со значением 2 по умолчанию
-local Chestmin4 = new.int(1) -- создаём буфер для SliderInt со значением 2 по умолчанию
-local Chestmin5 = new.int(1) -- создаём буфер для SliderInt со значением 2 по умолчанию
-local Chestmin6 = new.int(1) -- создаём буфер для SliderInt со значением 2 по умолчанию
-
-
-
-
-
-
-
-
+local sw, sh = getScreenResolution() 
+local active_standart, active_mask, active_platina, active_donate, active_tainik, vice = false, false, false, false, false, false
+local work = false
 ---chests---
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -147,7 +155,7 @@ local payday = new.bool(mainIni.main.payday) -- создём буффер для чекбокса, кото
 imgui.OnFrame(function() return WinState[0] end, function(player)
     imgui.SetNextWindowPos(imgui.ImVec2(500, 500), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
     imgui.SetNextWindowSize(imgui.ImVec2(370, 290), imgui.Cond.Always)
-    imgui.Begin(u8'Пример', WinState, imgui.WindowFlags.NoResize)
+    imgui.Begin(u8'Залупа Helper', WinState, imgui.WindowFlags.NoResize)
     for numberTab,nameTab in pairs({'Main','Spawn','Chests','Auto','Telegram','Shit'}) do -- создаём и парсим таблицу с названиями будущих вкладок
         if imgui.Button(u8(nameTab), imgui.ImVec2(80,40)) then -- 2ым аргументом настраивается размер кнопок (подробнее в гайде по мимгуи)
             tab = numberTab -- меняем значение переменной tab на номер нажатой кнопки
@@ -199,49 +207,132 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
 			
             elseif tab == 2 then -- если значение tab == 2
             -- == Содержимое вкладки №2
-            if imgui.Checkbox(u8'Спавн', spawn) then
-	   
-	    spawner()
-	  end	
+           
+
+if imgui.Button(u8('Отель'), imgui.ImVec2(257, 40)) then
+sampSendChat('/setspawn')
+spawn = true
+spawn1 = true
+end
+
+if imgui.Button(u8('Дом'), imgui.ImVec2(257, 40)) then
+sampSendChat('/setspawn')
+spawn = true
+spawn2 = true
+end
+
+if imgui.Button(u8('Организация'), imgui.ImVec2(257, 40)) then
+sampSendChat('/setspawn')
+spawn = true
+spawn3 = true
+end
+
+if imgui.Button(u8('Семейная-кв'), imgui.ImVec2(257, 40)) then
+sampSendChat('/setspawn')
+spawn = true
+spawn4 = true
+end
+
+if imgui.Button(u8('Вокзал'), imgui.ImVec2(257, 40)) then
+sampSendChat('/setspawn')
+spawn = true
+spawn5 = true
+end
+
+if imgui.Button(u8('Трейлер'), imgui.ImVec2(257, 40)) then
+sampSendChat('/setspawn')
+spawn = true
+spawn6 = true
+end
+
+
 
 	  
-	imgui.Combo(u8'Список',Combospawn,ImItemsspawn, #item_spawn)
+	
 	
 	
 			 elseif tab == 3 then -- если значение tab == 2
             -- == Содержимое вкладки №2
             
-			imgui.Checkbox(u8'Вкл/Выкл###001', Chest) 
+			
+			if imgui.Checkbox(u8'Сундук рулетки', checkbox_standart) then
+		    mainIni.main.standart = checkbox_standart[0] 
+			mainIni.main.standart = true
+		    inicfg.save(mainIni, "MiniHelper-CR")
+	        else
+            mainIni.main.standart = false
+            inicfg.save(mainIni, "MiniHelper-CR")
+            end
+	  
+			
+			if imgui.Checkbox(u8'Сундук платиновой рулетки', checkbox_platina) then
+			mainIni.main.platina = checkbox_platina[0] 
+			mainIni.main.platina = true
+		    inicfg.save(mainIni, "MiniHelper-CR")
+	        else
+            mainIni.main.platina = false
+            inicfg.save(mainIni, "MiniHelper-CR")
+            end
+		
+			
+			if imgui.Checkbox(u8'Сундук рулетки (донат)', checkbox_donate) then
+			mainIni.main.donate = checkbox_donate[0] 
+			mainIni.main.donate = true
+		    inicfg.save(mainIni, "MiniHelper-CR")
+	        else
+            mainIni.main.donate = false
+            inicfg.save(mainIni, "MiniHelper-CR")
+            end
+	
+			
+			if imgui.Checkbox(u8'Тайник Илона Маска', checkbox_mask) then
+             mainIni.main.mask = checkbox_mask[0] 
+			mainIni.main.mask = true
+		    inicfg.save(mainIni, "MiniHelper-CR")
+	        else
+            mainIni.main.mask = false
+            inicfg.save(mainIni, "MiniHelper-CR")
+            end
+			
+			if imgui.Checkbox(u8'Тайник Лос Сантоса', checkbox_tainik) then
+	        mainIni.main.tainik = checkbox_tainik[0] 
+			mainIni.main.tainik = true
+		    inicfg.save(mainIni, "MiniHelper-CR")
+	        else
+            mainIni.main.tainik = false
+            inicfg.save(mainIni, "MiniHelper-CR")
+            end 
+			
+			if imgui.Checkbox(u8'Тайник Vice City', checkbox_vice) then
+	        mainIni.main.vice = checkbox_vice[0] 
+			mainIni.main.vice = true
+		    inicfg.save(mainIni, "MiniHelper-CR")
+	        else
+            mainIni.main.vice = false
+            inicfg.save(mainIni, "MiniHelper-CR")
+            end 
+			
+            imgui.Separator()
+			
+			
+			if imgui.Button(u8(work and 'Отключить' or 'Запустить'), imgui.ImVec2(100, 30)) then 
+            if work == false then 
+            if checkbox_standart[0] == false and checkbox_platina[0] == false and checkbox_mask[0] == false and checkbox_donate[0] == false and checkbox_tainik[0] == false and checkbox_vice[0] == false then
+                sampAddChatMessage('<<WARNING>> {ffffff}Не выбран ни один сундук для его открытия. Выберите какой сундук открывать.', 0xff0000)
+     
+            else
+            work = true
+           sampAddChatMessage('[Информация] {FFFFFF}Автоматическое открытие сундуков: {00FF00}включено{FFFFFF}.', 0xFFFF00)
+            end
+        else
+            work = false
+            sampAddChatMessage('[Информация] {FFFFFF}Автоматическое открытие сундуков: {FF0000}выключено{FFFFFF}.', 0xFFFF00)
+        end
+    end 
 
-			imgui.Checkbox(u8'Сундук рулетки', Chest1) 
-			imgui.SliderInt(u8'Час##0', Chestmin1, 1, 2) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
-			
-			imgui.Checkbox(u8'Сундук платиновой рулетки', Chest2)
-			imgui.SliderInt(u8'Час##1', Chestmin2, 1, 2) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
-			
-			imgui.Checkbox(u8'Сундук рулетки (донат)', Chest3)
-			imgui.SliderInt(u8'Час##2', Chestmin3, 1, 2) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
-			
-			imgui.Checkbox(u8'Тайник Илона Маска', Chest4)
-			imgui.SliderInt(u8'Час##3', Chestmin4, 1, 2) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
-			
-			imgui.Checkbox(u8'Тайник Лос Сантоса', Chest5)
-			imgui.SliderInt(u8'Час##4', Chestmin5, 1, 2) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
-			
-			imgui.Checkbox(u8'Тайник Vice City', Chest6)
-			imgui.SliderInt(u8'Час##5', Chestmin6, 1, 2) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
 			
 			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
+
 			
 			
 			
@@ -282,7 +373,7 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
 		
 		imgui.Text(u8'Команды: /stats, /wbook, /pcoff, /rec')
 		imgui.Text(u8'/status')
-			
+			end
 
             elseif tab == 6 then -- если значение tab == 3
             -- == Содержимое вкладки №3
@@ -290,7 +381,7 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
             if imgui.Button(u8'Кнопка') then
                 sampAddChatMessage('Вы нажали кнопку во вкладке номер '..tab, -1)
             end
-        end
+        
         -- == [Основное] Содержимое вкладок закончилось == --
         imgui.EndChild()
     end
@@ -344,8 +435,9 @@ function main()
 			lua_thread.create(cleanr)
 			lua_thread.create(eat)
 			lua_thread.create(pcoffe)
-			lua_thread.create(chestautos)
-    
+			lua_thread.create(chestss)
+			lua_thread.create(setspawnrecoon)
+
 
 
 		
@@ -360,8 +452,56 @@ end
 
 
 
-function spawner()
- sampSendChat('/setspawn')
+
+
+
+
+
+
+
+
+function chestss()
+ while true do
+        wait(0)
+
+        if work then 
+            sampAddChatMessage('[Информация] {FFFFFF}Сейчас откроется инвентарь.', 0xFFFF00)
+            sampSendChat('/invent')
+            wait(200)
+            for i = 1, 6 do
+                if not work then break end
+                sampSendClickTextdraw(textdraw[i][1])
+                wait(textdraw[i][3])
+                sampSendClickTextdraw(textdraw[i][2])
+                wait(textdraw[i][3])
+            end
+            wait(100)
+            sampAddChatMessage('[Информация] {FFFFFF}Запушен таймер на 1ч.', 0xFFFF00)
+            wait(3600000)
+        end
+
+    end
+end
+
+
+
+function ev.onShowTextDraw(id, data)
+    if work then
+        if checkbox_standart[0] and data.modelId == 19918 then textdraw[1][1] = id  end
+        if checkbox_platina[0] and data.modelId == 1353 then textdraw[2][1] = id  end
+        if checkbox_mask[0] and data.modelId == 1733 then textdraw[3][1] = id  end
+        if checkbox_donate[0] and data.modelId == 19613 then textdraw[4][1] = id  end
+		if checkbox_tainik[0] and data.modelId == 2887 then textdraw[5][1] = id  end
+		if checkbox_vice[0] and data.modelId == 1333 then textdraw[6][1] = id  end
+        if data.text == 'USE' or data.text == '…CЊO‡’€O‹AЏ’' then 
+            textdraw[1][2] = id + 1
+            textdraw[2][2] = id + 1
+            textdraw[3][2] = id + 1
+            textdraw[4][2] = id + 1
+			textdraw[5][2] = id + 1
+			textdraw[6][2] = id + 1
+        end
+    end
 end
 
 
@@ -369,108 +509,6 @@ end
 
 
 
-
-
-function chestautos()
-while true do wait(0)
-chestauto1()
-end
-end
-
-
-
-
-
-function chestauto1()
-if Chest [0] then
-if Chest1[0] then 
-sampAddChatMessage('открываю Сундук рулетки',-1) 
-sampSendClickTextdraw(2133)
-wait(5000)
-sampSendClickTextdraw(2302)
-sampAddChatMessage('Запушен таймер',-1) 
-wait(Chestmin1[0]*3780000)
-sampAddChatMessage('пришло время открывать Сундук рулетки',-1) 
-sampSendClickTextdraw(2133)
-wait(5000)
-sampSendClickTextdraw(2302)
-wait(10000)
-
-if Chest2[0] then
-sampAddChatMessage('открываю Сундук платиновой рулетки',-1) 
-sampSendClickTextdraw(2135)
-wait(5000)
-sampSendClickTextdraw(2302)
-sampAddChatMessage('Запушен таймер',-1) 
-wait(Chestmin2[0]*3780000)
-sampAddChatMessage('пришло время открывать Сундук платиновой рулетки',-1) 
-sampSendClickTextdraw(2135)
-wait(5000)
-sampSendClickTextdraw(2302)
-wait(10000) 
-
-
-if Chest3[0] then 
-sampAddChatMessage('открываю Сундук рулетки (донат)',-1) 
-sampSendClickTextdraw(2137)
-wait(5000)
-sampSendClickTextdraw(2302)
-sampAddChatMessage('Запушен таймер',-1) 
-wait(Chestmin3[0]*3780000)
-sampAddChatMessage('пришло время открывать Сундук рулетки (донат)',-1) 
-sampSendClickTextdraw(2137)
-wait(5000)
-sampSendClickTextdraw(2302)
-wait(10000)
-
-
-if Chest4[0] then 
-sampAddChatMessage('открываю Тайник Илона Маска',-1) 
-sampSendClickTextdraw(2140)
-wait(5000)
-sampSendClickTextdraw(2302)
-sampAddChatMessage('Запушен таймер',-1) 
-wait(Chestmin4[0]*3780000)
-sampAddChatMessage('пришло время открывать Тайник Илона Маска',-1) 
-sampSendClickTextdraw(2140)
-wait(5000)
-sampSendClickTextdraw(2302)
-wait(10000)
-
-if Chest5[0] then 
-sampAddChatMessage('открываю Тайник Лос Сантоса',-1) 
-sampSendClickTextdraw(2142)
-wait(5000)
-sampSendClickTextdraw(2302)
-sampAddChatMessage('Запушен таймер',-1) 
-wait(Chestmin5[0]*3780000)
-sampAddChatMessage('пришло время открывать Тайник Лос Сантоса',-1) 
-sampSendClickTextdraw(2142)
-wait(5000)
-sampSendClickTextdraw(2302)
-wait(10000)
-
-if Chest6[0] then 
-sampAddChatMessage('открываю Тайник Vice City',-1) 
-sampSendClickTextdraw(2143)
-wait(5000)
-sampSendClickTextdraw(2302)
-sampAddChatMessage('Запушен таймер',-1) 
-wait(Chestmin6[0]*3780000)
-sampAddChatMessage('пришло время открывать Тайник Лос Сантоса ',-1) 
-sampSendClickTextdraw(2143)
-wait(5000)
-sampSendClickTextdraw(2302)
-wait(10000)
-
-end
-end
-end
-end
-end
-end
-end
-end
 
 
 function lavkirendor()
@@ -808,8 +846,9 @@ end
 
 function rec()
 if cmd[0] then
+wait(1000)
 sampDisconnectWithReason(quit)
-wait(15000)
+wait(5000)
 sampSetGamestate(1)
 end
 end
@@ -850,82 +889,64 @@ if style == 1 or style == 3 then
 
 end
 
-if spawn[0] then
-if title == '{BFBBBA}Выберите место спавна' then
-		if Combospawn[0] == 0 then -- комбо возвращает значение, поэтому следует указывать при каком пункте выполняется условие
-        lua_thread.create(function()
-        wait(0)
+if spawn then
+
+       
+		if spawn1 then
+		
 		sampSendDialogResponse(dialogId, 1, 1, 1); 
-		sampCloseCurrentDialogWithButton(0)
-		wait(200)
-		sampSendChat('/rec 5')
-	end)
-spawn = new.bool(false)
+		setspawnrec = true
+		spawn = false
+		spawn1 = false
+		end
 		
 		
-        elseif Combospawn[0] == 1 then
-        lua_thread.create(function()
-        wait(0)
+		if	 spawn2 then
 		sampSendDialogResponse(dialogId, 1, 2, 2); 
-		sampCloseCurrentDialogWithButton(0)
-		wait(200)
-		sampSendChat('/rec 5')
-	end)
-spawn = new.bool(false)
+		sampSendDialogResponse(7238, 1, 0, 2); 
+		spawn = false
+		spawn2 = false
+		end
 		
+		if spawn3 then
+		sampSendDialogResponse(dialogId, 1, 3, 3);  
+		spawn = false
+		spawn3 = false
+		end
 		
-		elseif Combospawn[0] == 2 then
-        lua_thread.create(function()
-        wait(0)
-		sampSendDialogResponse(dialogId, 1, 3, 3); 
-		sampCloseCurrentDialogWithButton(0)
-		wait(200)
-		sampSendChat('/rec 5')
-	end)
-spawn = new.bool(false)
-		
-		
-		elseif Combospawn[0] == 3 then
-        lua_thread.create(function()
-        wait(0)
+		if	 spawn4 then
 		sampSendDialogResponse(dialogId, 1, 4, 4); 
-		sampCloseCurrentDialogWithButton(0)
-		wait(200)
-		sampSendChat('/rec 5')
-	end)
-spawn = new.bool(false)
+		spawn = false
+		spawn4 = false
+		end
 		
-		
-		elseif Combospawn[0] == 4 then
-        lua_thread.create(function()
-        wait(0)
+		if	 spawn5 then
 		sampSendDialogResponse(dialogId, 1, 5, 5); 
-		sampCloseCurrentDialogWithButton(0)
-		wait(200)
-		sampSendChat('/rec 5')
-	end)
-spawn = new.bool(false)
+		spawn = false
+		spawn5 = false
+		end
 		
 		
-		elseif Combospawn[0] == 5 then
-        lua_thread.create(function()
-        wait(0)
+		if	 spawn6 then
 		sampSendDialogResponse(dialogId, 1, 6, 6); 
-		sampCloseCurrentDialogWithButton(0)
-		wait(200)
-		sampSendChat('/rec 5')
-	end)
-spawn = new.bool(false)
-end
-end
-end
+		spawn = false
+		spawn6 = false
+		end
+	end
 end
 end
 end
 
 
-	
 
+
+function setspawnrecoon()
+if setspawnrec then
+
+sampAddChatMessage('1', 0xFFFF00)
+
+end
+end
 
 
 
