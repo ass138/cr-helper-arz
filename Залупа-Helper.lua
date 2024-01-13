@@ -1,5 +1,5 @@
 script_name("Залупа-Helper")
-script_version("09.01.2024")
+script_version("13.01.2024")
 
 --ебаные библиотеки--
 require 'lib.moonloader'
