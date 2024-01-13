@@ -1,5 +1,5 @@
 script_name("MiniCrHelper")
-script_version("13.01.2024")
+script_version("14.01.2024")
 
 --ебаные библиотеки--
 require 'lib.moonloader'
@@ -37,6 +37,7 @@ local inicfg = require 'inicfg'
 local mainIni = inicfg.load({
 	main =
     {
+	    autoeat = false,
 		autoeatmin = 0, -- значение инпута
 		ComboTest = 0,
 		pcoff = 0,
@@ -60,7 +61,7 @@ local SliderOne = new.int(mainIni.main.autoeatmin)
 local ComboTest = new.int((mainIni.main.ComboTest)) -- создаём буффер для комбо
 local lavka = new.bool() -- создём буффер для чекбокса, который возвращает true/false
 local clean = new.bool() -- создём буффер для чекбокса, который возвращает true/false
-local autoeat = new.bool() -- создём буффер для чекбокса, который возвращает true/false
+local autoeat = new.bool(mainIni.main.autoeat) -- создём буффер для чекбокса, который возвращает true/false
 local item_list = {u8'Оленина', u8'Мешок с мясом'} -- создаём список
 local ImItems = imgui.new['const char*'][#item_list](item_list)
 local pcoff = new.bool() -- создём буффер для чекбокса, который возвращает true/false
@@ -154,7 +155,10 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
 		imgui.SliderInt(u8'Минуты', SliderFri, 0, 59) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
 		imgui.PopItemWidth()
 		imgui.Separator()	
-		imgui.Checkbox(u8'Авто-Еда', autoeat)
+		if imgui.Checkbox(u8'Авто-Еда', autoeat) then
+		mainIni.main.autoeat = autoeat[0] 
+		inicfg.save(mainIni, "MiniHelper-CR")
+	    end
 		imgui.SameLine()
         imgui.TextQuestion(u8("Спалят будут БАН нахуй"))
 		imgui.PushItemWidth(190)
