@@ -1,5 +1,5 @@
 script_name("MiniCrHelper")
-script_version("20.01.2024")
+script_version("21.01.2024")
 
 --ебаные библиотеки--
 require 'lib.moonloader'
@@ -204,6 +204,7 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
 	
         if imgui.Checkbox(u8'Вкл/Выкл###777', workbotton) then
             work = true
+       
         end
 
 
@@ -460,15 +461,16 @@ end
 end
 end
 
+
 function chestss()
     while true do
         wait(0)
 
-        if work then 
+        if work then
             sampAddChatMessage('[Информация] {FFFFFF}Сейчас откроется инвентарь.', 0xFFFF00)
-            wait(500)
+            wait(1000)
             sampSendChat('/invent')
-            wait(500)
+            wait(1000)
             for i = 1, 6 do
                 if not work then break end
                 sampSendClickTextdraw(textdraw[i][1])
@@ -480,17 +482,17 @@ function chestss()
             sampAddChatMessage('[Информация] {FFFFFF}Запушен таймер на 1ч.', 0xFFFF00)
             startTime = os.time() + 65 * 60 -- перезапускаем таймер
             work = false
-     
+   
             startTime = os.time() + 65 * 60 -- Устанавливаем таймер на 5 минут
             while os.time() < startTime do
-                wait(1000) -- Ждем 1 секунду
+                wait(0)
                 local timeRemaining = startTime - os.time()
                 local minutes = math.floor(timeRemaining / 60)
                 local seconds = timeRemaining % 60
-                
-                -- Вывод времени с помощью printString
+               
                 local timeString = string.format("%02d:%02d", minutes, seconds)
-                printString(timeString, 100, 100, -1)
+                renderFontDrawText(font,'Timer '..timeString, 95, 510 + 80, 0xFFFF1493, 0x90000000)
+                
             end
             work = true -- Устанавливаем флаг work в true после завершения таймера
         end
