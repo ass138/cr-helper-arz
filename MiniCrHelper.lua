@@ -1,5 +1,5 @@
 script_name("MiniCrHelper")
-script_version("14.01.2024")
+script_version("20.01.2024")
 
 --ебаные библиотеки--
 require 'lib.moonloader'
@@ -21,7 +21,7 @@ local sampev = require 'samp.events'
 local f = require 'moonloader'.font_flag
 local font = renderCreateFont('Arial', 15, f.BOLD + f.SHADOW)
 local clean = false
-local   ev          = require 'lib.samp.events'
+local ev = require 'samp.events'
 local lavki = {}
 local keys = require "vkeys"
 local ffi = require 'ffi'
@@ -40,7 +40,7 @@ local mainIni = inicfg.load({
 	    autoeat = false,
 		autoeatmin = 0, -- значение инпута
 		ComboTest = 0,
-		pcoff = 0,
+        autoclean = false,
 		chat_id = '',
 		token = '',
 		diolog = false,
@@ -60,16 +60,16 @@ local mainIni = inicfg.load({
 local SliderOne = new.int(mainIni.main.autoeatmin)
 local ComboTest = new.int((mainIni.main.ComboTest)) -- создаём буффер для комбо
 local lavka = new.bool() -- создём буффер для чекбокса, который возвращает true/false
+local voicelavka = new.bool() -- Сундук платиновой рулетки
+local radiuslavki = new.bool() -- создём буффер для чекбокса, который возвращает true/false
 local clean = new.bool() -- создём буффер для чекбокса, который возвращает true/false
+local autoclean = new.bool(mainIni.main.autoclean) -- создём буфер для чекбокса, который возвращает true/false
 local autoeat = new.bool(mainIni.main.autoeat) -- создём буффер для чекбокса, который возвращает true/false
 local item_list = {u8'Оленина', u8'Мешок с мясом'} -- создаём список
 local ImItems = imgui.new['const char*'][#item_list](item_list)
 local pcoff = new.bool() -- создём буффер для чекбокса, который возвращает true/false
 local SliderTwo = new.int(0)
 local SliderFri = new.int(0)
-local ComboTesta = new.int(mainIni.main.pcoff) -- создаём буффер для комбо
-local item_lista = {u8'выключение пк', u8'гибернация'} -- создаём список
-local ImItemsa = imgui.new['const char*'][#item_lista](item_lista)
 --ебаная 1 страница--
 
 
@@ -77,7 +77,6 @@ local ImItemsa = imgui.new['const char*'][#item_lista](item_lista)
 
 
 ---Chests---
-local Chesttimer = new.bool()
 local checkbox_standart = new.bool(mainIni.main.standart) -- Сундук рулетки
 local checkbox_donate = new.bool(mainIni.main.donate) -- Сундук платиновой рулетки
 local checkbox_tainik = new.bool(mainIni.main.tainik) -- Сундук рулетки (донат)
@@ -96,6 +95,8 @@ local Chest = new.bool()
 local sw, sh = getScreenResolution() 
 local active_standart, active_mask, active_platina, active_donate, active_tainik, vice = false, false, false, false, false, false
 local work = false
+local workbotton = new.bool()
+local timertrue = false
 ---Chests---
 
 local WinState = imgui.new.bool()
@@ -114,6 +115,9 @@ local timekey3 = new.int(5) -- создаём буфер для SliderInt со значением 2 по умо
 local buttonkey3	 = new.char[256]() -- создаём буфер для инпута
 ---Auto---
 
+--ADD-VIP--
+
+--ADD-VIP--
 
 ---Telegram---
 local cmd = new.bool(mainIni.main.cmd)
@@ -128,7 +132,7 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
     imgui.SetNextWindowPos(imgui.ImVec2(500, 500), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
     imgui.SetNextWindowSize(imgui.ImVec2(370, 320), imgui.Cond.Always)
     imgui.Begin(u8'Залупа Helper', WinState, imgui.WindowFlags.NoResize)
-    for numberTab,nameTab in pairs({'Main','Chests','Auto','СЕКРЕТ','Telegram'}) do -- создаём и парсим таблицу с названиями будущих вкладок
+    for numberTab,nameTab in pairs({'Main','Chests','Auto','...','Telegram'}) do -- создаём и парсим таблицу с названиями будущих вкладок
         if imgui.Button(u8(nameTab), imgui.ImVec2(80,43)) then -- 2ым аргументом настраивается размер кнопок (подробнее в гайде по мимгуи)
             tab = numberTab -- меняем значение переменной tab на номер нажатой кнопки
         end
@@ -141,19 +145,13 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
         imgui.Checkbox(u8'Рендер лавок', lavka)
 		imgui.SameLine()
         imgui.TextQuestion(u8("Спалят будут БАН нахуй"))
+        imgui.Checkbox(u8'Звук при слёте лавки', voicelavka)
+        imgui.Checkbox(u8'Радиус между переносными лавками', radiuslavki)
 		imgui.Checkbox(u8'Удаление Игроков и ТС', clean)
-		imgui.SameLine()
-        imgui.TextQuestion(u8("Спалят БАНА не будет нахуй"))
-		imgui.Separator()
-		imgui.Checkbox(u8'В опред. время', pcoff)
-		if imgui.Combo(u8'###',ComboTesta,ImItemsa, #item_lista) then
-		mainIni.main.pcoff = ComboTesta[0]
-		inicfg.save(mainIni, "MiniHelper-CR")
-		end
-		imgui.PushItemWidth(190)
-		imgui.SliderInt(u8'Часы', SliderTwo, 0, 23) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
-		imgui.SliderInt(u8'Минуты', SliderFri, 0, 59) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
-		imgui.PopItemWidth()
+        if imgui.Checkbox(u8'Авто-Удаление', autoclean) then
+            mainIni.main.autoclean = autoclean[0] 
+		    inicfg.save(mainIni, "MiniHelper-CR")
+        end
 		imgui.Separator()	
 		if imgui.Checkbox(u8'Авто-Еда', autoeat) then
 		mainIni.main.autoeat = autoeat[0] 
@@ -179,70 +177,36 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
 
         --- 2 страница ебать ---
 		elseif tab == 2 then
-		imgui.Checkbox(u8'Напоминание открытие сундуков', Chesttimer) 
-		imgui.Separator()
 		if imgui.Checkbox(u8'Сундук рулетки', checkbox_standart) then
 		mainIni.main.standart = checkbox_standart[0] 
-		mainIni.main.standart = true
 		inicfg.save(mainIni, "MiniHelper-CR")
-	    else
-        mainIni.main.standart = false
-        inicfg.save(mainIni, "MiniHelper-CR")
         end
 		if imgui.Checkbox(u8'Сундук платиновой рулетки', checkbox_platina) then
 	    mainIni.main.platina = checkbox_platina[0] 
-		mainIni.main.platina = true
 		inicfg.save(mainIni, "MiniHelper-CR")
-	    else
-        mainIni.main.platina = false
-        inicfg.save(mainIni, "MiniHelper-CR")
-        end
+	    end
 		if imgui.Checkbox(u8'Сундук рулетки (донат)', checkbox_donate) then
 		mainIni.main.donate = checkbox_donate[0] 
-		mainIni.main.donate = true
 		inicfg.save(mainIni, "MiniHelper-CR")
-	    else
-        mainIni.main.donate = false
-        inicfg.save(mainIni, "MiniHelper-CR")
-        end
+	    end
 		if imgui.Checkbox(u8'Тайник Илона Маска', checkbox_mask) then
         mainIni.main.mask = checkbox_mask[0] 
-	    mainIni.main.mask = true
 	    inicfg.save(mainIni, "MiniHelper-CR")
-        else
-		mainIni.main.mask = false
-		inicfg.save(mainIni, "MiniHelper-CR")
         end	
 		if imgui.Checkbox(u8'Тайник Лос Сантоса', checkbox_tainik) then
 	    mainIni.main.tainik = checkbox_tainik[0] 
-	    mainIni.main.tainik = true
-		inicfg.save(mainIni, "MiniHelper-CR")
-	    else
-        mainIni.main.tainik = false
-        inicfg.save(mainIni, "MiniHelper-CR")
-        end 	
+	    inicfg.save(mainIni, "MiniHelper-CR")
+	    end 	
 		if imgui.Checkbox(u8'Тайник Vice City', checkbox_vice) then
 	    mainIni.main.vice = checkbox_vice[0] 
-	    mainIni.main.vice = true
-		inicfg.save(mainIni, "MiniHelper-CR")
-	    else
-        mainIni.main.vice = false
-        inicfg.save(mainIni, "MiniHelper-CR")
+	    inicfg.save(mainIni, "MiniHelper-CR")
         end 
-	    imgui.Separator()
-		if imgui.Button(u8(work and 'Отключить' or 'Запустить'), imgui.ImVec2(100, 30)) then 	
-        if work == false then 
-        if checkbox_standart[0] == false and checkbox_platina[0] == false and checkbox_mask[0] == false and checkbox_donate[0] == false and checkbox_tainik[0] == false and checkbox_vice[0] == false then
-        sampAddChatMessage('<<WARNING>> {ffffff}Не выбран ни один сундук для его открытия. Выберите какой сундук открывать.', 0xff0000)
-        else
-        work = true
-        sampAddChatMessage('[Информация] {FFFFFF}Автоматическое открытие сундуков: {00FF00}включено{FFFFFF}.', 0xFFFF00)
+	
+        if imgui.Checkbox(u8'Вкл/Выкл###777', workbotton) then
+            work = true
         end
-        else
-        work = false
-        sampAddChatMessage('[Информация] {FFFFFF}Автоматическое открытие сундуков: {FF0000}выключено{FFFFFF}.', 0xFFFF00)
-        end
-        end 
+
+
         --- 2 страница ебать ---
 		
 	
@@ -254,9 +218,9 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
 		imgui.Separator()
 		 imgui.Checkbox(u8'Авто нажатие 2 кнопок###auto1', autokey2)
 		imgui.SliderInt(u8'задерж в мс###auto2', timekey2, 5, 100) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
-        imgui.InputTextWithHint(u8'HEX код###auto3', u8'Введите HEX код клавиши###auto2', buttonkey2, 256)
+        imgui.InputTextWithHint(u8'HEX код###auto3', u8'Введите HEX код клавиши', buttonkey2, 256)
 		imgui.SliderInt(u8'задерж в мс###auto4', timekey3, 5, 100) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
-        imgui.InputTextWithHint(u8'HEX код###auto5', u8'Введите HEX код клавиши###auto2', buttonkey3, 256)
+        imgui.InputTextWithHint(u8'HEX код###auto5', u8'Введите HEX код клавиши', buttonkey3, 256)
 		imgui.Separator()
 		if imgui.Button(u8'СПИСОК КОДОВ КЛАВИШ', imgui.ImVec2(210, 25) ) then -- размер указал потомучто так привычней
        os.execute("start https://narvell.nl/keys")
@@ -340,14 +304,15 @@ function main()
     end
 		 lua_thread.create(get_telegram_updates) -- создаем нашу функцию получения сообщений от юзера	
 			lua_thread.create(lavkirendor)
+            lua_thread.create(radiuslavkis)
 			lua_thread.create(cleanr)
 			lua_thread.create(eat)
-			lua_thread.create(pcoffe)
-			lua_thread.create(chestss)
 			lua_thread.create(autokeys)
-			lua_thread.create(notifications)
+			lua_thread.create(crtextdraw)
+            lua_thread.create(chestss)
+        
+
 		
-			
 
 			
 
@@ -367,28 +332,101 @@ end
 
 
 
------------------------------в разработке---------------------------------------------
-local notification = false
 
-function notifications()
-while true do wait(0)
-if notification then
-wait(3600000)
-sampAddChatMessage('ЕБАТЬ ПОРА СУНДУКИ ОТКРЫТЬ НАХУЙ-ЕБАТЬ ПОРА СУНДУКИ ОТКРЫТЬ НАХУЙ-ЕБАТЬ ПОРА СУНДУКИ ОТКРЫТЬ НАХУЙ', 0xFF0000)
-wait(200)
-sampAddChatMessage('ЕБАТЬ ПОРА СУНДУКИ ОТКРЫТЬ НАХУЙ-ЕБАТЬ ПОРА СУНДУКИ ОТКРЫТЬ НАХУЙ-ЕБАТЬ ПОРА СУНДУКИ ОТКРЫТЬ НАХУЙ', 0xFF0000)
-wait(200)
-sampAddChatMessage('ЕБАТЬ ПОРА СУНДУКИ ОТКРЫТЬ НАХУЙ-ЕБАТЬ ПОРА СУНДУКИ ОТКРЫТЬ НАХУЙ-ЕБАТЬ ПОРА СУНДУКИ ОТКРЫТЬ НАХУЙ', 0xFF0000)
-notification = false
+
+function radiuslavkis()
+	while true do wait(0)
+		if radiuslavki[0] then
+	        for IDTEXT = 0, 2048 do
+	            if sampIs3dTextDefined(IDTEXT) then
+	                local text, color, posX, posY, posZ, distance, ignoreWalls, player, vehicle = sampGet3dTextInfoById(IDTEXT)
+	                if text ==  "Управления товарами." and not isCentralMarket(posX, posY) then
+						local myPos = {getCharCoordinates(1)}
+	                    drawCircleIn3d(posX,posY,posZ-1.3,5,36,1.5,	getDistanceBetweenCoords3d(posX,posY,0,myPos[1],myPos[2],0) > 5 and 0xFFFFFFFF or 0xFFFF0000)
+	                end
+	            end
+	        end
+	    end
+	end
 end
+
+drawCircleIn3d = function(x, y, z, radius, polygons,width,color)
+    local step = math.floor(360 / (polygons or 36))
+    local sX_old, sY_old
+    for angle = 0, 360, step do
+        local lX = radius * math.cos(math.rad(angle)) + x
+        local lY = radius * math.sin(math.rad(angle)) + y
+        local lZ = z
+        local _, sX, sY, sZ, _, _ = convert3DCoordsToScreenEx(lX, lY, lZ)
+        if sZ > 1 then
+            if sX_old and sY_old then
+                renderDrawLine(sX, sY, sX_old, sY_old, width, color)
+            end
+            sX_old, sY_old = sX, sY
+        end
+    end
 end
+
+isCentralMarket = function(x, y)
+	return (x > 1044 and x < 1197 and y > -1565 and y < -1403)
+end
+
+function crtextdraw()
+ while true do
+        wait(0)
+        sampTextdrawDelete(532)
+        sampTextdrawDelete(536)
+        sampTextdrawDelete(535)
+        sampTextdrawDelete(675)
+        sampTextdrawDelete(533)
+        sampTextdrawSetPos(534, 112, 313)
+        sampTextdrawSetPos(535, 112, 313)
+        sampTextdrawSetPos(536, 112, 313)
+        sampTextdrawSetPos(537, 112, 313)
+        sampTextdrawSetPos(538, 112, 313)
+        sampTextdrawSetPos(539, 112, 313)
+        sampTextdrawSetPos(540, 112, 313)
+        sampTextdrawSetPos(541, 112, 313)
+        sampTextdrawSetPos(542, 112, 313)
+        sampTextdrawSetPos(543, 112, 313)
+        sampTextdrawSetPos(544, 112, 313)
+        sampTextdrawSetPos(545, 112, 313)
+        sampTextdrawSetPos(546, 112, 313)
+        sampTextdrawSetPos(547, 112, 313)
+        sampTextdrawSetPos(548, 112, 313)
+        sampTextdrawSetPos(549, 112, 313)
+        sampTextdrawSetPos(550, 112, 313)
+        sampTextdrawSetPos(551, 112, 313)
+        sampTextdrawSetPos(552, 112, 313)
+        sampTextdrawSetPos(553, 112, 313)
+        sampTextdrawSetPos(554, 112, 313)
+        sampTextdrawSetPos(555, 112, 313)
+        sampTextdrawSetPos(556, 112, 313)
+        sampTextdrawSetPos(557, 112, 313)
+        sampTextdrawSetPos(558, 112, 313)
+        sampTextdrawSetPos(559, 112, 313)
+        sampTextdrawSetPos(560, 112, 313)
+        sampTextdrawSetPos(561, 112, 313)
+        sampTextdrawSetPos(562, 112, 313)
+        sampTextdrawSetPos(563, 112, 313)
+        sampTextdrawSetPos(564, 112, 313)
+        sampTextdrawSetPos(565, 112, 313)
+        sampTextdrawSetPos(566, 112, 313)
+        sampTextdrawSetPos(567, 112, 313)
+        sampTextdrawSetPos(568, 112, 313)
+        sampTextdrawSetPos(569, 112, 313)
+        sampTextdrawSetPos(570, 112, 313)
+        sampTextdrawSetPos(571, 112, 313)
+        sampTextdrawSetPos(572, 112, 313)
+        sampTextdrawSetPos(573, 112, 313)
+        sampTextdrawSetPos(574, 112, 313)
+        sampTextdrawSetPos(620, 112, 313)
+        
+    end    
 end
 
 
 
-
-
------------------------------в разработке---------------------------------------------
 
 function imgui.TextQuestion(text)
     imgui.TextDisabled("(?)")
@@ -422,15 +460,15 @@ end
 end
 end
 
-
 function chestss()
- while true do
+    while true do
         wait(0)
 
         if work then 
             sampAddChatMessage('[Информация] {FFFFFF}Сейчас откроется инвентарь.', 0xFFFF00)
+            wait(500)
             sampSendChat('/invent')
-            wait(200)
+            wait(500)
             for i = 1, 6 do
                 if not work then break end
                 sampSendClickTextdraw(textdraw[i][1])
@@ -440,32 +478,50 @@ function chestss()
             end
             wait(100)
             sampAddChatMessage('[Информация] {FFFFFF}Запушен таймер на 1ч.', 0xFFFF00)
-            wait(3900000)
-        end
-
-    end
-end
-
-
-
-function ev.onShowTextDraw(id, data)
-    if work then
-        if checkbox_standart[0] and data.modelId == 19918 then textdraw[1][1] = id  end
-        if checkbox_platina[0] and data.modelId == 1353 then textdraw[2][1] = id  end
-        if checkbox_mask[0] and data.modelId == 1733 then textdraw[3][1] = id  end
-        if checkbox_donate[0] and data.modelId == 19613 then textdraw[4][1] = id  end
-		if checkbox_tainik[0] and data.modelId == 2887 then textdraw[5][1] = id  end
-		if checkbox_vice[0] and data.modelId == 1333 then textdraw[6][1] = id  end
-        if data.text == 'USE' or data.text == '…CЊO‡’€O‹AЏ’' then 
-            textdraw[1][2] = id + 1
-            textdraw[2][2] = id + 1
-            textdraw[3][2] = id + 1
-            textdraw[4][2] = id + 1
-			textdraw[5][2] = id + 1
-			textdraw[6][2] = id + 1
+            startTime = os.time() + 65 * 60 -- перезапускаем таймер
+            work = false
+     
+            startTime = os.time() + 65 * 60 -- Устанавливаем таймер на 5 минут
+            while os.time() < startTime do
+                wait(1000) -- Ждем 1 секунду
+                local timeRemaining = startTime - os.time()
+                local minutes = math.floor(timeRemaining / 60)
+                local seconds = timeRemaining % 60
+                
+                -- Вывод времени с помощью printString
+                local timeString = string.format("%02d:%02d", minutes, seconds)
+                printString(timeString, 100, 100, -1)
+            end
+            work = true -- Устанавливаем флаг work в true после завершения таймера
         end
     end
 end
+
+   
+   
+   function ev.onShowTextDraw(id, data)
+       if work then
+           if checkbox_standart[0] and data.modelId == 19918 then textdraw[1][1] = id  end
+           if checkbox_platina[0] and data.modelId == 1353 then textdraw[2][1] = id  end
+           if checkbox_mask[0] and data.modelId == 1733 then textdraw[3][1] = id  end
+           if checkbox_donate[0] and data.modelId == 19613 then textdraw[4][1] = id  end
+           if checkbox_tainik[0] and data.modelId == 2887 then textdraw[5][1] = id  end
+           if checkbox_vice[0] and data.modelId == 1333 then textdraw[6][1] = id  end
+           if data.text == 'USE' or data.text == '…CЊO‡’€O‹AЏ’' then 
+               textdraw[1][2] = id + 1
+               textdraw[2][2] = id + 1
+               textdraw[3][2] = id + 1
+               textdraw[4][2] = id + 1
+               textdraw[5][2] = id + 1
+               textdraw[6][2] = id + 1
+           end
+       end
+   end
+
+
+
+
+
 
 
 
@@ -477,39 +533,60 @@ end
 function lavkirendor()
 while true do wait(0)
         if lavka[0] then		
-local input = sampGetInputInfoPtr()
-			local input = getStructElement(input, 0x8, 4)
-			local PosX = getStructElement(input, 0x8, 4)
-			local PosY = getStructElement(input, 0xC, 4)
-	        local lavki = 0
-			
-			for id = 0, 2304 do
-				if sampIs3dTextDefined(id) then
-					local text, _, posX, posY, posZ, _, _, _, _ = sampGet3dTextInfoById(id)
-					if (math.floor(posZ) == 17 or math.floor(posZ) == 1820) and text == '' then
-						lavki = lavki + 1
-						if isPointOnScreen(posX, posY, posZ, nil) then
-							local pX, pY = convert3DCoordsToScreen(getCharCoordinates(PLAYER_PED))
-							local lX, lY = convert3DCoordsToScreen(posX, posY, posZ)
-							renderFontDrawText(font, 'Свободна', lX - 30, lY - 20, 0xFF16C910, 0x90000000)
-				            renderDrawLine(pX, pY, lX, lY, 1, 0xFF52FF4D)
-							renderDrawPolygon(pX, pY, 10, 10, 10, 0, 0xFFFFFFFF)
-							renderDrawPolygon(lX, lY, 10, 10, 10, 0, 0xFFFFFFFF)  
-						end
-					end
-				end
-			end
-			local input = sampGetInputInfoPtr()
-			local input = getStructElement(input, 0x8, 4)
-			local PosX = getStructElement(input, 0x8, 4)
-			local PosY = getStructElement(input, 0xC, 4)
-			renderFontDrawText(font, 'Свободно: '..lavki, 95, 510 + 80, 0xFFFF1493, 0x90000000)
-			
-	   
-           
-		
-	end
-	end
+            local input = sampGetInputInfoPtr()
+            local input = getStructElement(input, 0x8, 4)
+            local PosX = getStructElement(input, 0x8, 4)
+            local PosY = getStructElement(input, 0xC, 4)
+            renderFontDrawText(font, 'Свободно: '..#lavki, 95, 510 + 80, 0xFFFF1493, 0x90000000)
+            for v = 1, #lavki do
+                
+                if doesObjectExist(lavki[v]) then
+                    local result, obX, obY, obZ = getObjectCoordinates(lavki[v])
+                    local x, y, z = getCharCoordinates(PLAYER_PED)
+                    
+                    if result then
+                        local ObjX, ObjY = convert3DCoordsToScreen(obX, obY, obZ)
+                        local myX, myY = convert3DCoordsToScreen(x, y, z)
+
+                        if isObjectOnScreen(lavki[v]) then
+                            renderDrawLine(ObjX, ObjY, myX, myY, 1, 0xFF52FF4D)
+                            renderDrawPolygon(myX, myY, 10, 10, 10, 0, 0xFFFFFFFF)
+                            renderDrawPolygon(ObjX, ObjY, 10, 10, 10, 0, 0xFFFFFFFF)
+                            renderFontDrawText(font, 'Свободна', ObjX - 30, ObjY - 20, 0xFF16C910, 0x90000000)
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+
+function sampev.onSetObjectMaterialText(id, data)
+    if voicelavka[0] then
+    if data.text:find('Номер %d+%. {......}Свободная!') and tonumber(data.text:match('Номер (%d+)%. {......}Свободная!')) < 41 then
+        local object = sampGetObjectHandleBySampId(id) 
+        table.insert(lavki, object)
+ 	local audio = loadAudioStream('moonloader/sound/sound.mp3')
+        setAudioStreamState(audio, 1)
+    else
+        local ob = sampGetObjectHandleBySampId(id)
+        for i = 1, #lavki do
+            if ob == lavki[i] then
+                table.remove(lavki, i)
+            end
+        end
+    end
+end
+end
+
+function sampev.onDestroyObject(id)
+    for k = 1, #lavki do
+        local ob = sampGetObjectHandleBySampId(id)
+        if ob == lavki[k] then
+            table.remove(lavki, k)
+        end
+    end
 end
 
 function cleanr()
@@ -566,24 +643,6 @@ if autoeat[0] then
   end
   end
 
-
-
-
-
-
-function pcoffe()
- while true do wait(0)
-if pcoff[0] then
-if os.date('%H:%M') == string.format("%02d", SliderTwo[0])..':'..string.format("%02d", SliderFri[0]) then
-      if ComboTesta[0] == 0 then
-        os.execute('shutdown /s')
-      elseif ComboTesta[0] == 1 then
-        os.execute('shutdown /h')
-      end
-	  end
-	  end
-	  end
-	  end
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -726,7 +785,7 @@ function getLastUpdate() -- тут мы получаем последний ID сообщения, если же у ва
         end
     end)
 end
-
+	
 local bank_check = false
 local payday_notification_str = '%E2%9D%97__________Банковский чек__________%E2%9D%97\n'
 local function collectAndSendPayDayData(text)
@@ -735,7 +794,11 @@ local function collectAndSendPayDayData(text)
         "Депозит в банке: %$[%d%.]+",
         "Сумма к выплате: %$[%d%.]+",
         "Текущая сумма в банке: %$[%d%.]+",
-        "Текущая сумма на депозите: %$[%d%.]+"
+        "Текущая сумма на депозите: %$[%d%.]+",
+        "Депозит в банке: VC%$[%d%.]+",
+        "Сумма к выплате: VC%$[%d%.]+",
+        "Текущая сумма в банке: VC%$[%d%.]+",
+        "Текущая сумма на депозите: VC%$[%d%.]+"
     }
 
     local text = text:gsub("{%x+}", "")
@@ -755,35 +818,48 @@ local function collectAndSendPayDayData(text)
     end
 end
 
+
 function sampev.onServerMessage(color, text)
+    if text:find('Банковский чек') then bank_check = true end
+    if bank_check then collectAndSendPayDayData(text) end
     if text:find('{FFFFFF}Вы успешно арендовали лавку для продажи/покупки товара!') then
-      sendTelegramNotification('Ебать молодец словил лавку')
-       end
+    sendTelegramNotification('Ебать молодец словил лавку')
+    end
     if text:find('^%[Информация%] {FFFFFF}Ваша лавка была закрыта') then
-            sendTelegramNotification('Вас выкинули с вашей лавки!')
+        sendTelegramNotification('Вас выкинули с вашей лавки!')
+    end
+    if text:find('^.+ купил у вас .+, вы получили %$%d+ от продажи %(комиссия %d процент%(а%)%)') then
+        local name, product, money = text:match('^(.+) купил у вас (.+), вы получили %$([%d.,]+) от продажи %(комиссия %d процент%(а%)%)')
+        local reg_text = 'Вы продали: "'..product..'" за '..money..'$ Игроку: '..name..'.'
+            sendTelegramNotification(reg_text)
         end
-        if text:find('^.+ купил у вас .+, вы получили %$%d+ от продажи %(комиссия %d процент%(а%)%)') then
-            local name, product, money = text:match('^(.+) купил у вас (.+), вы получили %$([%d.,]+) от продажи %(комиссия %d процент%(а%)%)')
-            local reg_text = 'Вы продали: "'..product..'" за '..money..'$ Игроку: '..name..'.'
-                sendTelegramNotification(reg_text)
-            end
-        if text:find('^Вы купили .+ у игрока .+ за %$%d+') then
-            local product, name, money = text:match('^Вы купили (.+) у игрока (.+) за %$([%d.,]+)')
-            local reg_text = 'Вы купили: "'..product..'" за '..money..'$ У игрока: '..name..'.'
-                sendTelegramNotification(reg_text)
-            end
-			if text:find('{FFFFFF}У вас есть 3 минуты, чтобы настроить товар, иначе аренда ларька будет отменена.') then
-			lavka = new.bool(false)		
-            end
-			    if text:find('Банковский чек') then bank_check = true end
-               if bank_check then collectAndSendPayDayData(text) end
-                end
-			if Chesttimer[0] then
-			if text:find('1') then
-			notification = true
-            end
-	
+    if text:find('^.+ купил у вас .+, вы получили VC%$%d+ от продажи %(комиссия %d процент%(а%)%)') then
+        local name, product, money = text:match('^(.+) купил у вас (.+), вы получили VC%$([%d.,]+) от продажи %(комиссия %d процент%(а%)%)')
+        local reg_text = 'Вы продали: "'..product..'" за '..money..'VC$ Игроку: '..name..'.'
+            sendTelegramNotification(reg_text)
+        end    
+    if text:find('^Вы купили .+ у игрока .+ за %$%d+') then
+        local product, name, money = text:match('^Вы купили (.+) у игрока (.+) за %$([%d.,]+)')
+        local reg_text = 'Вы купили: "'..product..'" за '..money..'$ У игрока: '..name..'.'
+        sendTelegramNotification(reg_text)
+    end
+    if text:find('^Вы купили .+ у игрока .+ за VC%$%d+') then
+        local product, name, money = text:match('^Вы купили (.+) у игрока (.+) за VC%$([%d.,]+)')
+        local reg_text = 'Вы купили: "'..product..'" за '..money..'VC$ У игрока: '..name..'.'
+        sendTelegramNotification(reg_text)
+    end
+    if text:find('[Информация] {ffffff}Вы использовали сундук') then
+        sendTelegramNotification('--Открываю сундуки--')
+    end
+    if text:find('{FFFFFF}У вас есть 3 минуты, чтобы настроить товар, иначе аренда ларька будет отменена.') then
+        lavka = new.bool(false) 
+        if autoclean[0] then
+            clean = new.bool(true)
+            radiuslavki = new.bool(false)
+    end    
 end
+end
+
 
 function telegrams()
 if cmd[0] then
