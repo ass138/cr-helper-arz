@@ -1,5 +1,5 @@
 script_name("MiniCrHelper")
-script_version("21.01.2024")
+script_version("04.02.2024")
 
 --ебаные библиотеки--
 require 'lib.moonloader'
@@ -60,7 +60,6 @@ local mainIni = inicfg.load({
 local SliderOne = new.int(mainIni.main.autoeatmin)
 local ComboTest = new.int((mainIni.main.ComboTest)) -- создаём буффер для комбо
 local lavka = new.bool() -- создём буффер для чекбокса, который возвращает true/false
-local voicelavka = new.bool() -- Сундук платиновой рулетки
 local radiuslavki = new.bool() -- создём буффер для чекбокса, который возвращает true/false
 local clean = new.bool() -- создём буффер для чекбокса, который возвращает true/false
 local autoclean = new.bool(mainIni.main.autoclean) -- создём буфер для чекбокса, который возвращает true/false
@@ -145,7 +144,6 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
         imgui.Checkbox(u8'Рендер лавок', lavka)
 		imgui.SameLine()
         imgui.TextQuestion(u8("Спалят будут БАН нахуй"))
-        imgui.Checkbox(u8'Звук при слёте лавки', voicelavka)
         imgui.Checkbox(u8'Радиус между переносными лавками', radiuslavki)
 		imgui.Checkbox(u8'Удаление Игроков и ТС', clean)
         if imgui.Checkbox(u8'Авто-Удаление', autoclean) then
@@ -480,10 +478,10 @@ function chestss()
             end
             wait(100)
             sampAddChatMessage('[Информация] {FFFFFF}Запушен таймер на 1ч.', 0xFFFF00)
-            startTime = os.time() + 65 * 60 -- перезапускаем таймер
+            startTime = os.time() + 60 * 60 -- перезапускаем таймер
             work = false
    
-            startTime = os.time() + 65 * 60 -- Устанавливаем таймер на 5 минут
+            startTime = os.time() + 60 * 60 -- Устанавливаем таймер на 5 минут
             while os.time() < startTime do
                 wait(0)
                 local timeRemaining = startTime - os.time()
@@ -532,64 +530,42 @@ end
 
 
 
-function lavkirendor()
-while true do wait(0)
-        if lavka[0] then		
-            local input = sampGetInputInfoPtr()
-            local input = getStructElement(input, 0x8, 4)
-            local PosX = getStructElement(input, 0x8, 4)
-            local PosY = getStructElement(input, 0xC, 4)
-            renderFontDrawText(font, 'Свободно: '..#lavki, 95, 510 + 80, 0xFFFF1493, 0x90000000)
-            for v = 1, #lavki do
+   function lavkirendor()
+    while true do wait(0)
+            if lavka[0] then		
+    local input = sampGetInputInfoPtr()
+                local input = getStructElement(input, 0x8, 4)
+                local PosX = getStructElement(input, 0x8, 4)
+                local PosY = getStructElement(input, 0xC, 4)
+                local lavki = 0
                 
-                if doesObjectExist(lavki[v]) then
-                    local result, obX, obY, obZ = getObjectCoordinates(lavki[v])
-                    local x, y, z = getCharCoordinates(PLAYER_PED)
-                    
-                    if result then
-                        local ObjX, ObjY = convert3DCoordsToScreen(obX, obY, obZ)
-                        local myX, myY = convert3DCoordsToScreen(x, y, z)
-
-                        if isObjectOnScreen(lavki[v]) then
-                            renderDrawLine(ObjX, ObjY, myX, myY, 1, 0xFF52FF4D)
-                            renderDrawPolygon(myX, myY, 10, 10, 10, 0, 0xFFFFFFFF)
-                            renderDrawPolygon(ObjX, ObjY, 10, 10, 10, 0, 0xFFFFFFFF)
-                            renderFontDrawText(font, 'Свободна', ObjX - 30, ObjY - 20, 0xFF16C910, 0x90000000)
+                for id = 0, 2304 do
+                    if sampIs3dTextDefined(id) then
+                        local text, _, posX, posY, posZ, _, _, _, _ = sampGet3dTextInfoById(id)
+                        if (math.floor(posZ) == 17 or math.floor(posZ) == 1820) and text == '' then
+                            lavki = lavki + 1
+                            if isPointOnScreen(posX, posY, posZ, nil) then
+                                local pX, pY = convert3DCoordsToScreen(getCharCoordinates(PLAYER_PED))
+                                local lX, lY = convert3DCoordsToScreen(posX, posY, posZ)
+                                renderFontDrawText(font, 'Свободна', lX - 30, lY - 20, 0xFF16C910, 0x90000000)
+                                renderDrawLine(pX, pY, lX, lY, 1, 0xFF52FF4D)
+                                renderDrawPolygon(pX, pY, 10, 10, 10, 0, 0xFFFFFFFF)
+                                renderDrawPolygon(lX, lY, 10, 10, 10, 0, 0xFFFFFFFF)  
+                            end
                         end
                     end
                 end
-            end
+                local input = sampGetInputInfoPtr()
+                local input = getStructElement(input, 0x8, 4)
+                local PosX = getStructElement(input, 0x8, 4)
+                local PosY = getStructElement(input, 0xC, 4)
+                renderFontDrawText(font, 'Свободно: '..lavki, 95, 510 + 80, 0xFFFF1493, 0x90000000)
         end
-    end
-end
+        end
+    end       
+            
 
 
-function sampev.onSetObjectMaterialText(id, data)
-    if voicelavka[0] then
-    if data.text:find('Номер %d+%. {......}Свободная!') and tonumber(data.text:match('Номер (%d+)%. {......}Свободная!')) < 41 then
-        local object = sampGetObjectHandleBySampId(id) 
-        table.insert(lavki, object)
- 	local audio = loadAudioStream('moonloader/sound/sound.mp3')
-        setAudioStreamState(audio, 1)
-    else
-        local ob = sampGetObjectHandleBySampId(id)
-        for i = 1, #lavki do
-            if ob == lavki[i] then
-                table.remove(lavki, i)
-            end
-        end
-    end
-end
-end
-
-function sampev.onDestroyObject(id)
-    for k = 1, #lavki do
-        local ob = sampGetObjectHandleBySampId(id)
-        if ob == lavki[k] then
-            table.remove(lavki, k)
-        end
-    end
-end
 
 function cleanr()
 while true do wait(0)
