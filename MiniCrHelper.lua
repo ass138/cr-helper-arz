@@ -1,5 +1,5 @@
 script_name("MiniCrHelper")
-script_version("06.02.2024")
+script_version("07.02.2024")
 
 --ебаные библиотеки--
 require 'lib.moonloader'
@@ -787,6 +787,7 @@ function processing_telegram_messagesa(result) -- функция проверОчки того что от
                             -- и тут если чел отправил текст мы сверяем
                             local text = u8:decode(message_from_user) .. ' ' --добавляем в конец пробел дабы не произошли тех. шоколадки с командами(типо чтоб !q не считалось как !qq)
                         if text:match('^/status') then
+                            sendTelegramNotificationa('Тестовое сообщение от '..sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(PLAYER_PED)))) -- отправляем сообщение юзеру
                             sendStatusTga()
                         elseif text:match('^/send') then
                             local arg = text:gsub('/send ','',1)
