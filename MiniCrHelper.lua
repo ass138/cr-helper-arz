@@ -1,5 +1,6 @@
 script_name("MiniCrHelper")
-script_version("20.02.2024")
+script_version("21.02.2024")
+
 
 --ебаные библиотеки--
 require 'lib.moonloader'
@@ -53,6 +54,7 @@ local mainIni = inicfg.load({
 		tainik = false,
 		vice = false,
         clean = false,
+        color = 1.0, 1.0, 1.0, 1.0,
     }}, 'MiniHelper-CR.ini')
 --ебаный CFG--
 
@@ -113,9 +115,9 @@ local buttonkey1 = new.char[256]() -- создаём буфер для инпута
 
 local autokey2 = new.bool() -- авто space
 local timekey2 = new.int(5) -- создаём буфер для SliderInt со значением 2 по умолчанию
-local buttonkey2	 = new.char[256]() -- создаём буфер для инпута
+local buttonkey2 = new.char[256]() -- создаём буфер для инпута
 local timekey3 = new.int(5) -- создаём буфер для SliderInt со значением 2 по умолчанию
-local buttonkey3	 = new.char[256]() -- создаём буфер для инпута
+local buttonkey3 = new.char[256]() -- создаём буфер для инпута
 ---Auto---
 
 --ADD-VIP--
@@ -129,13 +131,16 @@ local chat_id = new.char[256](u8(mainIni.main.chat_id)) -- создаём буффер для ин
 local token = new.char[256](u8(mainIni.main.token)) -- создаём буффер для инпута
 ---Telegram---
 
+--color--
 
+
+--color--
 
 imgui.OnFrame(function() return WinState[0] end, function(player)
     imgui.SetNextWindowPos(imgui.ImVec2(500, 500), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
     imgui.SetNextWindowSize(imgui.ImVec2(370, 320), imgui.Cond.Always)
-    imgui.Begin(u8'Залупа Helper', WinState, imgui.WindowFlags.NoResize)
-    for numberTab,nameTab in pairs({'Main','Chests','Auto','...','Telegram'}) do -- создаём и парсим таблицу с названиями будущих вкладок
+    imgui.Begin(u8'Залупа Helper от '..thisScript().version, WinState, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse)
+    for numberTab,nameTab in pairs({'Main','Chests','Auto','Не заходить','Telegram'}) do -- создаём и парсим таблицу с названиями будущих вкладок
         if imgui.Button(u8(nameTab), imgui.ImVec2(80,43)) then -- 2ым аргументом настраивается размер кнопок (подробнее в гайде по мимгуи)
             tab = numberTab -- меняем значение переменной tab на номер нажатой кнопки
         end
@@ -171,6 +176,8 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
 		 mainIni.main.ComboTest = ComboTest[0]
 		 inicfg.save(mainIni, "MiniHelper-CR")
 		end
+
+  
 		--- 1 страница ебать ---	
 		
 		
@@ -240,7 +247,21 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
 		
 		--- 4 страница ебать ---
         elseif tab == 4 then 
-        imgui.Text(u8'ТУТ НИХУЯ НЕТ')
+            if imgui.ColoredButton(u8'Не нажимать', 'F94242', 70,imgui.ImVec2(200,50)) then
+            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
+            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
+            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
+            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
+            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
+            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
+            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
+            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
+            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
+            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
+            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
+            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
+            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
+            end
         --- 4 страница ебать ---
 		
 
@@ -291,6 +312,7 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
 
 
 
+
 ---ебать эта хуйня с авто обновлением---
 
 -- https://github.com/ass138/cr-helper-arz/tree/main
@@ -309,10 +331,7 @@ if enable_autoupdate then
     end
 end
 ---ебать эта хуйня с авто обновлением---
-		
 
-
- 
 function main()
     while not isSampAvailable() do wait(100) end -- ждём когда загрузится самп
 	wait(500)
@@ -330,6 +349,8 @@ function main()
 			lua_thread.create(crtextdraw)
             lua_thread.create(chestss)
             lua_thread.create(delayedtimers)
+        
+
          
 
 		
@@ -345,6 +366,17 @@ end
 end
 end
 
+
+function imgui.ColoredButton(text,hex,trans,size)
+    local r,g,b = tonumber("0x"..hex:sub(1,2)), tonumber("0x"..hex:sub(3,4)), tonumber("0x"..hex:sub(5,6))
+    if tonumber(trans) ~= nil and tonumber(trans) < 101 and tonumber(trans) > 0 then a = trans else a = 60 end
+    imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(r/255, g/255, b/255, a/100))
+    imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(r/255, g/255, b/255, a/100))
+    imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(r/255, g/255, b/255, a/100))
+    local button = imgui.Button(text, size)
+    imgui.PopStyleColor(3)
+    return button
+end
 
 function delayedtimers()
     while true do 
