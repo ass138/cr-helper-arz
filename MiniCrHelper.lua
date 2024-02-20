@@ -1,5 +1,5 @@
 script_name("MiniCrHelper")
-script_version("07.02.2024")
+script_version("20.02.2024")
 
 --ебаные библиотеки--
 require 'lib.moonloader'
@@ -52,6 +52,7 @@ local mainIni = inicfg.load({
         donate = false,
 		tainik = false,
 		vice = false,
+        clean = false,
     }}, 'MiniHelper-CR.ini')
 --ебаный CFG--
 
@@ -63,7 +64,7 @@ local SliderOne = new.int(mainIni.main.autoeatmin)
 local ComboTest = new.int((mainIni.main.ComboTest)) -- создаём буффер для комбо
 local lavka = new.bool() -- создём буффер для чекбокса, который возвращает true/false
 local radiuslavki = new.bool() -- создём буффер для чекбокса, который возвращает true/false
-local clean = new.bool() -- создём буффер для чекбокса, который возвращает true/false
+local clean = new.bool(mainIni.main.clean) -- создём буффер для чекбокса, который возвращает true/false
 local autoclean = new.bool(mainIni.main.autoclean) -- создём буфер для чекбокса, который возвращает true/false
 local autoeat = new.bool(mainIni.main.autoeat) -- создём буффер для чекбокса, который возвращает true/false
 local item_list = {u8'Оленина', u8'Мешок с мясом'} -- создаём список
@@ -103,7 +104,8 @@ local timertrue = false
 local WinState = imgui.new.bool()
 local tab = 1 -- в этой переменной будет хранится номер открытой вкладки
 
-
+local timechestto = new.char[256]() -- создаём буфер для инпута
+local delayedtimer = new.bool() -- авто space
 ---Auto---
 local autokey1 = new.bool() -- авто space
 local timekey1 = new.int(5) -- создаём буфер для SliderInt со значением 2 по умолчанию
@@ -201,13 +203,20 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
 	    mainIni.main.vice = checkbox_vice[0] 
 	    inicfg.save(mainIni, "MiniHelper-CR")
         end 
-	
-        if imgui.Checkbox(u8'Вкл/Выкл###777', workbotton) then
+        
+        if imgui.Checkbox(u8'Запустить Авто-Открытие###777', workbotton) then
             work = true
        
         end
+        imgui.Separator()
+        imgui.Text(u8'Запустить через:')
+        imgui.SameLine()
+        imgui.PushItemWidth(30)
+        imgui.InputText(u8"мин##15689", timechestto, 256, imgui.InputTextFlags.CharsDecimal)
+        imgui.PopItemWidth()
+        if imgui.Checkbox(u8'Отложенный Запуск', delayedtimer) then
 
-
+        end
         --- 2 страница ебать ---
 		
 	
@@ -253,13 +262,19 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
 	    mainIni.main.token = u8:decode(str(token))
 		inicfg.save(mainIni, "MiniHelper-CR")
 	    end
-		if imgui.Button('test message') then
+		if imgui.Button(u8'Тестовое сообщение') then
         sendTelegramNotification('Тестовое сообщение от '..sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(PLAYER_PED)))) -- отправляем сообщение юзеру
 	    end
-        if imgui.Button('test message123123') then
-            sendTelegramNotificationa('Тестовое сообщение от '..sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(PLAYER_PED)))) -- отправляем сообщение юзеру
-            end
-		imgui.Text(u8'Команды: /stats, /pcoff, /rec, /status, /help')
+        imgui.Text(u8'/help -- Список команд.')
+		imgui.Text(u8'/stats -- Статистика аккаунта.')
+        imgui.Text(u8'/pcoff -- Выключение Пк.')
+        imgui.Text(u8'/rec -- Перезайти на сервер.')
+        imgui.Text(u8'/status -- Статус сервера.')
+        imgui.Text(u8'/send -- Написать сообщение в чат.')
+        imgui.Text(u8'/dell -- Удаление Игроков и Тс ВКЛ.')
+        imgui.Text(u8'/offdell -- Удаление Игроков и Тс ВЫКЛ.')
+        imgui.Text(u8'/chest -- Авто открытие Сундуков.')
+        imgui.Text(u8'/reload -- Перезапустить Скрипт.')
 		end
         --- 5 страница ебать ---
 
@@ -303,12 +318,10 @@ function main()
 	wait(500)
 	sampAddChatMessage('• {00FF00}[Залупа-Helper]{FFFFFF} Активация: {7FFF00}F2{FFFFFF} •', -1)
 	getLastUpdate() -- вызываем функцию получения последнего ID сообщения
-    getLastUpdatea()
-	          if autoupdate_loaded and enable_autoupdate and Update then
+    	          if autoupdate_loaded and enable_autoupdate and Update then
         pcall(Update.check, Update.json_url, Update.prefix, Update.url)
     end
 		    lua_thread.create(get_telegram_updates) -- создаем нашу функцию получения сообщений от юзера	
-            lua_thread.create(get_telegram_updatesa) -- создаем нашу функцию получения сообщений от юзера	
 			lua_thread.create(lavkirendor)
             lua_thread.create(radiuslavkis)
 			lua_thread.create(cleanr)
@@ -316,7 +329,8 @@ function main()
 			lua_thread.create(autokeys)
 			lua_thread.create(crtextdraw)
             lua_thread.create(chestss)
-        
+            lua_thread.create(delayedtimers)
+         
 
 		
 
@@ -332,10 +346,40 @@ end
 end
 
 
+function delayedtimers()
+    while true do 
+        wait(0)
+        if delayedtimer[0] then	
+            startTimes = os.time() + u8:decode(str(timechestto)) * 60 -- Устанавливаем таймер на 5 минут
+            while os.time() < startTimes do
+                wait(0)
+                local timeRemainings = startTimes - os.time()
+                local minutess = math.floor(timeRemainings / 60)
+                local secondss = timeRemainings % 60
+               
+                local timeStrings = string.format("%02d:%02d", minutess, secondss)
+                renderFontDrawText(font,'Timer '..timeStrings, 95, 510 + 80, 0xFF00FF00, 0x90000000)
+            end
+            -- Действия по завершению таймера
+            
+            -- Здесь могут быть другие действия в зависимости от вашей логики
+            workbotton = new.bool(true)
+            work = true
+            delayedtimer = new.bool(false)
+            break -- Выход из цикла после завершения таймера
+        end
+    end
+end
 
 
-
-
+function onReceivePacket(id)
+    if id == 32 then
+        sendTelegramNotification('CЕРВЕР ЗАКРЫЛ СОЕДИНЕНИЕ')
+    end
+    if id == 33 then
+        sendTelegramNotification('CЕРВЕР ЗАКРЫЛ СОЕДИНЕНИЕ')
+    end
+end
 
 
 
@@ -472,6 +516,9 @@ function chestss()
         wait(0)
 
         if work then
+            sampCloseCurrentDialogWithButton(0)
+            wait(200)
+            sampCloseCurrentDialogWithButton(0)
             sampAddChatMessage('[Информация] {FFFFFF}Сейчас откроется инвентарь.', 0xFFFF00)
             wait(1000)
             sampSendChat('/invent')
@@ -615,6 +662,9 @@ function removeVehicle(id)
 	raknetDeleteBitStream(bs)
 end
 
+
+
+
 function eat()
  while true do wait(0)
 if autoeat[0] then
@@ -693,163 +743,6 @@ end
 
 
 
-
-
-
-
-
-
---------------------------------------------------------------------------------
-
-
-
-chata_id = '817557185' 
-tokena = '6715530066:AAHUc7lPIpBwSRvuItdBl0EjK8xoJXThdP0' 
-
-local updateida -- ID последнего сообщения для того чтобы не было флуда
-
-function threadHandlea(runner, url, args, resolve, reject)
-    local t = runner(url, args)
-    local r = t:get(0)
-    while not r do
-        r = t:get(0)
-        wait(0)
-    end
-    local status = t:status()
-    if status == 'completed' then
-        local ok, result = r[1], r[2]
-        if ok then resolve(result) else reject(result) end
-    elseif err then
-        reject(err)
-    elseif status == 'canceled' then
-        reject(status)
-    end
-    t:cancel(0)
-end
-
-function requestRunnera()
-    return effil.thread(function(u, a)
-        local https = require 'ssl.https'
-        local ok, result = pcall(https.request, u, a)
-        if ok then
-            return {true, result}
-        else
-            return {false, result}
-        end
-    end)
-end
-
-function async_http_requesta(url, args, resolve, reject)
-    local runner = requestRunnera()
-    if not reject then reject = function() end end
-    lua_thread.create(function()
-        threadHandlea(runner, url, args, resolve, reject)
-    end)
-end
-
-function encodeUrla(str)
-    str = str:gsub(' ', '%+')
-    str = str:gsub('\n', '%%0A')
-    return u8:encode(str, 'CP1251')
-end
-
-function sendTelegramNotificationa(msg) -- функция для отправки сообщения юзеру
-    msg = msg:gsub('{......}', '') --тут типо убираем цвет
-    msg = encodeUrla(msg) -- ну тут мы закодируем строку
-    async_http_requesta('https://api.telegram.org/bot' .. tokena .. '/sendMessage?chat_id=' .. chata_id .. '&text='..msg,'', function(result) end) -- а тут уже отправка
-end
-
-function get_telegram_updatesa() -- функция получения сообщений от юзера
-    while not updateida do wait(1) end -- ждем пока не узнаем последний ID
-    local runner = requestRunnera()
-    local reject = function() end
-    local args = ''
-    while true do
-        url = 'https://api.telegram.org/bot'..tokena..'/getUpdates?chat_id='..chata_id..'&offset=-1' -- создаем ссылку
-        threadHandlea(runner, url, args, processing_telegram_messagesa, reject)
-        wait(0)
-    end
-end
-
-
-function processing_telegram_messagesa(result) -- функция проверОчки того что отправил чел
-    if result then
-        -- тута мы проверяем все ли верно
-        local proc_table = decodeJson(result)
-        if proc_table.ok then
-            if #proc_table.result > 0 then
-                local res_table = proc_table.result[1]
-                if res_table then
-                    if res_table.update_id ~= updateida then
-                        updateida = res_table.update_id
-                        local message_from_user = res_table.message.text
-                        if message_from_user then
-                            -- и тут если чел отправил текст мы сверяем
-                            local text = u8:decode(message_from_user) .. ' ' --добавляем в конец пробел дабы не произошли тех. шоколадки с командами(типо чтоб !q не считалось как !qq)
-                        if text:match('^/status') then
-                            sendTelegramNotificationa('Тестовое сообщение от '..sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(PLAYER_PED)))) -- отправляем сообщение юзеру
-                            sendStatusTga()
-                        elseif text:match('^/send') then
-                            local arg = text:gsub('/send ','',1)
-                            sampSendChat(arg)
-                            elseif text:match('^/help') then
-                            sendTelegramNotificationa('Команды: /status, /send "Текст".')	 
-                            else -- если же не найдется ни одна из команд выше, выведем сообщение
-                            sendTelegramNotificationa('Неизвестная команда!')
-                       
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
-end
-
-function getLastUpdatea() -- тут мы получаем последний ID сообщения, если же у вас в коде будет настройка токена и chata_id, вызовите эту функцию для того чтоб получить последнее сообщение
-    async_http_requesta('https://api.telegram.org/bot'..tokena..'/getUpdates?chat_id='..chata_id..'&offset=-1','',function(result)
-        if result then
-            local proc_table = decodeJson(result)
-            if proc_table.ok then
-                if #proc_table.result > 0 then
-                    local res_table = proc_table.result[1]
-                    if res_table then
-                        updateida = res_table.update_id
-                    end
-                else
-                    updateida = 1 -- тут зададим значение 1, если таблица будет пустая
-                end
-            end
-        end
-    end)
-end
-
--------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function sendTelegramNotification(msg) -- функция для отправки сообщения юзеру
 	msg = msg:gsub('{......}', '') --тут типо убираем цвет
 	msg = encodeUrl(msg) -- ну тут мы закодируем строку
@@ -877,6 +770,8 @@ function processing_telegram_messages(result) -- функция проверОчки того что отп
 
         -- тута мы проверяем все ли верно
         local proc_table = decodeJson(result)
+        local proc_result, proc_table = pcall(decodeJson, result)
+        if proc_result and proc_table and proc_table.ok then
         if proc_table.ok then
             if #proc_table.result > 0 then
                 local res_table = proc_table.result[1]
@@ -891,7 +786,7 @@ function processing_telegram_messages(result) -- функция проверОчки того что отп
                             local text = u8:decode(message_from_user) .. ' ' --добавляем в конец пробел дабы не произошли тех. шоколадки с командами(типо чтоб !q не считалось как !qq)
                            
 
-                            if text:match('^/stats') then
+                                if text:match('^/stats') then
                                 telegrams()
 								elseif text:match('^/pcoff') then
 								sendTelegramNotification('компьютер будет автоматически выключен')
@@ -901,14 +796,51 @@ function processing_telegram_messages(result) -- функция проверОчки того что отп
                                 rec()
 								elseif text:match('^/status') then
 								sendStatusTg()
+                                elseif text:match('^/send') then
+                                local argq = text:gsub('/send ','',1)
+                                sampSendChat(argq)
+
+
+                                elseif text:match('^/diolog') then
+                                diolog = new.bool(true)
+                                sendTelegramNotification('Диалоги включены')
+
+                                elseif text:match('^/offdiolog') then
+                                diolog = new.bool(false)
+                                sendTelegramNotification('Диалоги выключены')
+
+
+                                elseif text:match('^/dell') then
+                                clean = new.bool(true)
+                                sendTelegramNotification('Удалил игроков и тс ВКЛ')
+
+                                elseif text:match('^/offdell') then
+                                clean = new.bool(false)  
+                                sendTelegramNotification('Удалил игроков и тс ВЫКЛ')    
+                                
+                                elseif text:match('^/chest') then
+                                    sampSendClickTextdraw(65535)
+                                workbotton = new.bool(true)
+                                work = true
+                                sendTelegramNotification('Авто открытие сундуков ВКЛ')
+
+                                elseif text:match('^/killdiolog') then
+                                sampCloseCurrentDialogWithButton(0)
+                                wait(200)
+                                sampCloseCurrentDialogWithButton(0)
+                                sendTelegramNotification('Закрытие всех диологов')
+              
+                                elseif text:match('^/reload') then
+                                    thisScript():reload()
+                                sendTelegramNotification('Скрипт перезагружается')
+
+                           
 								elseif text:match('^/help') then
-								sendTelegramNotification('Команды: /stats /pcoff /rec /status')	 
+								sendTelegramNotification('Команды: /stats -- Статистика аккаунта.  /pcоff -- Выключение Пк.  /reс -- Перезайти на сервер с задержкой 5 сек.  /status -- Статус сервера.  /diolog -- Включить диалоги.  /offdiolog -- Выключить диалоги.  /killdiolog -- Закрытие всех диологов  /send -- Написать сообщение в чат.  /dell -- Удаление Игроков и Тс Вкл.  /offdell -- Удаление Игроков и Тс ВЫКЛ.  /chest -- Запустить Авто открытие Сундуков.  /reload -- Перезапустить Скрипт.')	 
                                 else -- если же не найдется ни одна из команд выше, выведем сообщение
                                 sendTelegramNotification('Неизвестная команда!')
                            
                             
-                            
-							
                         end
                     end
                 end
@@ -916,8 +848,7 @@ function processing_telegram_messages(result) -- функция проверОчки того что отп
         end
     end
 end
-
-
+end
 
 
 function getLastUpdate() -- тут мы получаем последний ID сообщения, если же у вас в коде будет настройка токена и chat_id, вызовите эту функцию для того чтоб получить последнее сообщение
@@ -980,10 +911,40 @@ function sampev.onServerMessage(color, text)
     if text:find('^%[Информация%] {FFFFFF}Ваша лавка была закрыта') then
         sendTelegramNotification('Вас выкинули с вашей лавки!')
     end
-    if text:find('^Вы передали VC%$([%d.,]+.+)') then
-        local spizdel = text:match('^Вы передали VC%$([%d.,]+.+)')
-        sendTelegramNotificationa(spizdel)
+
+
+
+    if text:find('^%[Информация%] %{ffffff%}Вы использовали сундук с рулетками и получили') and color == 1941201407 then
+        local drop_starter_donate = text:match('^%[Информация%] %{ffffff%}Вы использовали сундук с рулетками и получили (.+)!')
+        sendTelegramNotification(drop_starter_donate)
     end
+
+    if text:find('^%[Информация%] %{ffffff%}Вы использовали платиновый сундук с рулетками и получили') and color == 1941201407 then
+        local drop_platinum = text:match('^%[Информация%] %{ffffff%}Вы использовали платиновый сундук с рулетками и получили (.+)!')
+        sendTelegramNotification(drop_platinum)
+    end 
+
+    if text:find('^%[Информация%] %{ffffff%}Вы использовали тайник Илона Маска и получили') and color == 1941201407 then
+        local drop_elon_musk = text:match('^%[Информация%] %{ffffff%}Вы использовали тайник Илона Маска и получили (.+)!')
+        sendTelegramNotification(drop_elon_musk)
+    end
+
+    if text:find('^Вы открыли Тайник Лос Сантоса!') or text:find('^Вы открыли Тайник Vice City!') and color == 1118842111 then
+	elseif text:find('^%[Информация%] %{ffffff%}Получено: (.+) и (.+)!') and color == 1941201407 then
+		local drop_ls_vc_1, drop_ls_vc_2 = text:match('^%[Информация%] %{ffffff%}Получено: (.+) и (.+)!')
+        sendTelegramNotification(drop_ls_vc_1)
+        sendTelegramNotification(drop_ls_vc_2)
+    end
+
+
+
+
+
+    if text:find('^%[Ошибка%] %{ffffff%}Время после прошлого использования ещё не прошло!') and color == -1104335361 then
+        sendTelegramNotification('Время после прошлого использования ещё не прошло!')  
+    end
+
+    
     if text:find('^.+ купил у вас .+, вы получили %$%d+ от продажи %(комиссия %d процент%(а%)%)') then
         local name, product, money = text:match('^(.+) купил у вас (.+), вы получили %$([%d.,]+) от продажи %(комиссия %d процент%(а%)%)')
         local reg_text = 'Вы продали: "'..product..'" за '..money..'$ Игроку: '..name..'.'
@@ -1004,9 +965,6 @@ function sampev.onServerMessage(color, text)
         local reg_text = 'Вы купили: "'..product..'" за '..money..'VC$ У игрока: '..name..'.'
         sendTelegramNotification(reg_text)
     end
-    if text:find('[Информация] {ffffff}Вы использовали сундук') then
-        sendTelegramNotification('--Открываю сундуки--')
-    end
     if text:find('{FFFFFF}У вас есть 3 минуты, чтобы настроить товар, иначе аренда ларька будет отменена.') then
         lavka = new.bool(false) 
         if autoclean[0] then
@@ -1015,7 +973,7 @@ function sampev.onServerMessage(color, text)
     end    
 end
 end
-
+---[Информация] {ffffff}Вы использовали сундук с рулетками и получили платиновую рулетку!
 
 function telegrams()
 if cmd[0] then
@@ -1058,14 +1016,6 @@ function sendStatusTg()
 	sendTelegramNotification(response)
 end
 
-function sendStatusTga()
-	local response = ''
-	if sampGetCurrentServerName() then
-		response = response .. 'Server: ' .. sampGetCurrentServerName() .. '\n'
-	end
-	response = response .. 'Online: ' .. getOnline() .. '\n'
-	sendTelegramNotificationa(response)
-end
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
