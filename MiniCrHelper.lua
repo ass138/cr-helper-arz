@@ -1,5 +1,5 @@
 script_name("MiniCrHelper")
-script_version("21.02.2024")
+script_version("0.0.1")
 
 
 --ебаные библиотеки--
