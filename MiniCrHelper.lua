@@ -1,5 +1,5 @@
 script_name("MiniCrHelper")
-script_version("0.0.1")
+script_version("0.0.2")
 
 
 --ебаные библиотеки--
@@ -54,7 +54,8 @@ local mainIni = inicfg.load({
 		tainik = false,
 		vice = false,
         clean = false,
-        color = 1.0, 1.0, 1.0, 1.0,
+        settingslavka = false,
+        namelavkas = '',
     }}, 'MiniHelper-CR.ini')
 --ебаный CFG--
 
@@ -66,6 +67,8 @@ local SliderOne = new.int(mainIni.main.autoeatmin)
 local ComboTest = new.int((mainIni.main.ComboTest)) -- создаём буффер для комбо
 local lavka = new.bool() -- создём буффер для чекбокса, который возвращает true/false
 local radiuslavki = new.bool() -- создём буффер для чекбокса, который возвращает true/false
+local settingslavka = new.bool(mainIni.main.settingslavka) -- создём буффер для чекбокса, который возвращает true/false
+local namelavkas = new.char[256](u8(mainIni.main.namelavkas))
 local clean = new.bool(mainIni.main.clean) -- создём буффер для чекбокса, который возвращает true/false
 local autoclean = new.bool(mainIni.main.autoclean) -- создём буфер для чекбокса, который возвращает true/false
 local autoeat = new.bool(mainIni.main.autoeat) -- создём буффер для чекбокса, который возвращает true/false
@@ -159,6 +162,16 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
             mainIni.main.autoclean = autoclean[0] 
 		    inicfg.save(mainIni, "MiniHelper-CR")
         end
+        if imgui.Checkbox(u8'Авто-Лавка', settingslavka) then
+            
+            mainIni.main.settingslavka = settingslavka[0] 
+		    inicfg.save(mainIni, "MiniHelper-CR")
+        end
+        if imgui.InputText(u8"name-lavka", namelavkas, 256) then 
+            mainIni.main.namelavkas = u8:decode(str(namelavkas))
+            inicfg.save(mainIni, "MiniHelper-CR")
+            end
+
 		imgui.Separator()	
 		if imgui.Checkbox(u8'Авто-Еда', autoeat) then
 		mainIni.main.autoeat = autoeat[0] 
@@ -287,15 +300,6 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
         sendTelegramNotification('Тестовое сообщение от '..sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(PLAYER_PED)))) -- отправляем сообщение юзеру
 	    end
         imgui.Text(u8'/help -- Список команд.')
-		imgui.Text(u8'/stats -- Статистика аккаунта.')
-        imgui.Text(u8'/pcoff -- Выключение Пк.')
-        imgui.Text(u8'/rec -- Перезайти на сервер.')
-        imgui.Text(u8'/status -- Статус сервера.')
-        imgui.Text(u8'/send -- Написать сообщение в чат.')
-        imgui.Text(u8'/dell -- Удаление Игроков и Тс ВКЛ.')
-        imgui.Text(u8'/offdell -- Удаление Игроков и Тс ВЫКЛ.')
-        imgui.Text(u8'/chest -- Авто открытие Сундуков.')
-        imgui.Text(u8'/reload -- Перезапустить Скрипт.')
 		end
         --- 5 страница ебать ---
 
@@ -649,8 +653,22 @@ end
         end
         end
     end       
-            
+  
+    
 
+
+function senddell()
+    activedia = not activedia
+    if activedia then 
+    clean[0] = true
+        
+    sendTelegramNotification('Удаление игроков и тс включено.')
+    else
+    clean[0] = false
+        
+    sendTelegramNotification('Удаление игроков и тс отключено.')
+    end
+end
 
 
 function cleanr()
@@ -798,12 +816,11 @@ function calc(str) --это тестовая функция, её не требуется переносить в ваш код
 end
 
 function processing_telegram_messages(result) -- функция проверОчки того что отправил чел
-
+    local proc_result, proc_table = pcall(decodeJson, result)
+        if proc_result and proc_table and proc_table.ok then
 
         -- тута мы проверяем все ли верно
         local proc_table = decodeJson(result)
-        local proc_result, proc_table = pcall(decodeJson, result)
-        if proc_result and proc_table and proc_table.ok then
         if proc_table.ok then
             if #proc_table.result > 0 then
                 local res_table = proc_table.result[1]
@@ -834,21 +851,16 @@ function processing_telegram_messages(result) -- функция проверОчки того что отп
 
 
                                 elseif text:match('^/diolog') then
-                                diolog = new.bool(true)
-                                sendTelegramNotification('Диалоги включены')
-
-                                elseif text:match('^/offdiolog') then
-                                diolog = new.bool(false)
-                                sendTelegramNotification('Диалоги выключены')
-
+                                    sendDialog()
+                                
 
                                 elseif text:match('^/dell') then
-                                clean = new.bool(true)
-                                sendTelegramNotification('Удалил игроков и тс ВКЛ')
+                                senddell()
 
-                                elseif text:match('^/offdell') then
-                                clean = new.bool(false)  
-                                sendTelegramNotification('Удалил игроков и тс ВЫКЛ')    
+                                elseif text:match('^/monitoroff') then
+                                os.execute([[ "powershell nircmd.exe monitor off" ]])
+                                
+                              
                                 
                                 elseif text:match('^/chest') then
                                     sampSendClickTextdraw(65535)
@@ -868,7 +880,7 @@ function processing_telegram_messages(result) -- функция проверОчки того что отп
 
                            
 								elseif text:match('^/help') then
-								sendTelegramNotification('Команды: /stats -- Статистика аккаунта.  /pcоff -- Выключение Пк.  /reс -- Перезайти на сервер с задержкой 5 сек.  /status -- Статус сервера.  /diolog -- Включить диалоги.  /offdiolog -- Выключить диалоги.  /killdiolog -- Закрытие всех диологов  /send -- Написать сообщение в чат.  /dell -- Удаление Игроков и Тс Вкл.  /offdell -- Удаление Игроков и Тс ВЫКЛ.  /chest -- Запустить Авто открытие Сундуков.  /reload -- Перезапустить Скрипт.')	 
+								sendTelegramNotification('%E2%9D%97Команды%E2%9D%97\n/stats -- Статистика аккаунта.\n/pcоff -- Выключение Пк.\n/reс -- Перезайти на сервер с задержкой 5 сек.\n/monitoroff -- выключить монитор(NirCmd)\n/status -- Статус сервера.\n/diolog -- включить или отключить отправку диалогов в TG.\n/killdiolog -- Закрытие всех диологов\n/send -- Написать сообщение в чат.\n/dell --включить или отключить удаление игроков и тс.\n/chest -- Запустить Авто открытие Сундуков.\n/reload -- Перезапустить Скрипт.')	 
                                 else -- если же не найдется ни одна из команд выше, выведем сообщение
                                 sendTelegramNotification('Неизвестная команда!')
                            
@@ -944,7 +956,26 @@ function sampev.onServerMessage(color, text)
         sendTelegramNotification('Вас выкинули с вашей лавки!')
     end
 
-
+    if text:find('^.+ купил у вас .+, вы получили %$%d+ от продажи %(комиссия %d процент%(а%)%)') then
+        local name, product, money = text:match('^(.+) купил у вас (.+), вы получили %$([%d.,]+) от продажи %(комиссия %d процент%(а%)%)')
+        local reg_text = 'Вы продали: "'..product..'" за '..money..'$ Игроку: '..name..'.'
+            sendTelegramNotification(reg_text)
+        end
+    if text:find('^.+ купил у вас .+, вы получили VC%$%d+ от продажи %(комиссия %d процент%(а%)%)') then
+        local name, product, money = text:match('^(.+) купил у вас (.+), вы получили VC%$([%d.,]+) от продажи %(комиссия %d процент%(а%)%)')
+        local reg_text = 'Вы продали: "'..product..'" за '..money..'VC$ Игроку: '..name..'.'
+            sendTelegramNotification(reg_text)
+        end    
+    if text:find('^Вы купили .+ у игрока .+ за %$%d+') then
+        local product, name, money = text:match('^Вы купили (.+) у игрока (.+) за %$([%d.,]+)')
+        local reg_text = 'Вы купили: "'..product..'" за '..money..'$ У игрока: '..name..'.'
+        sendTelegramNotification(reg_text)
+    end
+    if text:find('^Вы купили .+ у игрока .+ за VC%$%d+') then
+        local product, name, money = text:match('^Вы купили (.+) у игрока (.+) за VC%$([%d.,]+)')
+        local reg_text = 'Вы купили: "'..product..'" за '..money..'VC$ У игрока: '..name..'.'
+        sendTelegramNotification(reg_text)
+    end
 
     if text:find('^%[Информация%] %{ffffff%}Вы использовали сундук с рулетками и получили') and color == 1941201407 then
         local drop_starter_donate = text:match('^%[Информация%] %{ffffff%}Вы использовали сундук с рулетками и получили (.+)!')
@@ -977,26 +1008,7 @@ function sampev.onServerMessage(color, text)
     end
 
     
-    if text:find('^.+ купил у вас .+, вы получили %$%d+ от продажи %(комиссия %d процент%(а%)%)') then
-        local name, product, money = text:match('^(.+) купил у вас (.+), вы получили %$([%d.,]+) от продажи %(комиссия %d процент%(а%)%)')
-        local reg_text = 'Вы продали: "'..product..'" за '..money..'$ Игроку: '..name..'.'
-            sendTelegramNotification(reg_text)
-        end
-    if text:find('^.+ купил у вас .+, вы получили VC%$%d+ от продажи %(комиссия %d процент%(а%)%)') then
-        local name, product, money = text:match('^(.+) купил у вас (.+), вы получили VC%$([%d.,]+) от продажи %(комиссия %d процент%(а%)%)')
-        local reg_text = 'Вы продали: "'..product..'" за '..money..'VC$ Игроку: '..name..'.'
-            sendTelegramNotification(reg_text)
-        end    
-    if text:find('^Вы купили .+ у игрока .+ за %$%d+') then
-        local product, name, money = text:match('^Вы купили (.+) у игрока (.+) за %$([%d.,]+)')
-        local reg_text = 'Вы купили: "'..product..'" за '..money..'$ У игрока: '..name..'.'
-        sendTelegramNotification(reg_text)
-    end
-    if text:find('^Вы купили .+ у игрока .+ за VC%$%d+') then
-        local product, name, money = text:match('^Вы купили (.+) у игрока (.+) за VC%$([%d.,]+)')
-        local reg_text = 'Вы купили: "'..product..'" за '..money..'VC$ У игрока: '..name..'.'
-        sendTelegramNotification(reg_text)
-    end
+    
     if text:find('{FFFFFF}У вас есть 3 минуты, чтобы настроить товар, иначе аренда ларька будет отменена.') then
         lavka = new.bool(false) 
         if autoclean[0] then
@@ -1009,7 +1021,10 @@ end
 
 function telegrams()
 if cmd[0] then
+diolog[0] = true
 sampSendChat('/stats')
+wait(500)
+diolog[0] = false
 end
 end
 
@@ -1050,6 +1065,25 @@ end
 
 
 
+
+function sendDialog()
+	activedia = not activedia
+	if activedia then 
+        diolog[0] = true
+        mainIni.main.diolog = diolog[0] 
+		inicfg.save(mainIni, "MiniHelper-CR")
+    
+        sendTelegramNotification('Отправка диалогов включена.')
+	else
+        diolog[0] = false
+        mainIni.main.diolog = diolog[0] 
+		inicfg.save(mainIni, "MiniHelper-CR")
+    
+        sendTelegramNotification('Отправка диалогов отключена.')
+	end
+end
+
+
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
 local sampev = require 'lib.samp.events'
 
@@ -1058,6 +1092,24 @@ if text:find('Удача!') then
 		sampSendDialogResponse(id, 0, _, _)
 		return false
 	end
+
+    
+if settingslavka[0] then
+    if title:find ('{BFBBBA}Выберите тип вашей лавки') then
+		sampSendDialogResponse(dialogId,1,1,nil)
+	end
+
+   if text:find('{FFFFFF}Введите название вашей лавки') then
+		sampSendDialogResponse(dialogId, 1, nil, mainIni.main.namelavkas); return false
+	end
+
+    if title == '{BFBBBA}Выберете цвет' and text:find('{E94E4E}|||||||||||||||||||') then
+    sampSendDialogResponse(dialogId,1,15,nil)
+    end
+end
+
+
+
 if diolog[0] then
 if style == 1 or style == 3 then
 			sendTelegramNotification('' .. title .. '\n' .. text .. '\n\n[______________]\n\n[' .. button1 .. '] | [' .. button2 .. ']' )
