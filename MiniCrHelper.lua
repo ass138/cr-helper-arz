@@ -1,5 +1,5 @@
 script_name("MiniCrHelper")
-script_version("0.0.3")
+script_version("0.3")
 
 
 --ебаные библиотеки--
@@ -147,7 +147,7 @@ local token = new.char[256](u8(mainIni.main.token)) -- создаём буффер для инпута
 imgui.OnFrame(function() return WinState[0] end, function(player)
     imgui.SetNextWindowPos(imgui.ImVec2(500, 500), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
     imgui.SetNextWindowSize(imgui.ImVec2(370, 320), imgui.Cond.Always)
-    imgui.Begin(u8'Залупа Helper от '..thisScript().version, WinState, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse)
+    imgui.Begin(u8'Залупа Helper v'..thisScript().version, WinState, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse)
     for numberTab,nameTab in pairs({'Main','Chests','Auto','Не заходить','Telegram'}) do -- создаём и парсим таблицу с названиями будущих вкладок
         if imgui.Button(u8(nameTab), imgui.ImVec2(80,43)) then -- 2ым аргументом настраивается размер кнопок (подробнее в гайде по мимгуи)
             tab = numberTab -- меняем значение переменной tab на номер нажатой кнопки
