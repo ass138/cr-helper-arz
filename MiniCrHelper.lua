@@ -1,5 +1,5 @@
 script_name("MiniCrHelper")
-script_version("0.0.2")
+script_version("0.0.3")
 
 
 --ебаные библиотеки--
@@ -22,6 +22,7 @@ local sampev = require 'samp.events'
 local f = require 'moonloader'.font_flag
 local font = renderCreateFont('Arial', 15, f.BOLD + f.SHADOW)
 local clean = false
+local counter = 0
 local ev = require 'samp.events'
 local lavki = {}
 local keys = require "vkeys"
@@ -31,6 +32,7 @@ local effil = require("effil")
 local encoding = require("encoding")
 encoding.default = 'CP1251'
 u8 = encoding.UTF8
+
 --ебаные библиотеки--
 
 --ебаный CFG--
@@ -56,6 +58,7 @@ local mainIni = inicfg.load({
         clean = false,
         settingslavka = false,
         namelavkas = '',
+        moneyvcs = true,
     }}, 'MiniHelper-CR.ini')
 --ебаный CFG--
 
@@ -123,9 +126,9 @@ local timekey3 = new.int(5) -- создаём буфер для SliderInt со значением 2 по умо
 local buttonkey3 = new.char[256]() -- создаём буфер для инпута
 ---Auto---
 
---ADD-VIP--
-
---ADD-VIP--
+---4---
+local moneyvcs = new.bool(mainIni.main.moneyvcs) -- авто space
+---4---
 
 ---Telegram---
 local cmd = new.bool(mainIni.main.cmd)
@@ -135,7 +138,9 @@ local token = new.char[256](u8(mainIni.main.token)) -- создаём буффер для инпута
 ---Telegram---
 
 --color--
-
+        local show = imgui.new.bool(false)
+        local changepos = false -- статус редактирования позиции окошка
+        local posX, posY = 500, 500 -- задаём начальную позицию второго окошка
 
 --color--
 
@@ -153,11 +158,17 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
         
         --- 1 страница ебать ---
 		if tab == 1 then
-        imgui.Checkbox(u8'Рендер лавок', lavka)
+     
+        if imgui.Checkbox(u8'Рендер лавок', lavka) then
+        end
 		imgui.SameLine()
-        imgui.TextQuestion(u8("Спалят будут БАН нахуй"))
-        imgui.Checkbox(u8'Радиус между переносными лавками', radiuslavki)
+        imgui.TextQuestion(u8("Right Shift + 1"))
+        imgui.Checkbox(u8'Радиус между лавками', radiuslavki)
+        imgui.SameLine()
+        imgui.TextQuestion(u8("Right Shift + 2"))
 		imgui.Checkbox(u8'Удаление Игроков и ТС', clean)
+        imgui.SameLine()
+        imgui.TextQuestion(u8("Right Shift + 3"))
         if imgui.Checkbox(u8'Авто-Удаление', autoclean) then
             mainIni.main.autoclean = autoclean[0] 
 		    inicfg.save(mainIni, "MiniHelper-CR")
@@ -228,15 +239,21 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
             work = true
        
         end
+        imgui.SameLine()
+        imgui.TextQuestion(u8("Right Shift + 4"))
         imgui.Separator()
         imgui.Text(u8'Запустить через:')
         imgui.SameLine()
         imgui.PushItemWidth(30)
         imgui.InputText(u8"мин##15689", timechestto, 256, imgui.InputTextFlags.CharsDecimal)
+        imgui.SameLine()
+       
+        imgui.Text('                  '..counter)
+   
         imgui.PopItemWidth()
         if imgui.Checkbox(u8'Отложенный Запуск', delayedtimer) then
-
         end
+        
         --- 2 страница ебать ---
 		
 	
@@ -260,21 +277,14 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
 		
 		--- 4 страница ебать ---
         elseif tab == 4 then 
-            if imgui.ColoredButton(u8'Не нажимать', 'F94242', 70,imgui.ImVec2(200,50)) then
-            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
-            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
-            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
-            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
-            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
-            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
-            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
-            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
-            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
-            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
-            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
-            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
-            sampAddChatMessage('{FF0000}ДОЛБАЁБ ГОВОРЮ ЖЕ НЕ НАЖИМАЙ', -1)
+            
+            if imgui.Button('open window') then -- нажав на эту кнопку, можно поменять позицию окна
+                show[0] = not show[0]
             end
+        if imgui.Checkbox(u8'перевод денег VC в $', moneyvcs) then
+        mainIni.main.moneyvcs = moneyvcs[0] 
+        inicfg.save(mainIni, "MiniHelper-CR")
+        end
         --- 4 страница ебать ---
 		
 
@@ -314,9 +324,19 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
         imgui.End()
         end)
 
+        
+         
+        imgui.OnFrame(function() return show[0] and not isGamePaused() end, function()
+   
+            imgui.SetNextWindowSize(imgui.ImVec2(255, 90), imgui.Cond.Always)
+            imgui.Begin('Window Two', show, imgui.WindowFlags.NoDecoration)
+            imgui.Text(u8'65цф')
+            imgui.Text('Two')
+            imgui.End()
+        end).HideCursor = true -- HideCursor отвечает за то, чтобы курсор не показывался
 
 
-
+        
 ---ебать эта хуйня с авто обновлением---
 
 -- https://github.com/ass138/cr-helper-arz/tree/main
@@ -353,6 +373,11 @@ function main()
 			lua_thread.create(crtextdraw)
             lua_thread.create(chestss)
             lua_thread.create(delayedtimers)
+            lua_thread.create(bind)
+            lua_thread.create(sizewindow)
+            lua_thread.create(moneyvc)
+            lua_thread.create(lavkatextand)
+           
         
 
          
@@ -365,10 +390,122 @@ function main()
 	while true do wait(0)
 	  if wasKeyPressed(VK_F2) and not sampIsCursorActive() then -- если нажата клавиша R и не активен самп курсор
             WinState[0] = not WinState[0]  
-		
+            imgui.Process = main_window_state
+            imgui.ShowCursor = false
+            posX, posY = getCursorPos() -- функция позволяет получить координаты курсора на экране
+            
+                
+            
 end
 end
 end
+
+
+
+
+
+local fontas = renderCreateFont("Arial", 10, 5)
+
+
+function lavkatextand()
+    while true do
+        wait(0)
+        for id = 0, 2048 do
+            local result = sampIs3dTextDefined(id)
+            if result then
+                local text, color, posX, posY, posZ, distance, ignoreWalls, playerId, vehicleId = sampGet3dTextInfoById(id)
+                if text:find("Papa_Prince") then
+                    local wposX, wposY = convert3DCoordsToScreen(posX, posY, posZ)
+                    x2, y2, z2 = getCharCoordinates(PLAYER_PED)
+                    x10, y10 = convert3DCoordsToScreen(x2, y2, z2)
+                    local resX, resY = getScreenResolution()
+                    if wposX < resX and wposY < resY and isPointOnScreen(posX, posY, posZ, 1) then
+                        renderFontDrawText(fontas, text, wposX, wposY, 0xFF00FF00)
+                    end
+                elseif text:find("Kevin_Halt") then
+                    local wposX, wposY = convert3DCoordsToScreen(posX, posY, posZ)
+                    x2, y2, z2 = getCharCoordinates(PLAYER_PED)
+                    x10, y10 = convert3DCoordsToScreen(x2, y2, z2)
+                    local resX, resY = getScreenResolution()
+                    if wposX < resX and wposY < resY and isPointOnScreen(posX, posY, posZ, 1) then
+                        renderFontDrawText(fontas, text, wposX, wposY, 0xFF00FF00)
+                    end
+                end
+            end
+        end
+    end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function moneyvc()
+    if moneyvcs[0] then
+    font = renderCreateFont('TimesNewRoman', 12, 7)
+    money = getPlayerMoney()
+    multipliedMoney = money * 90
+    formattedMoney = tostring(multipliedMoney):reverse():gsub("(%d%d%d)", "%1."):reverse():gsub("^%.", "")
+    text = string.format('{3ADA3A}Деньги {FFFFFF}%s$', formattedMoney)
+    money_check()
+    while true do wait(0)  
+        renderFontDrawText(font, text, 1370, 205, 0xFFFFFFFF)  
+        end
+    end
+end
+
+    function money_check()
+        if moneyvcs[0] then
+        lua_thread.create(function()
+            while true do
+                wait(30000) -- 30 секунды
+                money = getPlayerMoney()
+                multipliedMoney = money * 90
+                formattedMoney = tostring(multipliedMoney):reverse():gsub("(%d%d%d)", "%1."):reverse():gsub("^%.", "")
+                text = string.format('{3ADA3A}Деньги {FFFFFF}%s$', formattedMoney)         
+            end
+        end)
+    end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+function sizewindow()
+    while true do wait(0)
+        if changepos then -- редактирование позиции окошка, его можно впихнуть и в сам мимгуи
+            posX, posY = getCursorPos() -- функция позволяет получить координаты курсора на экране
+            if isKeyJustPressed(1) then -- если нажата ЛКМ, то сохраняем позицию
+                changepos = false
+            end
+        end
+    end
+end
+
+
 
 
 function imgui.ColoredButton(text,hex,trans,size)
@@ -419,22 +556,37 @@ end
 
 
 
+-- Создаем переменную для хранения информации об окружностях
+local circleCoordinates = {}
+
+-- Функция для добавления информации о новой окружности
+function addCircleInfo(x, y, radius)
+    table.insert(circleCoordinates, {x, y, radius})
+end
+
+
+
 
 function radiuslavkis()
-	while true do wait(0)
+	while true do
+		wait(0)
 		if radiuslavki[0] then
+			local myPos = {getCharCoordinates(1)}
 	        for IDTEXT = 0, 2048 do
 	            if sampIs3dTextDefined(IDTEXT) then
 	                local text, color, posX, posY, posZ, distance, ignoreWalls, player, vehicle = sampGet3dTextInfoById(IDTEXT)
-	                if text ==  "Управления товарами." and not isCentralMarket(posX, posY) then
-						local myPos = {getCharCoordinates(1)}
-	                    drawCircleIn3d(posX,posY,posZ-1.3,5,36,1.5,	getDistanceBetweenCoords3d(posX,posY,0,myPos[1],myPos[2],0) > 5 and 0xFFFFFFFF or 0xFFFF0000)
+	                if text == "Управления товарами." and not isCentralMarket(posX, posY) then
+	                    local distanceToText = getDistanceBetweenCoords3d(posX, posY, posZ, myPos[1], myPos[2], myPos[3])
+	                    if distanceToText <= 20.0 then
+	                        drawCircleIn3d(posX,posY,posZ-1.3,5,36,1.5,	getDistanceBetweenCoords3d(posX,posY,0,myPos[1],myPos[2],0) > 5 and 0xFFFFFFFF or 0xFFFF0000)
+	                    end
 	                end
 	            end
 	        end
 	    end
 	end
 end
+
 
 drawCircleIn3d = function(x, y, z, radius, polygons,width,color)
     local step = math.floor(360 / (polygons or 36))
@@ -456,6 +608,16 @@ end
 isCentralMarket = function(x, y)
 	return (x > 1044 and x < 1197 and y > -1565 and y < -1403)
 end
+
+
+
+
+
+
+
+
+
+
 
 function crtextdraw()
  while true do
@@ -587,9 +749,10 @@ function chestss()
     end
 end
 
-   
+
    
    function ev.onShowTextDraw(id, data)
+
        if work then
            if checkbox_standart[0] and data.modelId == 19918 then textdraw[1][1] = id  end
            if checkbox_platina[0] and data.modelId == 1353 then textdraw[2][1] = id  end
@@ -606,7 +769,7 @@ end
                textdraw[6][2] = id + 1
            end
        end
-   end
+    end 
 
 
 
@@ -614,7 +777,49 @@ end
 
 
 
+function bind()
+    while true do wait(0)
 
+    if isKeyDown(161) and isKeyDown(49) then 
+        activedia = not activedia
+        if activedia then 
+        lavka[0] = true
+        wait(200) 
+        else
+        lavka[0] = false
+        wait(200) 
+    end
+end
+    if isKeyDown(161) and isKeyDown(50) then 
+        activedia = not activedia
+        if activedia then  
+        radiuslavki[0] = true
+        wait(200)
+        else 
+        radiuslavki[0] = false
+        wait(200)
+    end
+end
+
+    if isKeyDown(161) and isKeyDown(51) then
+        activedia = not activedia
+        if activedia then    
+        clean[0] = true 
+        wait(200)
+        else 
+        clean[0] = false 
+        wait(200)
+    end
+end
+    if isKeyDown(161) and isKeyDown(52) then  
+        workbotton[0] = true 
+        work = true 
+    end
+    if isKeyDown(161) and isKeyDown(54) then  
+        thisScript():reload() 
+    end
+end
+end
 
 
 
@@ -672,45 +877,47 @@ end
 
 
 function cleanr()
-while true do wait(0)
- if clean[0] then
-local removedPlayers = 0
-		for i, v in ipairs(getAllChars()) do
-			if doesCharExist(v) and i ~= 1 then
-				local _, id = sampGetPlayerIdByCharHandle(v)
-				if id ~= -1 then
-					removePlayer(id)
-					removedPlayers = removedPlayers + 1
-				end
-			end
-		end
-		local removedVehicles = 0
-		for i, v in ipairs(getAllVehicles()) do
-			local res, id = sampGetVehicleIdByCarHandle(v)
-			if res then
-				if (isCharInAnyCar(1) and storeCarCharIsInNoSave(1) ~= v) or not isCharInAnyCar(1) then
-					removeVehicle(id)
-					removedVehicles = removedVehicles + 1
-				end
-			end
-		end
-	end
-end 
-end
-
-function removePlayer(id)
-	local bs = raknetNewBitStream()
-	raknetBitStreamWriteInt16(bs, id)
-	raknetEmulRpcReceiveBitStream(163, bs)
-	raknetDeleteBitStream(bs)
-end
-
-function removeVehicle(id)
-	local bs = raknetNewBitStream()
-	raknetBitStreamWriteInt16(bs, id)
-	raknetEmulRpcReceiveBitStream(165, bs)
-	raknetDeleteBitStream(bs)
-end
+    while true do wait(0)
+     if clean[0] then
+    local removedPlayers = 0
+            for i, v in ipairs(getAllChars()) do
+                if doesCharExist(v) and i ~= 1 then
+                    local _, id = sampGetPlayerIdByCharHandle(v)
+                    if id ~= -1 then
+                        removePlayer(id)
+                        removedPlayers = removedPlayers + 1
+                    end
+                end
+            end
+            local removedVehicles = 0
+            for i, v in ipairs(getAllVehicles()) do
+                local res, id = sampGetVehicleIdByCarHandle(v)
+                if res then
+                    if (isCharInAnyCar(1) and storeCarCharIsInNoSave(1) ~= v) or not isCharInAnyCar(1) then
+                        removeVehicle(id)
+                        removedVehicles = removedVehicles + 1
+                    end
+                end
+            end
+            local result, ped = sampGetCharHandleBySampPlayerId(id)
+            deleteChar(ped)
+        end
+    end 
+    end
+    
+    function removePlayer(id)
+        local bs = raknetNewBitStream()
+        raknetBitStreamWriteInt16(bs, id)
+        raknetEmulRpcReceiveBitStream(163, bs)
+        raknetDeleteBitStream(bs)
+    end
+    
+    function removeVehicle(id)
+        local bs = raknetNewBitStream()
+        raknetBitStreamWriteInt16(bs, id)
+        raknetEmulRpcReceiveBitStream(165, bs)
+        raknetDeleteBitStream(bs)
+    end
 
 
 
@@ -946,6 +1153,18 @@ local function collectAndSendPayDayData(text)
 end
 
 
+
+
+
+
+function money_separator(n)
+    local left,num,right = string.match(n,'^([^%d]*%d)(%d*)(.-)$')
+    return left..(num:reverse():gsub('(%d%d%d)','%1.'):reverse())..right
+end
+
+
+
+
 function sampev.onServerMessage(color, text)
     if text:find('Банковский чек') then bank_check = true end
     if bank_check then collectAndSendPayDayData(text) end
@@ -958,54 +1177,59 @@ function sampev.onServerMessage(color, text)
 
     if text:find('^.+ купил у вас .+, вы получили %$%d+ от продажи %(комиссия %d процент%(а%)%)') then
         local name, product, money = text:match('^(.+) купил у вас (.+), вы получили %$([%d.,]+) от продажи %(комиссия %d процент%(а%)%)')
-        local reg_text = 'Вы продали: "'..product..'" за '..money..'$ Игроку: '..name..'.'
+        local reg_text = 'Вы продали: "'..product..'" за '..money..'$ Игроку: '..name..'.'.. '\n\n' .. 'Наличные: $' .. money_separator(getPlayerMoney(PLAYER_HANDLE))
             sendTelegramNotification(reg_text)
         end
     if text:find('^.+ купил у вас .+, вы получили VC%$%d+ от продажи %(комиссия %d процент%(а%)%)') then
         local name, product, money = text:match('^(.+) купил у вас (.+), вы получили VC%$([%d.,]+) от продажи %(комиссия %d процент%(а%)%)')
-        local reg_text = 'Вы продали: "'..product..'" за '..money..'VC$ Игроку: '..name..'.'
+        local reg_text = 'Вы продали: "'..product..'" за '..money..'VC$ Игроку: '..name..'.'.. '\n\n' .. 'Наличные: VC$' .. money_separator(getPlayerMoney(PLAYER_HANDLE))
             sendTelegramNotification(reg_text)
         end    
     if text:find('^Вы купили .+ у игрока .+ за %$%d+') then
         local product, name, money = text:match('^Вы купили (.+) у игрока (.+) за %$([%d.,]+)')
-        local reg_text = 'Вы купили: "'..product..'" за '..money..'$ У игрока: '..name..'.'
+        local reg_text = 'Вы купили: "'..product..'" за '..money..'$ У игрока: '..name..'.'.. '\n\n' .. 'Наличные: $' .. money_separator(getPlayerMoney(PLAYER_HANDLE))
         sendTelegramNotification(reg_text)
     end
-    if text:find('^Вы купили .+ у игрока .+ за VC%$%d+') then
+    if text:find('^Вы купили .+ у игрока .+ за VC%$%d+') then 
         local product, name, money = text:match('^Вы купили (.+) у игрока (.+) за VC%$([%d.,]+)')
-        local reg_text = 'Вы купили: "'..product..'" за '..money..'VC$ У игрока: '..name..'.'
+        local reg_text = 'Вы купили: "'..product..'" за '..money..'VC$ У игрока: '..name..'.'.. '\n\n' .. 'Наличные: VC$' .. money_separator(getPlayerMoney(PLAYER_HANDLE))
         sendTelegramNotification(reg_text)
+     
     end
+
+    local message = ""
 
     if text:find('^%[Информация%] %{ffffff%}Вы использовали сундук с рулетками и получили') and color == 1941201407 then
         local drop_starter_donate = text:match('^%[Информация%] %{ffffff%}Вы использовали сундук с рулетками и получили (.+)!')
-        sendTelegramNotification(drop_starter_donate)
+        message = message .. drop_starter_donate .. "\n"
     end
-
+    
     if text:find('^%[Информация%] %{ffffff%}Вы использовали платиновый сундук с рулетками и получили') and color == 1941201407 then
         local drop_platinum = text:match('^%[Информация%] %{ffffff%}Вы использовали платиновый сундук с рулетками и получили (.+)!')
-        sendTelegramNotification(drop_platinum)
+        message = message .. drop_platinum .. "\n"
     end 
-
+    
     if text:find('^%[Информация%] %{ffffff%}Вы использовали тайник Илона Маска и получили') and color == 1941201407 then
         local drop_elon_musk = text:match('^%[Информация%] %{ffffff%}Вы использовали тайник Илона Маска и получили (.+)!')
-        sendTelegramNotification(drop_elon_musk)
+        message = message .. drop_elon_musk .. "\n"
     end
-
-    if text:find('^Вы открыли Тайник Лос Сантоса!') or text:find('^Вы открыли Тайник Vice City!') and color == 1118842111 then
-	elseif text:find('^%[Информация%] %{ffffff%}Получено: (.+) и (.+)!') and color == 1941201407 then
-		local drop_ls_vc_1, drop_ls_vc_2 = text:match('^%[Информация%] %{ffffff%}Получено: (.+) и (.+)!')
-        sendTelegramNotification(drop_ls_vc_1)
-        sendTelegramNotification(drop_ls_vc_2)
+    
+    if (text:find('^Вы открыли Тайник Лос Сантоса!') or text:find('^Вы открыли Тайник Vice City!')) and color == 1118842111 then
+    elseif text:find('^%[Информация%] %{ffffff%}Получено: (.+) и (.+)!') and color == 1941201407 then
+        local drop_ls_vc_1, drop_ls_vc_2 = text:match('^%[Информация%] %{ffffff%}Получено: (.+) и (.+)!')
+        message = message .. drop_ls_vc_1 .. "\n" .. drop_ls_vc_2 .. "\n"
     end
-
-
-
+    
+    sendTelegramNotification(message)
+    
 
 
     if text:find('^%[Ошибка%] %{ffffff%}Время после прошлого использования ещё не прошло!') and color == -1104335361 then
+        counter = counter + 1
         sendTelegramNotification('Время после прошлого использования ещё не прошло!')  
     end
+
+    
 
     
     
@@ -1014,9 +1238,13 @@ function sampev.onServerMessage(color, text)
         if autoclean[0] then
             clean = new.bool(true)
             radiuslavki = new.bool(false)
+           
     end    
 end
 end
+
+
+
 ---[Информация] {ffffff}Вы использовали сундук с рулетками и получили платиновую рулетку!
 
 function telegrams()
@@ -1093,10 +1321,23 @@ if text:find('Удача!') then
 		return false
 	end
 
+    if dialogId == 25194 then
+        sampSendDialogResponse(dialogId,1,1,nil) 
+        return false
+
+    end
+
+    if dialogId == 26011 then
+        sampSendDialogResponse(dialogId,1,1,nil) 
+        sampSendChat('/lock')
+        return false
+
+    end
     
 if settingslavka[0] then
     if title:find ('{BFBBBA}Выберите тип вашей лавки') then
 		sampSendDialogResponse(dialogId,1,1,nil)
+        return false
 	end
 
    if text:find('{FFFFFF}Введите название вашей лавки') then
@@ -1105,10 +1346,15 @@ if settingslavka[0] then
 
     if title == '{BFBBBA}Выберете цвет' and text:find('{E94E4E}|||||||||||||||||||') then
     sampSendDialogResponse(dialogId,1,15,nil)
+    return false
     end
 end
 
-
+if diologskiplavka then
+if text:find('{FFFFFF}4. Прекратить покупку товара') then
+    return false
+    end
+end
 
 if diolog[0] then
 if style == 1 or style == 3 then
