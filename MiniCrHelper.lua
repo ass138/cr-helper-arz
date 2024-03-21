@@ -1,5 +1,5 @@
 script_name("MiniCrHelper")
-script_version("0.0.3")
+script_version("0.0.4")
 
 
 --ебаные библиотеки--
@@ -287,6 +287,10 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
         end
         --- 4 страница ебать ---
 		
+        if imgui.Button(u8'сервер') then
+            name = sampGetCurrentServerName()
+            sampAddChatMessage(""..name, -1)
+        end
 
 	    --- 5 страница ебать ---
 	    elseif tab == 5 then
@@ -377,6 +381,7 @@ function main()
             lua_thread.create(sizewindow)
             lua_thread.create(moneyvc)
             lua_thread.create(lavkatextand)
+     
            
         
 
@@ -399,6 +404,13 @@ function main()
 end
 end
 end
+
+
+
+
+
+
+
 
 
 
@@ -456,7 +468,9 @@ end
 
 
 function moneyvc()
-    if moneyvcs[0] then
+    local currentServerName = sampGetCurrentServerName()
+    if currentServerName == "Arizona Role Play | Vice City" then
+
     font = renderCreateFont('TimesNewRoman', 12, 7)
     money = getPlayerMoney()
     multipliedMoney = money * 90
@@ -469,8 +483,8 @@ function moneyvc()
     end
 end
 
+
     function money_check()
-        if moneyvcs[0] then
         lua_thread.create(function()
             while true do
                 wait(30000) -- 30 секунды
@@ -481,7 +495,7 @@ end
             end
         end)
     end
-end
+
 
 
 
@@ -1177,8 +1191,8 @@ function sampev.onServerMessage(color, text)
 
     if text:find('^.+ купил у вас .+, вы получили %$%d+ от продажи %(комиссия %d процент%(а%)%)') then
         local name, product, money = text:match('^(.+) купил у вас (.+), вы получили %$([%d.,]+) от продажи %(комиссия %d процент%(а%)%)')
-        local reg_text = 'Вы продали: "'..product..'" за '..money..'$ Игроку: '..name..'.'.. '\n\n' .. 'Наличные: $' .. money_separator(getPlayerMoney(PLAYER_HANDLE))
-            sendTelegramNotification(reg_text)
+        local reg_texts = 'Вы продали: "'..product..'" за '..money..'$ Игроку: '..name..'.'.. '\n\n' .. 'Наличные: $' .. money_separator(getPlayerMoney(PLAYER_HANDLE))
+            sendTelegramNotification(reg_texts)
         end
     if text:find('^.+ купил у вас .+, вы получили VC%$%d+ от продажи %(комиссия %d процент%(а%)%)') then
         local name, product, money = text:match('^(.+) купил у вас (.+), вы получили VC%$([%d.,]+) от продажи %(комиссия %d процент%(а%)%)')
@@ -1187,8 +1201,8 @@ function sampev.onServerMessage(color, text)
         end    
     if text:find('^Вы купили .+ у игрока .+ за %$%d+') then
         local product, name, money = text:match('^Вы купили (.+) у игрока (.+) за %$([%d.,]+)')
-        local reg_text = 'Вы купили: "'..product..'" за '..money..'$ У игрока: '..name..'.'.. '\n\n' .. 'Наличные: $' .. money_separator(getPlayerMoney(PLAYER_HANDLE))
-        sendTelegramNotification(reg_text)
+        local reg_texts = 'Вы купили: "'..product..'" за '..money..'$ У игрока: '..name..'.'.. '\n\n' .. 'Наличные: $' .. money_separator(getPlayerMoney(PLAYER_HANDLE))
+        sendTelegramNotification(reg_texts)
     end
     if text:find('^Вы купили .+ у игрока .+ за VC%$%d+') then 
         local product, name, money = text:match('^Вы купили (.+) у игрока (.+) за VC%$([%d.,]+)')
