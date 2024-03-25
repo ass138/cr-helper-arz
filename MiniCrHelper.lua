@@ -1,5 +1,5 @@
 script_name("MiniCrHelper")
-script_version("0.0.5")
+script_version("0.0.6")
 
 
 --ебаные библиотеки--
@@ -351,7 +351,7 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
             local sizeX, sizeY = getScreenResolution()
         imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
         
-        imgui.PushStyleColor(imgui.Col.WindowBg, imgui.ImVec4(1, 1, 1, 0.1))
+        imgui.PushStyleColor(imgui.Col.WindowBg, imgui.ImVec4(0, 0, 0, 0.5))
         imgui.Begin('market', market, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize)
      
         for i = #marketShop, 1, -1 do
@@ -621,63 +621,23 @@ end
 
 
 
-
+local TextDraw_Remove = {{4, 203, 347}, {4, 204, 349}, {2, 208, 351}}
 
 function crtextdraw()
- while true do
-        wait(0)
-        sampTextdrawDelete(629)
-        sampTextdrawDelete(573)
-        sampTextdrawDelete(558)
-        sampTextdrawDelete(532)
-        sampTextdrawDelete(536)
-        sampTextdrawDelete(535)
-        sampTextdrawDelete(675)
-        sampTextdrawDelete(533)
-        sampTextdrawSetPos(534, 112, 313)
-        sampTextdrawSetPos(535, 112, 313)
-        sampTextdrawSetPos(536, 112, 313)
-        sampTextdrawSetPos(537, 112, 313)
-        sampTextdrawSetPos(538, 112, 313)
-        sampTextdrawSetPos(539, 112, 313)
-        sampTextdrawSetPos(540, 112, 313)
-        sampTextdrawSetPos(541, 112, 313)
-        sampTextdrawSetPos(542, 112, 313)
-        sampTextdrawSetPos(543, 112, 313)
-        sampTextdrawSetPos(544, 112, 313)
-        sampTextdrawSetPos(545, 112, 313)
-        sampTextdrawSetPos(546, 112, 313)
-        sampTextdrawSetPos(547, 112, 313)
-        sampTextdrawSetPos(548, 112, 313)
-        sampTextdrawSetPos(549, 112, 313)
-        sampTextdrawSetPos(550, 112, 313)
-        sampTextdrawSetPos(551, 112, 313)
-        sampTextdrawSetPos(552, 112, 313)
-        sampTextdrawSetPos(553, 112, 313)
-        sampTextdrawSetPos(554, 112, 313)
-        sampTextdrawSetPos(555, 112, 313)
-        sampTextdrawSetPos(556, 112, 313)
-        sampTextdrawSetPos(557, 112, 313)
-        sampTextdrawSetPos(558, 112, 313)
-        sampTextdrawSetPos(559, 112, 313)
-        sampTextdrawSetPos(560, 112, 313)
-        sampTextdrawSetPos(561, 112, 313)
-        sampTextdrawSetPos(562, 112, 313)
-        sampTextdrawSetPos(563, 112, 313)
-        sampTextdrawSetPos(564, 112, 313)
-        sampTextdrawSetPos(565, 112, 313)
-        sampTextdrawSetPos(566, 112, 313)
-        sampTextdrawSetPos(567, 112, 313)
-        sampTextdrawSetPos(568, 112, 313)
-        sampTextdrawSetPos(569, 112, 313)
-        sampTextdrawSetPos(570, 112, 313)
-        sampTextdrawSetPos(571, 112, 313)
-        sampTextdrawSetPos(572, 112, 313)
-        sampTextdrawSetPos(573, 112, 313)
-        sampTextdrawSetPos(574, 112, 313)
-        sampTextdrawSetPos(620, 112, 313)
-        
-    end    
+    while true do wait(0)
+		for i = 1, 4096 do
+			if sampTextdrawIsExists(i) then
+				local style = sampTextdrawGetStyle(i)
+				local x, y = sampTextdrawGetPos(i)
+				local text = sampTextdrawGetString(i)
+				for i_table = 1, #TextDraw_Remove do
+					if (style == TextDraw_Remove[i_table][1] and math.floor(x) == TextDraw_Remove[i_table][2] and math.floor(y) == TextDraw_Remove[i_table][3]) then	
+						sampTextdrawDelete(i)
+					end
+                end
+            end
+        end
+    end
 end
 
 function imgui.TextColoredRGB(text)
@@ -1227,14 +1187,6 @@ end
 function sampev.onServerMessage(color, text)
     if text:find('Банковский чек') then bank_check = true end
     if bank_check then collectAndSendPayDayData(text) end
-    if text:find('{FFFFFF}Вы успешно арендовали лавку для продажи/покупки товара!') then
-    sendTelegramNotification('Ебать молодец словил лавку')
-    end
-    if text:find('^%[Информация%] {FFFFFF}Ваша лавка была закрыта') then
-        sendTelegramNotification('Вас выкинули с вашей лавки!')
-    end
-
-
 
     local message = ""
 
@@ -1261,14 +1213,10 @@ function sampev.onServerMessage(color, text)
     
     sendTelegramNotification(message)
     
-
-
     if text:find('^%[Ошибка%] %{ffffff%}Время после прошлого использования ещё не прошло!') and color == -1104335361 then
         counter = counter + 1
         sendTelegramNotification('Время после прошлого использования ещё не прошло!')  
     end
-
-
 
     local hookMarket = {
 		{text = '^%s*(.+) купил у вас (.+), вы получили(.+)$(.+) от продажи %(комиссия %d+ процент%(а%)%)$', color = -1347440641, key = 2},
@@ -1276,8 +1224,6 @@ function sampev.onServerMessage(color, text)
 		{text = '^%s*Вы купили (.+) у игрока (.+) за(.+)$(.+)', color = -1347440641, key = 3},
 		{text = '^%s*Вы успешно купили (.+) у (.+) за(.+)$(.+)', color = -65281, key = 3}
 	}
-
-
 
 	for k, v in ipairs(hookMarket) do
 		if string.find(text, v['text']) and v['color'] == color then
@@ -1294,10 +1240,11 @@ function sampev.onServerMessage(color, text)
 			end
 		end
 	
-
-
     if text:find('{FFFFFF}У вас есть 3 минуты, чтобы настроить товар, иначе аренда ларька будет отменена.') then
         lavka = new.bool(false) 
+        show[0] = true
+        sendTelegramNotification('[Информация] Вы заняли лавку!')
+        marketShop = {}
         if autoclean[0] then
             clean = new.bool(true)
             radiuslavki = new.bool(false)
@@ -1305,7 +1252,22 @@ function sampev.onServerMessage(color, text)
            
     end    
 end
+
+local hookActionsShop = {
+    '^%s*%[Информация%] {FFFFFF}Вы отказались от аренды лавки!',
+    '^%s*%[Информация%] {FFFFFF}Вы сняли лавку!',
+    '^%s*%[Информация%] {FFFFFF}Ваша лавка была закрыта, из%-за того что вы её покинули!'
+}
+
+for k, v in ipairs(hookActionsShop) do
+    if text:find(v) then
+        show[0] = false       
+        sendTelegramNotification(text)
+        end
+    end
 end
+
+
 
 
 
@@ -1472,7 +1434,7 @@ end)
 
 function imgui.DarkTheme()
     local glyph_ranges = imgui.GetIO().Fonts:GetGlyphRangesCyrillic()
-    example = imgui.GetIO().Fonts:AddFontFromFileTTF(getFolderPath(0x14)..'\\impact.ttf', 16, _, glyph_ranges)
+    example = imgui.GetIO().Fonts:AddFontFromFileTTF(getFolderPath(0x14)..'\\impact.ttf', 20, _, glyph_ranges)
         imgui.SwitchContext()
         --==[ STYLE ]==--
         imgui.GetStyle().WindowPadding = imgui.ImVec2(5, 5)
