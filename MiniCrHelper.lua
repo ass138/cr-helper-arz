@@ -1,5 +1,5 @@
 script_name("MiniCrHelper")
-script_version("0.0.4")
+script_version("0.0.5")
 
 
 --ебаные библиотеки--
@@ -25,6 +25,7 @@ local clean = false
 local counter = 0
 local ev = require 'samp.events'
 local lavki = {}
+local marketShop = {}
 local keys = require "vkeys"
 local ffi = require 'ffi'
 local new, str = imgui.new, ffi.string
@@ -138,7 +139,7 @@ local token = new.char[256](u8(mainIni.main.token)) -- создаём буффер для инпута
 ---Telegram---
 
 --color--
-        local show = imgui.new.bool(false)
+        local show = imgui.new.bool(true)
         local changepos = false -- статус редактирования позиции окошка
         local posX, posY = 500, 500 -- задаём начальную позицию второго окошка
 
@@ -292,6 +293,21 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
             sampAddChatMessage(""..name, -1)
         end
 
+        if imgui.Button(u8('Тестовые строчки'), imgui.ImVec2(170)) then
+            marketShop = {}
+            for i = 1, 5 do marketShop[i] = 'Вы купили Семейный талон (1 шт.) у игрока Test за $123.123.123.123' end
+            
+
+        end
+
+        if imgui.Button(u8('Очистить строчки'), imgui.ImVec2(170)) then
+        marketShop = {}
+        end
+
+        
+
+
+
 	    --- 5 страница ебать ---
 	    elseif tab == 5 then
         if imgui.Checkbox(u8'Принимать команды из TG', cmd) then
@@ -332,11 +348,20 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
          
         imgui.OnFrame(function() return show[0] and not isGamePaused() end, function()
    
-            imgui.SetNextWindowSize(imgui.ImVec2(255, 90), imgui.Cond.Always)
-            imgui.Begin('Window Two', show, imgui.WindowFlags.NoDecoration)
-            imgui.Text(u8'65цф')
-            imgui.Text('Two')
-            imgui.End()
+            local sizeX, sizeY = getScreenResolution()
+        imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
+        
+        imgui.PushStyleColor(imgui.Col.WindowBg, imgui.ImVec4(1, 1, 1, 0.1))
+        imgui.Begin('market', market, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize)
+     
+        for i = #marketShop, 1, -1 do
+            --imgui.Text(u8(marketShop[i]))
+            imgui.PushFont(example)
+            imgui.TextColoredRGB('{FFFF00}'..marketShop[i])
+            imgui.PopFont() -- функция, заменяющая шрифт заканчивается
+        end
+        imgui.End()
+        imgui.PopStyleColor()
         end).HideCursor = true -- HideCursor отвечает за то, чтобы курсор не показывался
 
 
@@ -379,7 +404,6 @@ function main()
             lua_thread.create(delayedtimers)
             lua_thread.create(bind)
             lua_thread.create(sizewindow)
-            lua_thread.create(moneyvc)
             lua_thread.create(lavkatextand)
      
            
@@ -426,21 +450,15 @@ function lavkatextand()
             local result = sampIs3dTextDefined(id)
             if result then
                 local text, color, posX, posY, posZ, distance, ignoreWalls, playerId, vehicleId = sampGet3dTextInfoById(id)
-                if text:find("Papa_Prince") then
-                    local wposX, wposY = convert3DCoordsToScreen(posX, posY, posZ)
-                    x2, y2, z2 = getCharCoordinates(PLAYER_PED)
-                    x10, y10 = convert3DCoordsToScreen(x2, y2, z2)
-                    local resX, resY = getScreenResolution()
-                    if wposX < resX and wposY < resY and isPointOnScreen(posX, posY, posZ, 1) then
-                        renderFontDrawText(fontas, text, wposX, wposY, 0xFF00FF00)
-                    end
-                elseif text:find("Kevin_Halt") then
-                    local wposX, wposY = convert3DCoordsToScreen(posX, posY, posZ)
-                    x2, y2, z2 = getCharCoordinates(PLAYER_PED)
-                    x10, y10 = convert3DCoordsToScreen(x2, y2, z2)
-                    local resX, resY = getScreenResolution()
-                    if wposX < resX and wposY < resY and isPointOnScreen(posX, posY, posZ, 1) then
-                        renderFontDrawText(fontas, text, wposX, wposY, 0xFF00FF00)
+                if text:find("Papa_Prince") or text:find("Kevin_Halt") then
+                    local playerX, playerY, playerZ = getCharCoordinates(PLAYER_PED)
+                    local dist = getDistanceBetweenCoords3d(playerX, playerY, playerZ, posX, posY, posZ)
+                    if dist <= 100.0 then
+                        local wposX, wposY = convert3DCoordsToScreen(posX, posY, posZ)
+                        local resX, resY = getScreenResolution()
+                        if wposX < resX and wposY < resY and isPointOnScreen(posX, posY, posZ, 1) then
+                            renderFontDrawText(fontas, text, wposX, wposY, 0xFF00FF00)
+                        end
                     end
                 end
             end
@@ -467,34 +485,6 @@ end
 
 
 
-function moneyvc()
-    local currentServerName = sampGetCurrentServerName()
-    if currentServerName == "Arizona Role Play | Vice City" then
-
-    font = renderCreateFont('TimesNewRoman', 12, 7)
-    money = getPlayerMoney()
-    multipliedMoney = money * 90
-    formattedMoney = tostring(multipliedMoney):reverse():gsub("(%d%d%d)", "%1."):reverse():gsub("^%.", "")
-    text = string.format('{3ADA3A}Деньги {FFFFFF}%s$', formattedMoney)
-    money_check()
-    while true do wait(0)  
-        renderFontDrawText(font, text, 1370, 205, 0xFFFFFFFF)  
-        end
-    end
-end
-
-
-    function money_check()
-        lua_thread.create(function()
-            while true do
-                wait(30000) -- 30 секунды
-                money = getPlayerMoney()
-                multipliedMoney = money * 90
-                formattedMoney = tostring(multipliedMoney):reverse():gsub("(%d%d%d)", "%1."):reverse():gsub("^%.", "")
-                text = string.format('{3ADA3A}Деньги {FFFFFF}%s$', formattedMoney)         
-            end
-        end)
-    end
 
 
 
@@ -636,6 +626,9 @@ end
 function crtextdraw()
  while true do
         wait(0)
+        sampTextdrawDelete(629)
+        sampTextdrawDelete(573)
+        sampTextdrawDelete(558)
         sampTextdrawDelete(532)
         sampTextdrawDelete(536)
         sampTextdrawDelete(535)
@@ -687,7 +680,53 @@ function crtextdraw()
     end    
 end
 
-
+function imgui.TextColoredRGB(text)
+    local style = imgui.GetStyle()
+    local colors = style.Colors
+    local ImVec4 = imgui.ImVec4
+    local explode_argb = function(argb)
+        local a = bit.band(bit.rshift(argb, 24), 0xFF)
+        local r = bit.band(bit.rshift(argb, 16), 0xFF)
+        local g = bit.band(bit.rshift(argb, 8), 0xFF)
+        local b = bit.band(argb, 0xFF)
+        return a, r, g, b
+    end
+    local getcolor = function(color)
+        if color:sub(1, 6):upper() == 'SSSSSS' then
+            local r, g, b = colors[1].x, colors[1].y, colors[1].z
+            local a = tonumber(color:sub(7, 8), 16) or colors[1].w * 255
+            return ImVec4(r, g, b, a / 255)
+        end
+        local color = type(color) == 'string' and tonumber(color, 16) or color
+        if type(color) ~= 'number' then return end
+        local r, g, b, a = explode_argb(color)
+        return imgui.ImVec4(r/255, g/255, b/255, a/255)
+    end
+    local render_text = function(text_)
+        for w in text_:gmatch('[^\r\n]+') do
+            local text, colors_, m = {}, {}, 1
+            w = w:gsub('{(......)}', '{%1FF}')
+            while w:find('{........}') do
+                local n, k = w:find('{........}')
+                local color = getcolor(w:sub(n + 1, k - 1))
+                if color then
+                    text[#text], text[#text + 1] = w:sub(m, n - 1), w:sub(k + 1, #w)
+                    colors_[#colors_ + 1] = color
+                    m = n
+                end
+                w = w:sub(1, n - 1) .. w:sub(k + 1, #w)
+            end
+            if text[0] then
+                for i = 0, #text do
+                    imgui.TextColored(colors_[i] or colors[1], u8(text[i]))
+                    imgui.SameLine(nil, 0)
+                end
+                imgui.NewLine()
+            else imgui.Text(u8(w)) end
+        end
+    end
+    render_text(text)
+end
 
 
 function imgui.TextQuestion(text)
@@ -795,32 +834,38 @@ function bind()
     while true do wait(0)
 
     if isKeyDown(161) and isKeyDown(49) then 
-        activedia = not activedia
-        if activedia then 
+        activediaq = not activediaq
+        if activediaq then 
+        sampAddChatMessage('{C71585}[Binder] {FFFFFF}Рендер лавок {00FF00}включено.', -1)
         lavka[0] = true
         wait(200) 
         else
+        sampAddChatMessage('{C71585}[Binder] {FFFFFF}Рендер лавок {FF0000}отключено.', -1)   
         lavka[0] = false
         wait(200) 
     end
 end
     if isKeyDown(161) and isKeyDown(50) then 
-        activedia = not activedia
-        if activedia then  
+        activediaw = not activediaw
+        if activediaw then  
+        sampAddChatMessage('{C71585}[Binder] {FFFFFF}Радиус между лавками {00FF00}включено.', -1)
         radiuslavki[0] = true
         wait(200)
         else 
+        sampAddChatMessage('{C71585}[Binder] {FFFFFF}Радиус между лавками {FF0000}отключено.', -1)   
         radiuslavki[0] = false
         wait(200)
     end
 end
 
     if isKeyDown(161) and isKeyDown(51) then
-        activedia = not activedia
-        if activedia then    
+        activediae = not activediae
+        if activediae then
+        sampAddChatMessage('{C71585}[Binder] {FFFFFF}Удаление игроков и тс {00FF00}включено.', -1)
         clean[0] = true 
         wait(200)
         else 
+        sampAddChatMessage('{C71585}[Binder] {FFFFFF}Удаление игроков и тс {FF0000}отключено.', -1)   
         clean[0] = false 
         wait(200)
     end
@@ -835,8 +880,7 @@ end
 end
 end
 
-
-
+    
 
 
    function lavkirendor()
@@ -1020,6 +1064,8 @@ function sendTelegramNotification(msg) -- функция для отправки сообщения юзеру
 	async_http_request('https://api.telegram.org/bot' .. u8:decode(str(token)) .. '/sendMessage?chat_id=' .. u8:decode(str(chat_id)) .. '&text='..msg,'', function(result) end) -- а тут уже отправка
 end
 
+
+
 function get_telegram_updates() -- функция получения сообщений от юзера
     while not updateid do wait(1) end -- ждем пока не узнаем последний ID
     local runner = requestRunner()
@@ -1032,9 +1078,7 @@ function get_telegram_updates() -- функция получения сообщений от юзера
     end
 end
 
-function calc(str) --это тестовая функция, её не требуется переносить в ваш код
-    return assert(load("return "..str))()
-end
+
 
 function processing_telegram_messages(result) -- функция проверОчки того что отправил чел
     local proc_result, proc_table = pcall(decodeJson, result)
@@ -1099,9 +1143,16 @@ function processing_telegram_messages(result) -- функция проверОчки того что отп
                                     thisScript():reload()
                                 sendTelegramNotification('Скрипт перезагружается')
 
+
+                                elseif text:match('^/money') then
+                                moneya = getPlayerMoney()
+                                sendTelegramNotification('Наличные: $'..moneya)
+
+                            
+
                            
 								elseif text:match('^/help') then
-								sendTelegramNotification('%E2%9D%97Команды%E2%9D%97\n/stats -- Статистика аккаунта.\n/pcоff -- Выключение Пк.\n/reс -- Перезайти на сервер с задержкой 5 сек.\n/monitoroff -- выключить монитор(NirCmd)\n/status -- Статус сервера.\n/diolog -- включить или отключить отправку диалогов в TG.\n/killdiolog -- Закрытие всех диологов\n/send -- Написать сообщение в чат.\n/dell --включить или отключить удаление игроков и тс.\n/chest -- Запустить Авто открытие Сундуков.\n/reload -- Перезапустить Скрипт.')	 
+								sendTelegramNotification('%E2%9D%97Команды%E2%9D%97\n/stats -- Статистика аккаунта.\n/money -- Деньги на руках.\n/pcоff -- Выключение Пк.\n/reс -- Перезайти на сервер с задержкой 5 сек.\n/monitoroff -- выключить монитор(NirCmd)\n/status -- Статус сервера.\n/diolog -- включить или отключить отправку диалогов в TG.\n/killdiolog -- Закрытие всех диологов\n/send -- Написать сообщение в чат.\n/dell --включить или отключить удаление игроков и тс.\n/chest -- Запустить Авто открытие Сундуков.\n/reload -- Перезапустить Скрипт.')	 
                                 else -- если же не найдется ни одна из команд выше, выведем сообщение
                                 sendTelegramNotification('Неизвестная команда!')
                            
@@ -1114,6 +1165,7 @@ function processing_telegram_messages(result) -- функция проверОчки того что отп
     end
 end
 end
+
 
 
 function getLastUpdate() -- тут мы получаем последний ID сообщения, если же у вас в коде будет настройка токена и chat_id, вызовите эту функцию для того чтоб получить последнее сообщение
@@ -1171,13 +1223,6 @@ end
 
 
 
-function money_separator(n)
-    local left,num,right = string.match(n,'^([^%d]*%d)(%d*)(.-)$')
-    return left..(num:reverse():gsub('(%d%d%d)','%1.'):reverse())..right
-end
-
-
-
 
 function sampev.onServerMessage(color, text)
     if text:find('Банковский чек') then bank_check = true end
@@ -1189,27 +1234,7 @@ function sampev.onServerMessage(color, text)
         sendTelegramNotification('Вас выкинули с вашей лавки!')
     end
 
-    if text:find('^.+ купил у вас .+, вы получили %$%d+ от продажи %(комиссия %d процент%(а%)%)') then
-        local name, product, money = text:match('^(.+) купил у вас (.+), вы получили %$([%d.,]+) от продажи %(комиссия %d процент%(а%)%)')
-        local reg_texts = 'Вы продали: "'..product..'" за '..money..'$ Игроку: '..name..'.'.. '\n\n' .. 'Наличные: $' .. money_separator(getPlayerMoney(PLAYER_HANDLE))
-            sendTelegramNotification(reg_texts)
-        end
-    if text:find('^.+ купил у вас .+, вы получили VC%$%d+ от продажи %(комиссия %d процент%(а%)%)') then
-        local name, product, money = text:match('^(.+) купил у вас (.+), вы получили VC%$([%d.,]+) от продажи %(комиссия %d процент%(а%)%)')
-        local reg_text = 'Вы продали: "'..product..'" за '..money..'VC$ Игроку: '..name..'.'.. '\n\n' .. 'Наличные: VC$' .. money_separator(getPlayerMoney(PLAYER_HANDLE))
-            sendTelegramNotification(reg_text)
-        end    
-    if text:find('^Вы купили .+ у игрока .+ за %$%d+') then
-        local product, name, money = text:match('^Вы купили (.+) у игрока (.+) за %$([%d.,]+)')
-        local reg_texts = 'Вы купили: "'..product..'" за '..money..'$ У игрока: '..name..'.'.. '\n\n' .. 'Наличные: $' .. money_separator(getPlayerMoney(PLAYER_HANDLE))
-        sendTelegramNotification(reg_texts)
-    end
-    if text:find('^Вы купили .+ у игрока .+ за VC%$%d+') then 
-        local product, name, money = text:match('^Вы купили (.+) у игрока (.+) за VC%$([%d.,]+)')
-        local reg_text = 'Вы купили: "'..product..'" за '..money..'VC$ У игрока: '..name..'.'.. '\n\n' .. 'Наличные: VC$' .. money_separator(getPlayerMoney(PLAYER_HANDLE))
-        sendTelegramNotification(reg_text)
-     
-    end
+
 
     local message = ""
 
@@ -1243,21 +1268,80 @@ function sampev.onServerMessage(color, text)
         sendTelegramNotification('Время после прошлого использования ещё не прошло!')  
     end
 
-    
 
-    
-    
+
+    local hookMarket = {
+		{text = '^%s*(.+) купил у вас (.+), вы получили(.+)$(.+) от продажи %(комиссия %d+ процент%(а%)%)$', color = -1347440641, key = 2},
+		{text = '^%s*Вы успешно продали (.+) торговцу (.+), с продажи получили(.+)$(.+) %(комиссия %d+ процент%(а%)%)$', color = -65281, key = 2},
+		{text = '^%s*Вы купили (.+) у игрока (.+) за(.+)$(.+)', color = -1347440641, key = 3},
+		{text = '^%s*Вы успешно купили (.+) у (.+) за(.+)$(.+)', color = -65281, key = 3}
+	}
+
+
+
+	for k, v in ipairs(hookMarket) do
+		if string.find(text, v['text']) and v['color'] == color then
+			local args = splitArguments({text:match(v['text'])}, text:find('купил у вас'))
+			local textLog = getTypeMessageMarket(text, args)
+
+            sendTelegramNotification(textLog)
+			
+
+			if #marketShop > 5  then marketShop = {} end
+			table.insert(marketShop, textLog)
+
+
+			end
+		end
+	
+
+
     if text:find('{FFFFFF}У вас есть 3 минуты, чтобы настроить товар, иначе аренда ларька будет отменена.') then
         lavka = new.bool(false) 
         if autoclean[0] then
             clean = new.bool(true)
             radiuslavki = new.bool(false)
+            
            
     end    
 end
 end
 
 
+
+function splitArguments(array, key)
+	return {
+		['name'] = (key and array[1] or array[2]),
+		['item'] = (key and array[2] or array[1]),
+		['ViceCity'] = array[3],
+		['money'] = stringToCount(array[4])
+	}
+end
+
+function getTypeMessageMarket(text, args)
+	local array = {
+		['купил у вас'] = '%s %s купил "%s" за%s$%s',
+		['Вы купили'] = '%s %s продал "%s" за%s$%s',
+		['Вы успешно продали'] = '%s [Чужая Лавка] %s купил "%s" за%s$%s',
+		['Вы успешно купили'] = '%s [Чужая Лавка] %s продал "%s" за%s$%s'
+	}
+	for k, v in pairs(array) do
+		if text:find(k) then return string.format(v, os.date('[%H:%M:%S]'), args['name'], args['item'], args['ViceCity'], money_separator(args['money'])) end
+	end
+end
+
+function stringToCount(text)
+	local count = ''
+	for line in text:gmatch('%d') do
+		count = count .. line
+	end
+	return tonumber(count)
+end
+
+function money_separator(n)
+    local left,num,right = string.match(n,'^([^%d]*%d)(%d*)(.-)$')
+    return left..(num:reverse():gsub('(%d%d%d)','%1.'):reverse())..right
+end
 
 ---[Информация] {ffffff}Вы использовали сундук с рулетками и получили платиновую рулетку!
 
@@ -1360,15 +1444,12 @@ if settingslavka[0] then
 
     if title == '{BFBBBA}Выберете цвет' and text:find('{E94E4E}|||||||||||||||||||') then
     sampSendDialogResponse(dialogId,1,15,nil)
+    sampProcessChatInput('/plt')
     return false
     end
 end
 
-if diologskiplavka then
-if text:find('{FFFFFF}4. Прекратить покупку товара') then
-    return false
-    end
-end
+
 
 if diolog[0] then
 if style == 1 or style == 3 then
@@ -1390,85 +1471,87 @@ imgui.OnInitialize(function()
 end)
 
 function imgui.DarkTheme()
-    imgui.SwitchContext()
-    --==[ STYLE ]==--
-    imgui.GetStyle().WindowPadding = imgui.ImVec2(5, 5)
-    imgui.GetStyle().FramePadding = imgui.ImVec2(5, 5)
-    imgui.GetStyle().ItemSpacing = imgui.ImVec2(5, 5)
-    imgui.GetStyle().ItemInnerSpacing = imgui.ImVec2(2, 2)
-    imgui.GetStyle().TouchExtraPadding = imgui.ImVec2(0, 0)
-    imgui.GetStyle().IndentSpacing = 0
-    imgui.GetStyle().ScrollbarSize = 10
-    imgui.GetStyle().GrabMinSize = 10
-
-    --==[ BORDER ]==--
-    imgui.GetStyle().WindowBorderSize = 1
-    imgui.GetStyle().ChildBorderSize = 1
-    imgui.GetStyle().PopupBorderSize = 1
-    imgui.GetStyle().FrameBorderSize = 1
-    imgui.GetStyle().TabBorderSize = 1
-
-    --==[ ROUNDING ]==--
-    imgui.GetStyle().WindowRounding = 5
-    imgui.GetStyle().ChildRounding = 5
-    imgui.GetStyle().FrameRounding = 5
-    imgui.GetStyle().PopupRounding = 5
-    imgui.GetStyle().ScrollbarRounding = 5
-    imgui.GetStyle().GrabRounding = 5
-    imgui.GetStyle().TabRounding = 5
-
-    --==[ ALIGN ]==--
-    imgui.GetStyle().WindowTitleAlign = imgui.ImVec2(0.5, 0.5)
-    imgui.GetStyle().ButtonTextAlign = imgui.ImVec2(0.5, 0.5)
-    imgui.GetStyle().SelectableTextAlign = imgui.ImVec2(0.5, 0.5)
+    local glyph_ranges = imgui.GetIO().Fonts:GetGlyphRangesCyrillic()
+    example = imgui.GetIO().Fonts:AddFontFromFileTTF(getFolderPath(0x14)..'\\impact.ttf', 16, _, glyph_ranges)
+        imgui.SwitchContext()
+        --==[ STYLE ]==--
+        imgui.GetStyle().WindowPadding = imgui.ImVec2(5, 5)
+        imgui.GetStyle().FramePadding = imgui.ImVec2(5, 5)
+        imgui.GetStyle().ItemSpacing = imgui.ImVec2(5, 5)
+        imgui.GetStyle().ItemInnerSpacing = imgui.ImVec2(2, 2)
+        imgui.GetStyle().TouchExtraPadding = imgui.ImVec2(0, 0)
+        imgui.GetStyle().IndentSpacing = 0
+        imgui.GetStyle().ScrollbarSize = 10
+        imgui.GetStyle().GrabMinSize = 10
     
-    --==[ COLORS ]==--
-    imgui.GetStyle().Colors[imgui.Col.Text]                   = imgui.ImVec4(1.00, 1.00, 1.00, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.TextDisabled]           = imgui.ImVec4(0.50, 0.50, 0.50, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.WindowBg]               = imgui.ImVec4(0.07, 0.07, 0.07, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.ChildBg]                = imgui.ImVec4(0.07, 0.07, 0.07, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.PopupBg]                = imgui.ImVec4(0.07, 0.07, 0.07, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.Border]                 = imgui.ImVec4(0.25, 0.25, 0.26, 0.54)
-    imgui.GetStyle().Colors[imgui.Col.BorderShadow]           = imgui.ImVec4(0.00, 0.00, 0.00, 0.00)
-    imgui.GetStyle().Colors[imgui.Col.FrameBg]                = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.FrameBgHovered]         = imgui.ImVec4(0.25, 0.25, 0.26, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.FrameBgActive]          = imgui.ImVec4(0.25, 0.25, 0.26, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.TitleBg]                = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.TitleBgActive]          = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.TitleBgCollapsed]       = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.MenuBarBg]              = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.ScrollbarBg]            = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.ScrollbarGrab]          = imgui.ImVec4(0.00, 0.00, 0.00, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.ScrollbarGrabHovered]   = imgui.ImVec4(0.41, 0.41, 0.41, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.ScrollbarGrabActive]    = imgui.ImVec4(0.51, 0.51, 0.51, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.CheckMark]              = imgui.ImVec4(1.00, 1.00, 1.00, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.SliderGrab]             = imgui.ImVec4(0.21, 0.20, 0.20, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.SliderGrabActive]       = imgui.ImVec4(0.21, 0.20, 0.20, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.Button]                 = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.ButtonHovered]          = imgui.ImVec4(0.21, 0.20, 0.20, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.ButtonActive]           = imgui.ImVec4(0.41, 0.41, 0.41, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.Header]                 = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.HeaderHovered]          = imgui.ImVec4(0.20, 0.20, 0.20, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.HeaderActive]           = imgui.ImVec4(0.47, 0.47, 0.47, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.Separator]              = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.SeparatorHovered]       = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.SeparatorActive]        = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.ResizeGrip]             = imgui.ImVec4(1.00, 1.00, 1.00, 0.25)
-    imgui.GetStyle().Colors[imgui.Col.ResizeGripHovered]      = imgui.ImVec4(1.00, 1.00, 1.00, 0.67)
-    imgui.GetStyle().Colors[imgui.Col.ResizeGripActive]       = imgui.ImVec4(1.00, 1.00, 1.00, 0.95)
-    imgui.GetStyle().Colors[imgui.Col.Tab]                    = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.TabHovered]             = imgui.ImVec4(0.28, 0.28, 0.28, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.TabActive]              = imgui.ImVec4(0.30, 0.30, 0.30, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.TabUnfocused]           = imgui.ImVec4(0.07, 0.10, 0.15, 0.97)
-    imgui.GetStyle().Colors[imgui.Col.TabUnfocusedActive]     = imgui.ImVec4(0.14, 0.26, 0.42, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.PlotLines]              = imgui.ImVec4(0.61, 0.61, 0.61, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.PlotLinesHovered]       = imgui.ImVec4(1.00, 0.43, 0.35, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.PlotHistogram]          = imgui.ImVec4(0.90, 0.70, 0.00, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.PlotHistogramHovered]   = imgui.ImVec4(1.00, 0.60, 0.00, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.TextSelectedBg]         = imgui.ImVec4(1.00, 0.00, 0.00, 0.35)
-    imgui.GetStyle().Colors[imgui.Col.DragDropTarget]         = imgui.ImVec4(1.00, 1.00, 0.00, 0.90)
-    imgui.GetStyle().Colors[imgui.Col.NavHighlight]           = imgui.ImVec4(0.26, 0.59, 0.98, 1.00)
-    imgui.GetStyle().Colors[imgui.Col.NavWindowingHighlight]  = imgui.ImVec4(1.00, 1.00, 1.00, 0.70)
-    imgui.GetStyle().Colors[imgui.Col.NavWindowingDimBg]      = imgui.ImVec4(0.80, 0.80, 0.80, 0.20)
-    imgui.GetStyle().Colors[imgui.Col.ModalWindowDimBg]       = imgui.ImVec4(0.00, 0.00, 0.00, 0.70)
+        --==[ BORDER ]==--
+        imgui.GetStyle().WindowBorderSize = 1
+        imgui.GetStyle().ChildBorderSize = 1
+        imgui.GetStyle().PopupBorderSize = 1
+        imgui.GetStyle().FrameBorderSize = 1
+        imgui.GetStyle().TabBorderSize = 1
+    
+        --==[ ROUNDING ]==--
+        imgui.GetStyle().WindowRounding = 5
+        imgui.GetStyle().ChildRounding = 5
+        imgui.GetStyle().FrameRounding = 5
+        imgui.GetStyle().PopupRounding = 5
+        imgui.GetStyle().ScrollbarRounding = 5
+        imgui.GetStyle().GrabRounding = 5
+        imgui.GetStyle().TabRounding = 5
+    
+        --==[ ALIGN ]==--
+        imgui.GetStyle().WindowTitleAlign = imgui.ImVec2(0.5, 0.5)
+        imgui.GetStyle().ButtonTextAlign = imgui.ImVec2(0.5, 0.5)
+        imgui.GetStyle().SelectableTextAlign = imgui.ImVec2(0.5, 0.5)
+        
+        --==[ COLORS ]==--
+        imgui.GetStyle().Colors[imgui.Col.Text]                   = imgui.ImVec4(1.00, 1.00, 1.00, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.TextDisabled]           = imgui.ImVec4(0.50, 0.50, 0.50, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.WindowBg]               = imgui.ImVec4(0.07, 0.07, 0.07, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.ChildBg]                = imgui.ImVec4(0.07, 0.07, 0.07, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.PopupBg]                = imgui.ImVec4(0.07, 0.07, 0.07, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.Border]                 = imgui.ImVec4(0.25, 0.25, 0.26, 0.54)
+        imgui.GetStyle().Colors[imgui.Col.BorderShadow]           = imgui.ImVec4(0.00, 0.00, 0.00, 0.00)
+        imgui.GetStyle().Colors[imgui.Col.FrameBg]                = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.FrameBgHovered]         = imgui.ImVec4(0.25, 0.25, 0.26, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.FrameBgActive]          = imgui.ImVec4(0.25, 0.25, 0.26, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.TitleBg]                = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.TitleBgActive]          = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.TitleBgCollapsed]       = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.MenuBarBg]              = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.ScrollbarBg]            = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.ScrollbarGrab]          = imgui.ImVec4(0.00, 0.00, 0.00, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.ScrollbarGrabHovered]   = imgui.ImVec4(0.41, 0.41, 0.41, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.ScrollbarGrabActive]    = imgui.ImVec4(0.51, 0.51, 0.51, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.CheckMark]              = imgui.ImVec4(1.00, 1.00, 1.00, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.SliderGrab]             = imgui.ImVec4(0.21, 0.20, 0.20, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.SliderGrabActive]       = imgui.ImVec4(0.21, 0.20, 0.20, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.Button]                 = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.ButtonHovered]          = imgui.ImVec4(0.21, 0.20, 0.20, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.ButtonActive]           = imgui.ImVec4(0.41, 0.41, 0.41, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.Header]                 = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.HeaderHovered]          = imgui.ImVec4(0.20, 0.20, 0.20, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.HeaderActive]           = imgui.ImVec4(0.47, 0.47, 0.47, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.Separator]              = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.SeparatorHovered]       = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.SeparatorActive]        = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.ResizeGrip]             = imgui.ImVec4(1.00, 1.00, 1.00, 0.25)
+        imgui.GetStyle().Colors[imgui.Col.ResizeGripHovered]      = imgui.ImVec4(1.00, 1.00, 1.00, 0.67)
+        imgui.GetStyle().Colors[imgui.Col.ResizeGripActive]       = imgui.ImVec4(1.00, 1.00, 1.00, 0.95)
+        imgui.GetStyle().Colors[imgui.Col.Tab]                    = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.TabHovered]             = imgui.ImVec4(0.28, 0.28, 0.28, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.TabActive]              = imgui.ImVec4(0.30, 0.30, 0.30, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.TabUnfocused]           = imgui.ImVec4(0.07, 0.10, 0.15, 0.97)
+        imgui.GetStyle().Colors[imgui.Col.TabUnfocusedActive]     = imgui.ImVec4(0.14, 0.26, 0.42, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.PlotLines]              = imgui.ImVec4(0.61, 0.61, 0.61, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.PlotLinesHovered]       = imgui.ImVec4(1.00, 0.43, 0.35, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.PlotHistogram]          = imgui.ImVec4(0.90, 0.70, 0.00, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.PlotHistogramHovered]   = imgui.ImVec4(1.00, 0.60, 0.00, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.TextSelectedBg]         = imgui.ImVec4(1.00, 0.00, 0.00, 0.35)
+        imgui.GetStyle().Colors[imgui.Col.DragDropTarget]         = imgui.ImVec4(1.00, 1.00, 0.00, 0.90)
+        imgui.GetStyle().Colors[imgui.Col.NavHighlight]           = imgui.ImVec4(0.26, 0.59, 0.98, 1.00)
+        imgui.GetStyle().Colors[imgui.Col.NavWindowingHighlight]  = imgui.ImVec4(1.00, 1.00, 1.00, 0.70)
+        imgui.GetStyle().Colors[imgui.Col.NavWindowingDimBg]      = imgui.ImVec4(0.80, 0.80, 0.80, 0.20)
+        imgui.GetStyle().Colors[imgui.Col.ModalWindowDimBg]       = imgui.ImVec4(0.00, 0.00, 0.00, 0.70)
 end
