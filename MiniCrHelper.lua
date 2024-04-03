@@ -1,5 +1,5 @@
 script_name("MiniCrHelper")
-script_version("0.0.6")
+script_version("0.0.7")
 
 
 --ебаные библиотеки--
@@ -139,9 +139,12 @@ local token = new.char[256](u8(mainIni.main.token)) -- создаём буффер для инпута
 ---Telegram---
 
 --color--
-        local show = imgui.new.bool(true)
+        local show = imgui.new.bool()
         local changepos = false -- статус редактирования позиции окошка
         local posX, posY = 500, 500 -- задаём начальную позицию второго окошка
+
+
+
 
 --color--
 
@@ -149,7 +152,7 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
     imgui.SetNextWindowPos(imgui.ImVec2(500, 500), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
     imgui.SetNextWindowSize(imgui.ImVec2(370, 320), imgui.Cond.Always)
     imgui.Begin(u8'Залупа Helper v'..thisScript().version, WinState, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse)
-    for numberTab,nameTab in pairs({'Main','Chests','Auto','Не заходить','Telegram'}) do -- создаём и парсим таблицу с названиями будущих вкладок
+    for numberTab,nameTab in pairs({'Main','Chests','Auto','Debag   ','Telegram'}) do -- создаём и парсим таблицу с названиями будущих вкладок
         if imgui.Button(u8(nameTab), imgui.ImVec2(80,43)) then -- 2ым аргументом настраивается размер кнопок (подробнее в гайде по мимгуи)
             tab = numberTab -- меняем значение переменной tab на номер нажатой кнопки
         end
@@ -304,9 +307,7 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
         marketShop = {}
         end
 
-        
-
-
+  
 
 	    --- 5 страница ебать ---
 	    elseif tab == 5 then
@@ -388,7 +389,8 @@ end
 function main()
     while not isSampAvailable() do wait(100) end -- ждём когда загрузится самп
 	wait(500)
-	sampAddChatMessage('• {00FF00}[Залупа-Helper]{FFFFFF} Активация: {7FFF00}F2{FFFFFF} •', -1)
+	sampAddChatMessage('• {00FF00}[Залупа-Helper]{FFFFFF} Активация: {7FFF00}F2{FFFFFF} или {7FFF00}/CR {FFFFFF}•', -1)
+    sampRegisterChatCommand('cr', function() WinState[0] = not WinState[0] end)	
 	getLastUpdate() -- вызываем функцию получения последнего ID сообщения
     	          if autoupdate_loaded and enable_autoupdate and Update then
         pcall(Update.check, Update.json_url, Update.prefix, Update.url)
@@ -405,13 +407,11 @@ function main()
             lua_thread.create(bind)
             lua_thread.create(sizewindow)
             lua_thread.create(lavkatextand)
+            lua_thread.create(bike)
      
            
         
 
-         
-
-		
 
 			
 
@@ -423,19 +423,50 @@ function main()
             imgui.ShowCursor = false
             posX, posY = getCursorPos() -- функция позволяет получить координаты курсора на экране
             
-                
+             
             
 end
 end
 end
 
 
+function isKeyCheckAvailable()
+	if not isSampLoaded() then
+		return true
+	end
+	if not isSampfuncsLoaded() then
+		return not sampIsChatInputActive() and not sampIsDialogActive()
+	end
+	return not sampIsChatInputActive() and not sampIsDialogActive() and not isSampfuncsConsoleActive()
+end
 
 
+function bike()
+    while true do
+        wait(0)
+        
+            if isCharOnAnyBike(playerPed) and isKeyCheckAvailable() and isKeyDown(0x14) then	-- onBike&onMoto SpeedUP [[LSHIFT]] --
+                if getCarModel(storeCarCharIsInNoSave(playerPed)) then
+                    setGameKeyState(16, 255)
+                    wait(10)
+                    setGameKeyState(16, 0)
+                end
+            end
+            
+            
+        if isKeyDown(0x14) and isKeyCheckAvailable() then -- onFoot&inWater SpeedUP [[1]] --
+                setGameKeyState(16, 256)
+                wait(10)
+                setGameKeyState(16, 0)  
+            
+        
+    end
+end
+end
 
-
-
-
+        
+    
+    
 
 
 
@@ -450,7 +481,7 @@ function lavkatextand()
             local result = sampIs3dTextDefined(id)
             if result then
                 local text, color, posX, posY, posZ, distance, ignoreWalls, playerId, vehicleId = sampGet3dTextInfoById(id)
-                if text:find("Papa_Prince") or text:find("Kevin_Halt") then
+                if text:find("Papa_Prince") or text:find("Papa_King") or text:find("Kevin_Halt") or text:find("Kevin_Robert") then
                     local playerX, playerY, playerZ = getCharCoordinates(PLAYER_PED)
                     local dist = getDistanceBetweenCoords3d(playerX, playerY, playerZ, posX, posY, posZ)
                     if dist <= 100.0 then
@@ -465,11 +496,6 @@ function lavkatextand()
         end
     end
 end
-
-
-
-
-
 
 
 
@@ -533,9 +559,8 @@ function delayedtimers()
                 local timeRemainings = startTimes - os.time()
                 local minutess = math.floor(timeRemainings / 60)
                 local secondss = timeRemainings % 60
-               
                 local timeStrings = string.format("%02d:%02d", minutess, secondss)
-                renderFontDrawText(font,'Timer '..timeStrings, 95, 510 + 80, 0xFF00FF00, 0x90000000)
+                renderFontDrawText(font,'Timer '..timeStrings, 95, 510 + 80, 0xFFFF0000, 0x90000000)
             end
             -- Действия по завершению таймера
             
@@ -730,7 +755,7 @@ function chestss()
             sampCloseCurrentDialogWithButton(0)
             wait(200)
             sampCloseCurrentDialogWithButton(0)
-            sampAddChatMessage('[Информация] {FFFFFF}Сейчас откроется инвентарь.', 0xFFFF00)
+            sampAddChatMessage('[Сhest] {FFFFFF}Сейчас откроется инвентарь.', 0xFFFF00)
             wait(1000)
             sampSendChat('/invent')
             wait(1000)
@@ -742,7 +767,7 @@ function chestss()
                 wait(textdraw[i][3])
             end
             wait(100)
-            sampAddChatMessage('[Информация] {FFFFFF}Запушен таймер на 1ч.', 0xFFFF00)
+            sampAddChatMessage('[Сhest] {FFFFFF}Запушен таймер на 1ч.', 0xFFFF00)
             startTime = os.time() + 60 * 60 -- перезапускаем таймер
             work = false
    
@@ -754,7 +779,7 @@ function chestss()
                 local seconds = timeRemaining % 60
                
                 local timeString = string.format("%02d:%02d", minutes, seconds)
-                renderFontDrawText(font,'Timer '..timeString, 95, 510 + 80, 0xFFFF1493, 0x90000000)
+                renderFontDrawText(font,'Timer '..timeString, 95, 510 + 80, 0xFF00FF00, 0x90000000)
                 
             end
             work = true -- Устанавливаем флаг work в true после завершения таймера
@@ -796,11 +821,11 @@ function bind()
     if isKeyDown(161) and isKeyDown(49) then 
         activediaq = not activediaq
         if activediaq then 
-        sampAddChatMessage('{C71585}[Binder] {FFFFFF}Рендер лавок {00FF00}включено.', -1)
+        sampAddChatMessage('{FFFF00}[Binder] {FFFFFF}Рендер лавок {00FF00}включено.', -1)
         lavka[0] = true
         wait(200) 
         else
-        sampAddChatMessage('{C71585}[Binder] {FFFFFF}Рендер лавок {FF0000}отключено.', -1)   
+        sampAddChatMessage('{FFFF00}[Binder] {FFFFFF}Рендер лавок {FF0000}отключено.', -1)   
         lavka[0] = false
         wait(200) 
     end
@@ -808,11 +833,11 @@ end
     if isKeyDown(161) and isKeyDown(50) then 
         activediaw = not activediaw
         if activediaw then  
-        sampAddChatMessage('{C71585}[Binder] {FFFFFF}Радиус между лавками {00FF00}включено.', -1)
+        sampAddChatMessage('{FFFF00}[Binder] {FFFFFF}Радиус между лавками {00FF00}включено.', -1)
         radiuslavki[0] = true
         wait(200)
         else 
-        sampAddChatMessage('{C71585}[Binder] {FFFFFF}Радиус между лавками {FF0000}отключено.', -1)   
+        sampAddChatMessage('{FFFF00}[Binder] {FFFFFF}Радиус между лавками {FF0000}отключено.', -1)   
         radiuslavki[0] = false
         wait(200)
     end
@@ -821,11 +846,11 @@ end
     if isKeyDown(161) and isKeyDown(51) then
         activediae = not activediae
         if activediae then
-        sampAddChatMessage('{C71585}[Binder] {FFFFFF}Удаление игроков и тс {00FF00}включено.', -1)
+        sampAddChatMessage('{FFFF00}[Binder] {FFFFFF}Удаление игроков и тс {00FF00}включено.', -1)
         clean[0] = true 
         wait(200)
         else 
-        sampAddChatMessage('{C71585}[Binder] {FFFFFF}Удаление игроков и тс {FF0000}отключено.', -1)   
+        sampAddChatMessage('{FFFF00}[Binder] {FFFFFF}Удаление игроков и тс {FF0000}отключено.', -1)   
         clean[0] = false 
         wait(200)
     end
@@ -846,7 +871,7 @@ end
    function lavkirendor()
     while true do wait(0)
             if lavka[0] then		
-    local input = sampGetInputInfoPtr()
+                local input = sampGetInputInfoPtr()
                 local input = getStructElement(input, 0x8, 4)
                 local PosX = getStructElement(input, 0x8, 4)
                 local PosY = getStructElement(input, 0xC, 4)
@@ -872,7 +897,8 @@ end
                 local input = getStructElement(input, 0x8, 4)
                 local PosX = getStructElement(input, 0x8, 4)
                 local PosY = getStructElement(input, 0xC, 4)
-                renderFontDrawText(font, 'Свободно: '..lavki, 95, 510 + 80, 0xFFFF1493, 0x90000000)
+                renderFontDrawText(font, 'Свободно: '..lavki, 95, 510 + 80, 0xFFFF0000, 0x90000000)
+                
         end
         end
     end       
@@ -1248,6 +1274,7 @@ function sampev.onServerMessage(color, text)
         if autoclean[0] then
             clean = new.bool(true)
             radiuslavki = new.bool(false)
+            sampProcessChatInput('/plt')
             
            
     end    
@@ -1387,7 +1414,7 @@ if text:find('Удача!') then
 
     end
 
-    if dialogId == 26011 then
+    if dialogId == 26012 then
         sampSendDialogResponse(dialogId,1,1,nil) 
         sampSendChat('/lock')
         return false
@@ -1406,7 +1433,6 @@ if settingslavka[0] then
 
     if title == '{BFBBBA}Выберете цвет' and text:find('{E94E4E}|||||||||||||||||||') then
     sampSendDialogResponse(dialogId,1,15,nil)
-    sampProcessChatInput('/plt')
     return false
     end
 end
