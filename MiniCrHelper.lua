@@ -1,5 +1,5 @@
 script_name("MiniCrHelper")
-script_version("0.0.7")
+script_version("0.0.8")
 
 
 --ебаные библиотеки--
@@ -23,6 +23,7 @@ local f = require 'moonloader'.font_flag
 local font = renderCreateFont('Arial', 15, f.BOLD + f.SHADOW)
 local clean = false
 local counter = 0
+local monet_check, monet			= pcall(require, 'MoonMonet')
 local ev = require 'samp.events'
 local lavki = {}
 local marketShop = {}
@@ -33,8 +34,62 @@ local effil = require("effil")
 local encoding = require("encoding")
 encoding.default = 'CP1251'
 u8 = encoding.UTF8
+local imgui_check, imgui			= pcall(require, 'mimgui')
+local samp_check, samp				= pcall(require, 'samp.events')
+local effil_check, effil			= pcall(require, 'effil')
+local requests_check, requests		= pcall(require, 'requests')
+local monet_check, monet			= pcall(require, 'MoonMonet')
+local dlstatus						= require('moonloader').download_status
+local weapons						= require('game.weapons')
+local ffi							= require('ffi')
+local encoding						= require('encoding')
+encoding.default					= 'CP1251'
+u8 = encoding.UTF8
 
 --ебаные библиотеки--
+function table.assign(target, def, deep)
+    for k, v in pairs(def) do
+        if target[k] == nil then
+            if type(v) == 'table' then
+                target[k] = {}
+                table.assign(target[k], v)
+            else  
+                target[k] = v
+            end
+        elseif deep and type(v) == 'table' and type(target[k]) == 'table' then 
+            table.assign(target[k], v, deep)
+        end
+    end 
+    return target
+end
+
+function json(path)
+	createDirectory(getWorkingDirectory() .. '/config')
+	local path = getWorkingDirectory() .. '/config/' .. path
+	local class = {}
+
+	function class:save(array)
+		if array and type(array) == 'table' and encodeJson(array) then
+			local file = io.open(path, 'w')
+			file:write(encodeJson(array))
+			file:close()
+		else
+			sms('Ошибка при сохранение файла!')
+		end
+	end
+
+	function class:load(array)
+		local result = {}
+		local file = io.open(path)
+		if file then
+			result = decodeJson(file:read()) or {}
+		end
+
+		return table.assign(result, array, true)
+	end
+
+	return class
+end
 
 --ебаный CFG--
 local inicfg = require 'inicfg'
@@ -59,12 +114,43 @@ local mainIni = inicfg.load({
         clean = false,
         settingslavka = false,
         namelavkas = '',
-        moneyvcs = true,
     }}, 'MiniHelper-CR.ini')
 --ебаный CFG--
 
-
-
+local jsonLog = json('Log.json'):load({})
+local jsonConfig = json('Config.json'):load({
+	['script'] = {
+		scriptColor = {1.0, 1.0, 1.0},
+		lastNewsCheck = 0
+	},
+	['notifications'] = {
+		inputToken = '',
+		inputGroup = '',
+		resale = false,
+		action = false,
+		balance = false,
+		statistics = false,
+		death = false,
+		moreItems = false,
+		message = false,
+		damage = false,
+		catchingShop = false,
+		status32 = false,
+		status33 = false,
+		status34 = false,
+		status35 = false,
+		status37 = false
+	},
+	['market'] = {
+		fontSize = 1.0,
+		fontAlpha = 1.00,
+		marketAlpha = 1.00,
+		marketSize = {x = 700, y = 260},
+		marketBool = false,
+		marketColor = {text = {1.0, 1.0, 1.0}, window = {0.2, 0.2, 0.2}},
+		marketPos = {x = -1, y = -1}
+	}
+})
 
 --ебаная 1 страница--
 local SliderOne = new.int(mainIni.main.autoeatmin)
@@ -128,7 +214,7 @@ local buttonkey3 = new.char[256]() -- создаём буфер для инпута
 ---Auto---
 
 ---4---
-local moneyvcs = new.bool(mainIni.main.moneyvcs) -- авто space
+
 ---4---
 
 ---Telegram---
@@ -145,6 +231,15 @@ local token = new.char[256](u8(mainIni.main.token)) -- создаём буффер для инпута
 
 
 
+        local fontSize = imgui.new.float(jsonConfig['market'].fontSize)
+        local fontAlpha = imgui.new.float(jsonConfig['market'].fontAlpha)
+        local marketAlpha = imgui.new.float(jsonConfig['market'].marketAlpha)
+        local marketSize = {x = imgui.new.int(jsonConfig['market'].marketSize.x), y = imgui.new.int(jsonConfig['market'].marketSize.y)}
+        local marketBool = {now = imgui.new.bool(false), always = imgui.new.bool(jsonConfig['market'].marketBool)}
+        local marketColor = {text = imgui.new.float[3](jsonConfig['market'].marketColor.text), window = imgui.new.float[3](jsonConfig['market'].marketColor.window)}
+        local marketPos = imgui.ImVec2(jsonConfig['market'].marketPos.x, jsonConfig['market'].marketPos.y)
+        local marketShop = {}
+        local scriptColor = imgui.new.float[3](jsonConfig['script'].scriptColor)
 
 --color--
 
@@ -152,13 +247,13 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
     imgui.SetNextWindowPos(imgui.ImVec2(500, 500), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
     imgui.SetNextWindowSize(imgui.ImVec2(370, 320), imgui.Cond.Always)
     imgui.Begin(u8'Залупа Helper v'..thisScript().version, WinState, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse)
-    for numberTab,nameTab in pairs({'Main','Chests','Auto','Debag   ','Telegram'}) do -- создаём и парсим таблицу с названиями будущих вкладок
+    for numberTab,nameTab in pairs({'Main','Chests','Auto','Lavka   ','Telegram'}) do -- создаём и парсим таблицу с названиями будущих вкладок
         if imgui.Button(u8(nameTab), imgui.ImVec2(80,43)) then -- 2ым аргументом настраивается размер кнопок (подробнее в гайде по мимгуи)
             tab = numberTab -- меняем значение переменной tab на номер нажатой кнопки
         end
     end
     imgui.SetCursorPos(imgui.ImVec2(95, 28)) -- [Для декора] Устанавливаем позицию для чайлда ниже
-    if imgui.BeginChild('Name##'..tab, imgui.ImVec2(265, 280), true) then -- [Для декора] Создаём чайлд в который поместим содержимое
+    if imgui.BeginChild('Name##'..tab, imgui.ImVec2(268 , 285), true) then -- [Для декора] Создаём чайлд в который поместим содержимое
         
         --- 1 страница ебать ---
 		if tab == 1 then
@@ -282,19 +377,13 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
 		--- 4 страница ебать ---
         elseif tab == 4 then 
             
-            if imgui.Button('open window') then -- нажав на эту кнопку, можно поменять позицию окна
+            if imgui.Button(u8('Окно вкл/выкл'), imgui.ImVec2(170)) then
                 show[0] = not show[0]
             end
-        if imgui.Checkbox(u8'перевод денег VC в $', moneyvcs) then
-        mainIni.main.moneyvcs = moneyvcs[0] 
-        inicfg.save(mainIni, "MiniHelper-CR")
-        end
-        --- 4 страница ебать ---
+
+    
 		
-        if imgui.Button(u8'сервер') then
-            name = sampGetCurrentServerName()
-            sampAddChatMessage(""..name, -1)
-        end
+
 
         if imgui.Button(u8('Тестовые строчки'), imgui.ImVec2(170)) then
             marketShop = {}
@@ -307,8 +396,32 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
         marketShop = {}
         end
 
-  
+        if imgui.DragFloat(u8('Размер шрифта'), fontSize, 0.01, 0.1, 2.0, "%.1f") then
+            jsonConfig['market'].fontSize = fontSize[0]
+            json('Config.json'):save(jsonConfig)
+        end
+        if imgui.DragFloat(u8('Прозрачность шрифта'), fontAlpha, 0.01, 0.0, 1.0, "%.2f") then
+            jsonConfig['market'].fontAlpha = fontAlpha[0]
+            json('Config.json'):save(jsonConfig)
+        end
+        if imgui.DragFloat(u8('Прозрачность окна'), marketAlpha, 0.01, 0.0, 1.0, "%.2f") then
+            jsonConfig['market'].marketAlpha = marketAlpha[0]
+            json('Config.json'):save(jsonConfig)
+        end
 
+        if imgui.ColorEdit3(u8('Цвет текста'), marketColor.text) then
+            jsonConfig['market'].marketColor.text = {marketColor.text[0], marketColor.text[1], marketColor.text[2]}
+            json('Config.json'):save(jsonConfig)
+        end
+        if imgui.ColorEdit3(u8('Цвет окна'), marketColor.window) then
+            jsonConfig['market'].marketColor.window = {marketColor.window[0], marketColor.window[1], marketColor.window[2]}
+            json('Config.json'):save(jsonConfig)
+        end
+
+        if imgui.ColorEdit3(u8('Цвет скрипта'), scriptColor) then getTheme() end
+
+
+   
 	    --- 5 страница ебать ---
 	    elseif tab == 5 then
         if imgui.Checkbox(u8'Принимать команды из TG', cmd) then
@@ -348,22 +461,34 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
         
          
         imgui.OnFrame(function() return show[0] and not isGamePaused() end, function()
-   
+
+            
             local sizeX, sizeY = getScreenResolution()
-        imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-        
-        imgui.PushStyleColor(imgui.Col.WindowBg, imgui.ImVec4(0, 0, 0, 0.5))
-        imgui.Begin('market', market, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize)
-     
-        for i = #marketShop, 1, -1 do
-            --imgui.Text(u8(marketShop[i]))
-            imgui.PushFont(example)
-            imgui.TextColoredRGB('{FFFF00}'..marketShop[i])
-            imgui.PopFont() -- функция, заменяющая шрифт заканчивается
+            imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
+           
+           
+           
+            
+            imgui.PushStyleColor(imgui.Col.Text, imgui.ImVec4(marketColor.text[0], marketColor.text[1], marketColor.text[2], fontAlpha[0]))
+            imgui.PushStyleColor(imgui.Col.WindowBg, imgui.ImVec4(marketColor.window[0], marketColor.window[1], marketColor.window[2], marketAlpha[0]))
+                imgui.Begin('market', market, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.AlwaysAutoResize)
+                
+                imgui.SetWindowFontScale(fontSize[0])
+                   
+                    for i = #marketShop, 1, -1 do
+                        imgui.Text(u8(marketShop[i]))
+                 
+                    end
+                imgui.End()
+            imgui.PopStyleColor(2)
         end
-        imgui.End()
-        imgui.PopStyleColor()
-        end).HideCursor = true -- HideCursor отвечает за то, чтобы курсор не показывался
+    )
+
+
+
+
+
+
 
 
         
@@ -391,6 +516,7 @@ function main()
 	wait(500)
 	sampAddChatMessage('• {00FF00}[Залупа-Helper]{FFFFFF} Активация: {7FFF00}F2{FFFFFF} или {7FFF00}/CR {FFFFFF}•', -1)
     sampRegisterChatCommand('cr', function() WinState[0] = not WinState[0] end)	
+    sampRegisterChatCommand('call', getnumber)
 	getLastUpdate() -- вызываем функцию получения последнего ID сообщения
     	          if autoupdate_loaded and enable_autoupdate and Update then
         pcall(Update.check, Update.json_url, Update.prefix, Update.url)
@@ -430,6 +556,11 @@ end
 end
 
 
+function getnumber(id)
+    sampAddChatMessage('[Информация] {FFFFFF}Введите {00FF00}/call id {FFFFFF}игрока.', 0xFFFF00)
+    sampSendChat("/number " .. id)
+end
+
 function isKeyCheckAvailable()
 	if not isSampLoaded() then
 		return true
@@ -466,7 +597,6 @@ end
 
         
     
-    
 
 
 
@@ -496,25 +626,6 @@ function lavkatextand()
         end
     end
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1259,12 +1370,25 @@ function sampev.onServerMessage(color, text)
             sendTelegramNotification(textLog)
 			
 
-			if #marketShop > 5  then marketShop = {} end
+			if #marketShop >= 5  then marketShop = {} end
 			table.insert(marketShop, textLog)
 
 
 			end
 		end
+
+
+        if text:match("%a+_%a+%[%d+%]:    {......}%d+$") then
+            local number = text:match("%a+_%a+%[%d+%]:    {......}(%d+)$")
+            lua_thread.create(function()
+                sampAddChatMessage('Calling: {aa0000}'..number, -1)
+                wait(500)
+                sampSendChat("/call " .. number)
+            end)
+            return false
+        end
+    
+    
 	
     if text:find('{FFFFFF}У вас есть 3 минуты, чтобы настроить товар, иначе аренда ларька будет отменена.') then
         lavka = new.bool(false) 
@@ -1453,93 +1577,114 @@ end
 end
 end
 
+function convertDecimalToRGBA(u32, alpha)
+	local a = bit.band(bit.rshift(u32, 24), 0xFF) / 0xFF
+	local r = bit.band(bit.rshift(u32, 16), 0xFF) / 0xFF
+	local g = bit.band(bit.rshift(u32, 8), 0xFF) / 0xFF
+	local b = bit.band(u32, 0xFF) / 0xFF
+	return imgui.ImVec4(r, g, b, a * (alpha or 1.0))
+end
+
+function getTheme()
+	jsonConfig['script'].scriptColor = {scriptColor[0], scriptColor[1], scriptColor[2]}
+	json('Config.json'):save(jsonConfig)
+
+	local dec = imgui.GetColorU32Vec4(imgui.ImVec4(scriptColor[0], scriptColor[1], scriptColor[2], 1.0))
+	local color = bit.tohex(bit.bswap(dec))
+	local hex = ('%s'):format(color:sub(1, #color - 2))
+	theme(tonumber('0x' .. hex), 1.5, true)
+end
 
 imgui.OnInitialize(function()
-  imgui.DarkTheme()
+	imgui.GetIO().IniFilename = nil
+	getTheme()
+
+	fonts = {}
+	local glyph_ranges = imgui.GetIO().Fonts:GetGlyphRangesCyrillic()
+
+	-->> Default Font
+	imgui.GetIO().Fonts:Clear()
+	imgui.GetIO().Fonts:AddFontFromFileTTF(u8(getFolderPath(0x14)..'\\arial.ttf'), 15, nil, glyph_ranges)
+
+	-->> Other Fonts
+    for k, v in ipairs({15, 18, 25, 30}) do
+		fonts[v] = imgui.GetIO().Fonts:AddFontFromFileTTF(u8(getWorkingDirectory() .. '/ReplaceWindow/EagleSans-Regular.ttf'), v, nil, glyph_ranges)
+	end
+
+	-->> Logo
+	logo = imgui.CreateTextureFromFile(u8(getWorkingDirectory() .. '/ReplaceWindow/ReplaceWindow.png'))
 end)
 
-function imgui.DarkTheme()
-    local glyph_ranges = imgui.GetIO().Fonts:GetGlyphRangesCyrillic()
-    example = imgui.GetIO().Fonts:AddFontFromFileTTF(getFolderPath(0x14)..'\\impact.ttf', 20, _, glyph_ranges)
-        imgui.SwitchContext()
-        --==[ STYLE ]==--
-        imgui.GetStyle().WindowPadding = imgui.ImVec2(5, 5)
-        imgui.GetStyle().FramePadding = imgui.ImVec2(5, 5)
-        imgui.GetStyle().ItemSpacing = imgui.ImVec2(5, 5)
-        imgui.GetStyle().ItemInnerSpacing = imgui.ImVec2(2, 2)
-        imgui.GetStyle().TouchExtraPadding = imgui.ImVec2(0, 0)
-        imgui.GetStyle().IndentSpacing = 0
-        imgui.GetStyle().ScrollbarSize = 10
-        imgui.GetStyle().GrabMinSize = 10
-    
-        --==[ BORDER ]==--
-        imgui.GetStyle().WindowBorderSize = 1
-        imgui.GetStyle().ChildBorderSize = 1
-        imgui.GetStyle().PopupBorderSize = 1
-        imgui.GetStyle().FrameBorderSize = 1
-        imgui.GetStyle().TabBorderSize = 1
-    
-        --==[ ROUNDING ]==--
-        imgui.GetStyle().WindowRounding = 5
-        imgui.GetStyle().ChildRounding = 5
-        imgui.GetStyle().FrameRounding = 5
-        imgui.GetStyle().PopupRounding = 5
-        imgui.GetStyle().ScrollbarRounding = 5
-        imgui.GetStyle().GrabRounding = 5
-        imgui.GetStyle().TabRounding = 5
-    
-        --==[ ALIGN ]==--
-        imgui.GetStyle().WindowTitleAlign = imgui.ImVec2(0.5, 0.5)
-        imgui.GetStyle().ButtonTextAlign = imgui.ImVec2(0.5, 0.5)
-        imgui.GetStyle().SelectableTextAlign = imgui.ImVec2(0.5, 0.5)
-        
-        --==[ COLORS ]==--
-        imgui.GetStyle().Colors[imgui.Col.Text]                   = imgui.ImVec4(1.00, 1.00, 1.00, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.TextDisabled]           = imgui.ImVec4(0.50, 0.50, 0.50, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.WindowBg]               = imgui.ImVec4(0.07, 0.07, 0.07, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.ChildBg]                = imgui.ImVec4(0.07, 0.07, 0.07, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.PopupBg]                = imgui.ImVec4(0.07, 0.07, 0.07, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.Border]                 = imgui.ImVec4(0.25, 0.25, 0.26, 0.54)
-        imgui.GetStyle().Colors[imgui.Col.BorderShadow]           = imgui.ImVec4(0.00, 0.00, 0.00, 0.00)
-        imgui.GetStyle().Colors[imgui.Col.FrameBg]                = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.FrameBgHovered]         = imgui.ImVec4(0.25, 0.25, 0.26, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.FrameBgActive]          = imgui.ImVec4(0.25, 0.25, 0.26, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.TitleBg]                = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.TitleBgActive]          = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.TitleBgCollapsed]       = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.MenuBarBg]              = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.ScrollbarBg]            = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.ScrollbarGrab]          = imgui.ImVec4(0.00, 0.00, 0.00, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.ScrollbarGrabHovered]   = imgui.ImVec4(0.41, 0.41, 0.41, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.ScrollbarGrabActive]    = imgui.ImVec4(0.51, 0.51, 0.51, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.CheckMark]              = imgui.ImVec4(1.00, 1.00, 1.00, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.SliderGrab]             = imgui.ImVec4(0.21, 0.20, 0.20, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.SliderGrabActive]       = imgui.ImVec4(0.21, 0.20, 0.20, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.Button]                 = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.ButtonHovered]          = imgui.ImVec4(0.21, 0.20, 0.20, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.ButtonActive]           = imgui.ImVec4(0.41, 0.41, 0.41, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.Header]                 = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.HeaderHovered]          = imgui.ImVec4(0.20, 0.20, 0.20, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.HeaderActive]           = imgui.ImVec4(0.47, 0.47, 0.47, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.Separator]              = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.SeparatorHovered]       = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.SeparatorActive]        = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.ResizeGrip]             = imgui.ImVec4(1.00, 1.00, 1.00, 0.25)
-        imgui.GetStyle().Colors[imgui.Col.ResizeGripHovered]      = imgui.ImVec4(1.00, 1.00, 1.00, 0.67)
-        imgui.GetStyle().Colors[imgui.Col.ResizeGripActive]       = imgui.ImVec4(1.00, 1.00, 1.00, 0.95)
-        imgui.GetStyle().Colors[imgui.Col.Tab]                    = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.TabHovered]             = imgui.ImVec4(0.28, 0.28, 0.28, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.TabActive]              = imgui.ImVec4(0.30, 0.30, 0.30, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.TabUnfocused]           = imgui.ImVec4(0.07, 0.10, 0.15, 0.97)
-        imgui.GetStyle().Colors[imgui.Col.TabUnfocusedActive]     = imgui.ImVec4(0.14, 0.26, 0.42, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.PlotLines]              = imgui.ImVec4(0.61, 0.61, 0.61, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.PlotLinesHovered]       = imgui.ImVec4(1.00, 0.43, 0.35, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.PlotHistogram]          = imgui.ImVec4(0.90, 0.70, 0.00, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.PlotHistogramHovered]   = imgui.ImVec4(1.00, 0.60, 0.00, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.TextSelectedBg]         = imgui.ImVec4(1.00, 0.00, 0.00, 0.35)
-        imgui.GetStyle().Colors[imgui.Col.DragDropTarget]         = imgui.ImVec4(1.00, 1.00, 0.00, 0.90)
-        imgui.GetStyle().Colors[imgui.Col.NavHighlight]           = imgui.ImVec4(0.26, 0.59, 0.98, 1.00)
-        imgui.GetStyle().Colors[imgui.Col.NavWindowingHighlight]  = imgui.ImVec4(1.00, 1.00, 1.00, 0.70)
-        imgui.GetStyle().Colors[imgui.Col.NavWindowingDimBg]      = imgui.ImVec4(0.80, 0.80, 0.80, 0.20)
-        imgui.GetStyle().Colors[imgui.Col.ModalWindowDimBg]       = imgui.ImVec4(0.00, 0.00, 0.00, 0.70)
+function theme(color, chroma_multiplier, accurate_shades)
+	imgui.SwitchContext()
+	palette = monet.buildColors(color, chroma_multiplier, accurate_shades)
+	local style = imgui.GetStyle()
+	local colors = style.Colors
+	local flags = imgui.Col
+
+	imgui.GetStyle().WindowPadding = imgui.ImVec2(5, 5)
+	imgui.GetStyle().FramePadding = imgui.ImVec2(5, 5)
+	imgui.GetStyle().ItemSpacing = imgui.ImVec2(5, 5)
+	imgui.GetStyle().ItemInnerSpacing = imgui.ImVec2(5, 5)
+	imgui.GetStyle().TouchExtraPadding = imgui.ImVec2(0, 0)
+
+	imgui.GetStyle().IndentSpacing = 20
+	imgui.GetStyle().ScrollbarSize = 12.5
+	imgui.GetStyle().GrabMinSize = 10
+
+	imgui.GetStyle().WindowBorderSize = 0
+	imgui.GetStyle().ChildBorderSize = 1
+	imgui.GetStyle().PopupBorderSize = 1
+	imgui.GetStyle().FrameBorderSize = 0
+	imgui.GetStyle().TabBorderSize = 0
+
+	imgui.GetStyle().WindowRounding = 3
+	imgui.GetStyle().ChildRounding = 3
+	imgui.GetStyle().PopupRounding = 3
+	imgui.GetStyle().FrameRounding = 3
+	imgui.GetStyle().ScrollbarRounding = 1.5
+	imgui.GetStyle().GrabRounding = 3
+	imgui.GetStyle().TabRounding = 3
+
+	imgui.GetStyle().WindowTitleAlign = imgui.ImVec2(0.50, 0.50)
+
+	colors[flags.Text] = convertDecimalToRGBA(palette.neutral1.color_50)
+	colors[flags.TextDisabled] = convertDecimalToRGBA(palette.neutral1.color_400)
+	colors[flags.WindowBg] = convertDecimalToRGBA(palette.accent2.color_900)
+	colors[flags.ChildBg] = convertDecimalToRGBA(palette.accent2.color_900)
+	colors[flags.PopupBg] = convertDecimalToRGBA(palette.accent2.color_900)
+	colors[flags.Border] = convertDecimalToRGBA(palette.accent2.color_300)
+	colors[flags.BorderShadow] = imgui.ImVec4(0, 0, 0, 0)
+	colors[flags.FrameBg] = convertDecimalToRGBA(palette.accent1.color_600)
+	colors[flags.FrameBgHovered] = convertDecimalToRGBA(palette.accent1.color_500)
+	colors[flags.FrameBgActive] = convertDecimalToRGBA(palette.accent1.color_400)
+	colors[flags.TitleBgActive] = convertDecimalToRGBA(palette.accent1.color_600)
+	colors[flags.ScrollbarBg] = convertDecimalToRGBA(palette.accent2.color_800)
+	colors[flags.ScrollbarGrab] = convertDecimalToRGBA(palette.accent1.color_600)
+	colors[flags.ScrollbarGrabHovered] = convertDecimalToRGBA(palette.accent1.color_500)
+	colors[flags.ScrollbarGrabActive] = convertDecimalToRGBA(palette.accent1.color_400)
+	colors[flags.CheckMark] = convertDecimalToRGBA(palette.neutral1.color_50)
+	colors[flags.SliderGrab] = convertDecimalToRGBA(palette.accent2.color_400)
+	colors[flags.SliderGrabActive] = convertDecimalToRGBA(palette.accent2.color_300)
+	colors[flags.Button] = convertDecimalToRGBA(palette.accent2.color_700)
+	colors[flags.ButtonHovered] = convertDecimalToRGBA(palette.accent1.color_600)
+	colors[flags.ButtonActive] = convertDecimalToRGBA(palette.accent1.color_500)
+	colors[flags.Header] = convertDecimalToRGBA(palette.accent1.color_800)
+	colors[flags.HeaderHovered] = convertDecimalToRGBA(palette.accent1.color_700)
+	colors[flags.HeaderActive] = convertDecimalToRGBA(palette.accent1.color_600)
+	colors[flags.Separator] = convertDecimalToRGBA(palette.accent2.color_200)
+	colors[flags.SeparatorHovered] = convertDecimalToRGBA(palette.accent2.color_100)
+	colors[flags.SeparatorActive] = convertDecimalToRGBA(palette.accent2.color_50)
+	colors[flags.ResizeGrip] = convertDecimalToRGBA(palette.accent2.color_900)
+	colors[flags.ResizeGripHovered] = convertDecimalToRGBA(palette.accent2.color_800)
+	colors[flags.ResizeGripActive] = convertDecimalToRGBA(palette.accent2.color_700)
+	colors[flags.Tab] = convertDecimalToRGBA(palette.accent1.color_700)
+	colors[flags.TabHovered] = convertDecimalToRGBA(palette.accent1.color_600)
+	colors[flags.TabActive] = convertDecimalToRGBA(palette.accent1.color_500)
+	colors[flags.PlotLines] = convertDecimalToRGBA(palette.accent3.color_300)
+	colors[flags.PlotLinesHovered] = convertDecimalToRGBA(palette.accent3.color_50)
+	colors[flags.PlotHistogram] = convertDecimalToRGBA(palette.accent3.color_300)
+	colors[flags.PlotHistogramHovered] = convertDecimalToRGBA(palette.accent3.color_50)
+	colors[flags.DragDropTarget] = convertDecimalToRGBA(palette.accent1.color_100)
+	colors[flags.ModalWindowDimBg] = imgui.ImVec4(0.00, 0.00, 0.00, 0.95)
 end
