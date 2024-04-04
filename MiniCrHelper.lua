@@ -1,5 +1,5 @@
 script_name("MiniCrHelper")
-script_version("0.0.8")
+script_version("0.0.9")
 
 
 --ебаные библиотеки--
@@ -481,8 +481,7 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
                     end
                 imgui.End()
             imgui.PopStyleColor(2)
-        end
-    )
+        end).HideCursor = true
 
 
 
