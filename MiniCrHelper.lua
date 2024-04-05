@@ -1,5 +1,5 @@
 script_name("MiniCrHelper")
-script_version("0.0.9")
+script_version("0.1.0")
 
 
 --ебаные библиотеки--
@@ -9,7 +9,7 @@ local encoding = require 'encoding' -- подключаем библиотеку для работы с разным
 encoding.default = 'CP1251' -- задаём кодировку по умолчанию
 local u8 = encoding.UTF8 -- это позволит нам писать задавать названия/текст на кириллице
 local new = imgui.new -- создаём короткий псевдоним для удобства
-local WinState = new.bool() -- создаём буффер для открытия окна
+local window = new.bool() -- создаём буффер для открытия окна
 require 'lib.moonloader'
 local imgui = require 'mimgui'
 local ffi = require 'ffi'
@@ -196,7 +196,7 @@ local workbotton = new.bool()
 local timertrue = false
 ---Chests---
 
-local WinState = imgui.new.bool()
+local window = imgui.new.bool()
 local tab = 1 -- в этой переменной будет хранится номер открытой вкладки
 
 local timechestto = new.char[256]() -- создаём буфер для инпута
@@ -243,10 +243,10 @@ local token = new.char[256](u8(mainIni.main.token)) -- создаём буффер для инпута
 
 --color--
 
-imgui.OnFrame(function() return WinState[0] end, function(player)
+imgui.OnFrame(function() return window[0] end, function(player)
     imgui.SetNextWindowPos(imgui.ImVec2(500, 500), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
     imgui.SetNextWindowSize(imgui.ImVec2(370, 320), imgui.Cond.Always)
-    imgui.Begin(u8'Залупа Helper v'..thisScript().version, WinState, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse)
+    imgui.Begin(u8'Залупа Helper v'..thisScript().version, window, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse)
     for numberTab,nameTab in pairs({'Main','Chests','Auto','Lavka   ','Telegram'}) do -- создаём и парсим таблицу с названиями будущих вкладок
         if imgui.Button(u8(nameTab), imgui.ImVec2(80,43)) then -- 2ым аргументом настраивается размер кнопок (подробнее в гайде по мимгуи)
             tab = numberTab -- меняем значение переменной tab на номер нажатой кнопки
@@ -377,22 +377,24 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
 		--- 4 страница ебать ---
         elseif tab == 4 then 
             
-            if imgui.Button(u8('Окно вкл/выкл'), imgui.ImVec2(170)) then
-                show[0] = not show[0]
-            end
+            if imgui.ActiveButton(u8(marketBool.now[0] and 'Включено' or 'Выключено'), imgui.ImVec2(170)) then marketBool.now[0] = not marketBool.now[0] end
+            imgui.SameLine()
+            imgui.Text(u8('Статус окна'))
+
+          
 
     
 		
 
 
-        if imgui.Button(u8('Тестовые строчки'), imgui.ImVec2(170)) then
+        if imgui.Button(u8('Тестовые строчки'), imgui.ImVec2(120)) then
             marketShop = {}
             for i = 1, 5 do marketShop[i] = 'Вы купили Семейный талон (1 шт.) у игрока Test за $123.123.123.123' end
             
 
         end
-
-        if imgui.Button(u8('Очистить строчки'), imgui.ImVec2(170)) then
+        imgui.SameLine()
+        if imgui.Button(u8('Очистить строчки'), imgui.ImVec2(120)) then
         marketShop = {}
         end
 
@@ -417,6 +419,28 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
             jsonConfig['market'].marketColor.window = {marketColor.window[0], marketColor.window[1], marketColor.window[2]}
             json('Config.json'):save(jsonConfig)
         end
+        if imgui.ActiveButton(u8('Позиция'), imgui.ImVec2(85 - 2.5)) then
+            sms('Нажмите {mc}ЛКМ{-1}, чтобы сохранить позицию.')
+            window[0], marketBool.now[0] = false, true
+            sampSetCursorMode(4)
+            lua_thread.create(function()
+                while true do
+                    marketPos = imgui.ImVec2(select(1, getCursorPos()), select(2, getCursorPos()))
+                    jsonConfig['market'].marketPos = {x = marketPos.x, y = marketPos.y}
+                    json('Config.json'):save(jsonConfig)
+                    if imgui.IsMouseClicked(0) then
+                        sms('Местоположение сохранено.')
+                        
+                        window[0], marketBool.now[0] = true, false
+                        sampSetCursorMode(0)
+                        break
+                    end
+                    wait(0)
+                end
+            end)
+        end
+        imgui.SameLine()
+        imgui.Text(u8('Местоположение окна'))
 
         if imgui.ColorEdit3(u8('Цвет скрипта'), scriptColor) then getTheme() end
 
@@ -460,34 +484,44 @@ imgui.OnFrame(function() return WinState[0] end, function(player)
 
         
          
-        imgui.OnFrame(function() return show[0] and not isGamePaused() end, function()
 
-            
-            local sizeX, sizeY = getScreenResolution()
-            imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-           
-           
-           
-            
-            imgui.PushStyleColor(imgui.Col.Text, imgui.ImVec4(marketColor.text[0], marketColor.text[1], marketColor.text[2], fontAlpha[0]))
-            imgui.PushStyleColor(imgui.Col.WindowBg, imgui.ImVec4(marketColor.window[0], marketColor.window[1], marketColor.window[2], marketAlpha[0]))
-                imgui.Begin('market', market, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.AlwaysAutoResize)
-                
-                imgui.SetWindowFontScale(fontSize[0])
-                   
-                    for i = #marketShop, 1, -1 do
-                        imgui.Text(u8(marketShop[i]))
-                 
-                    end
-                imgui.End()
-            imgui.PopStyleColor(2)
-        end).HideCursor = true
+            local marketFrame = imgui.OnFrame(
+                function() return not marketBool.always[0] and marketBool.now[0] and not isPauseMenuActive() and not sampIsScoreboardOpen() end,
+                function(player)
+                    player.HideCursor = true
+                    local sx, sy = getScreenResolution()
+                    local position = marketPos.x ~= -1 and marketPos or imgui.ImVec2((sx - marketSize.x[0]) / 2, sy - marketSize.y[0] - sy * 0.01)
+                    imgui.SetNextWindowPos(position, imgui.Cond.Always)
+                    imgui.PushStyleColor(imgui.Col.Text, imgui.ImVec4(marketColor.text[0], marketColor.text[1], marketColor.text[2], fontAlpha[0]))
+                    imgui.PushStyleColor(imgui.Col.WindowBg, imgui.ImVec4(marketColor.window[0], marketColor.window[1], marketColor.window[2], marketAlpha[0]))
+                        imgui.Begin('market', market, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.AlwaysAutoResize)
+                            imgui.SetWindowFontScale(fontSize[0])
+                            for i = #marketShop, 1, -1 do
+                                imgui.Text(u8(marketShop[i]))
+                            end
+                        imgui.End()
+                    imgui.PopStyleColor(2)
+                end
+            )
 
 
 
 
 
+        function imgui.ActiveButton(name, ...)
+            imgui.PushStyleColor(imgui.Col.Button, convertDecimalToRGBA(palette.accent1.color_500))
+            imgui.PushStyleColor(imgui.Col.ButtonHovered, convertDecimalToRGBA(palette.accent1.color_400))
+            imgui.PushStyleColor(imgui.Col.ButtonActive, convertDecimalToRGBA(palette.accent1.color_300))
+            local result = imgui.Button(name, ...)
+            imgui.PopStyleColor(3)
+            return result
+        end
 
+        function sms(text)
+            local color_chat = '7172ee'
+            local text = tostring(text):gsub('{mc}', '{' .. color_chat .. '}'):gsub('{%-1}', '{FFFFFF}')
+            sampAddChatMessage(string.format('« %s » {FFFFFF}%s', thisScript().name, text), tonumber('0x' .. color_chat))
+        end
 
 
         
@@ -514,7 +548,7 @@ function main()
     while not isSampAvailable() do wait(100) end -- ждём когда загрузится самп
 	wait(500)
 	sampAddChatMessage('• {00FF00}[Залупа-Helper]{FFFFFF} Активация: {7FFF00}F2{FFFFFF} или {7FFF00}/CR {FFFFFF}•', -1)
-    sampRegisterChatCommand('cr', function() WinState[0] = not WinState[0] end)	
+    sampRegisterChatCommand('cr', function() window[0] = not window[0] end)	
     sampRegisterChatCommand('call', getnumber)
 	getLastUpdate() -- вызываем функцию получения последнего ID сообщения
     	          if autoupdate_loaded and enable_autoupdate and Update then
@@ -543,7 +577,7 @@ function main()
 			
 	while true do wait(0)
 	  if wasKeyPressed(VK_F2) and not sampIsCursorActive() then -- если нажата клавиша R и не активен самп курсор
-            WinState[0] = not WinState[0]  
+            window[0] = not window[0]  
             imgui.Process = main_window_state
             imgui.ShowCursor = false
             posX, posY = getCursorPos() -- функция позволяет получить координаты курсора на экране
@@ -1391,7 +1425,7 @@ function sampev.onServerMessage(color, text)
 	
     if text:find('{FFFFFF}У вас есть 3 минуты, чтобы настроить товар, иначе аренда ларька будет отменена.') then
         lavka = new.bool(false) 
-        show[0] = true
+        marketBool.now[0] = true
         sendTelegramNotification('[Информация] Вы заняли лавку!')
         marketShop = {}
         if autoclean[0] then
@@ -1411,7 +1445,7 @@ local hookActionsShop = {
 
 for k, v in ipairs(hookActionsShop) do
     if text:find(v) then
-        show[0] = false       
+        marketBool.now[0] = false       
         sendTelegramNotification(text)
         end
     end
