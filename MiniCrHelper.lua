@@ -1,5 +1,5 @@
 script_name("MiniCrHelper")
-script_version("0.1.0")
+script_version("0.1.1")
 
 
 --ебаные библиотеки--
@@ -114,6 +114,23 @@ local mainIni = inicfg.load({
         clean = false,
         settingslavka = false,
         namelavkas = '',
+        running = false,
+        show = false,
+        speedrunning = false,
+        speedrunningkey = '0x14',
+        renderlavokx = 500,
+        renderlavoky = 500,
+        chestposx = 500,
+        chestposy = 500,
+        delayedtimerposx = 500,
+        delayedtimerposy = 500,
+        infonline = false,
+        infrender = false,
+        infradius = false,
+        infclean = false,
+        infautoclean = false,
+        infautolavka = false,
+        
     }}, 'MiniHelper-CR.ini')
 --ебаный CFG--
 
@@ -149,6 +166,14 @@ local jsonConfig = json('Config.json'):load({
 		marketBool = false,
 		marketColor = {text = {1.0, 1.0, 1.0}, window = {0.2, 0.2, 0.2}},
 		marketPos = {x = -1, y = -1}
+	},
+    ['informer'] = {
+		fontSizea = 1.0,
+        fontAlphaa = 1.00,
+		marketAlphaa = 1.00,
+		marketSizea = {x = 700, y = 260},
+		marketColora = {text = {1.0, 1.0, 1.0}, window = {0.0, 0.0, 0.0}},
+		marketPosa = {x = -1, y = -1}
 	}
 })
 
@@ -211,6 +236,17 @@ local timekey2 = new.int(5) -- создаём буфер для SliderInt со значением 2 по умо
 local buttonkey2 = new.char[256]() -- создаём буфер для инпута
 local timekey3 = new.int(5) -- создаём буфер для SliderInt со значением 2 по умолчанию
 local buttonkey3 = new.char[256]() -- создаём буфер для инпута
+
+
+
+local hotkey = require 'mimgui_hotkeys'
+local running = new.bool(mainIni.main.running)
+local speedrunning = new.bool(mainIni.main.speedrunning)
+local speedrunningkey = new.char[256](u8(mainIni.main.speedrunningkey))
+local lenwh = new.bool()
+local xlopokwh = new.bool()
+local shaxta = new.bool()
+local autoalt = new.bool()
 ---Auto---
 
 ---4---
@@ -225,9 +261,9 @@ local token = new.char[256](u8(mainIni.main.token)) -- создаём буффер для инпута
 ---Telegram---
 
 --color--
-        local show = imgui.new.bool()
-        local changepos = false -- статус редактирования позиции окошка
-        local posX, posY = 500, 500 -- задаём начальную позицию второго окошка
+
+Memory = require 'memory'
+
 
 
 
@@ -235,11 +271,30 @@ local token = new.char[256](u8(mainIni.main.token)) -- создаём буффер для инпута
         local fontAlpha = imgui.new.float(jsonConfig['market'].fontAlpha)
         local marketAlpha = imgui.new.float(jsonConfig['market'].marketAlpha)
         local marketSize = {x = imgui.new.int(jsonConfig['market'].marketSize.x), y = imgui.new.int(jsonConfig['market'].marketSize.y)}
-        local marketBool = {now = imgui.new.bool(false), always = imgui.new.bool(jsonConfig['market'].marketBool)}
+        local marketBool = {now = imgui.new.bool(), always = imgui.new.bool(jsonConfig['market'].marketBool)}
         local marketColor = {text = imgui.new.float[3](jsonConfig['market'].marketColor.text), window = imgui.new.float[3](jsonConfig['market'].marketColor.window)}
         local marketPos = imgui.ImVec2(jsonConfig['market'].marketPos.x, jsonConfig['market'].marketPos.y)
         local marketShop = {}
         local scriptColor = imgui.new.float[3](jsonConfig['script'].scriptColor)
+
+
+
+        local infonline = new.bool(mainIni.main.infonline)
+        local infrender = new.bool(mainIni.main.infrender)
+        local infradius = new.bool(mainIni.main.infradius)
+        local infclean = new.bool(mainIni.main.infclean)
+        local infautoclean = new.bool(mainIni.main.infautoclean)
+        local infautolavka = new.bool(mainIni.main.infautolavka)
+
+        local show = imgui.new.bool(mainIni.main.show)
+        local fontSizea = imgui.new.float(jsonConfig['informer'].fontSizea)
+        local fontAlphaa = imgui.new.float(jsonConfig['informer'].fontAlphaa)
+        local marketAlphaa = imgui.new.float(jsonConfig['informer'].marketAlphaa)
+        local marketColora = {text = imgui.new.float[3](jsonConfig['informer'].marketColora.text), window = imgui.new.float[3](jsonConfig['informer'].marketColora.window)}
+        local marketSizea = {x = imgui.new.int(jsonConfig['informer'].marketSizea.x), y = imgui.new.int(jsonConfig['informer'].marketSizea.y)}
+        local marketPosa = imgui.ImVec2(jsonConfig['informer'].marketPosa.x, jsonConfig['informer'].marketPosa.y)
+
+
 
 --color--
 
@@ -247,11 +302,11 @@ imgui.OnFrame(function() return window[0] end, function(player)
     imgui.SetNextWindowPos(imgui.ImVec2(500, 500), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
     imgui.SetNextWindowSize(imgui.ImVec2(370, 320), imgui.Cond.Always)
     imgui.Begin(u8'Залупа Helper v'..thisScript().version, window, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse)
-    for numberTab,nameTab in pairs({'Main','Chests','Auto','Lavka   ','Telegram'}) do -- создаём и парсим таблицу с названиями будущих вкладок
+    for numberTab,nameTab in pairs({'Main','Chests','Lavka','Сheats','Informer','Telegram'}) do -- создаём и парсим таблицу с названиями будущих вкладок
         if imgui.Button(u8(nameTab), imgui.ImVec2(80,43)) then -- 2ым аргументом настраивается размер кнопок (подробнее в гайде по мимгуи)
             tab = numberTab -- меняем значение переменной tab на номер нажатой кнопки
         end
-    end
+    end--Informer
     imgui.SetCursorPos(imgui.ImVec2(95, 28)) -- [Для декора] Устанавливаем позицию для чайлда ниже
     if imgui.BeginChild('Name##'..tab, imgui.ImVec2(268 , 285), true) then -- [Для декора] Создаём чайлд в который поместим содержимое
         
@@ -262,6 +317,13 @@ imgui.OnFrame(function() return window[0] end, function(player)
         end
 		imgui.SameLine()
         imgui.TextQuestion(u8("Right Shift + 1"))
+        imgui.SameLine()
+        imgui.SetCursorPosX(195)
+        if imgui.Button(u8'Позиция##1') then
+            sms('Нажмите {mc}ПРОБЕЛ{-1}, чтобы сохранить позицию.')
+            renderlavok = true
+        end
+       
         imgui.Checkbox(u8'Радиус между лавками', radiuslavki)
         imgui.SameLine()
         imgui.TextQuestion(u8("Right Shift + 2"))
@@ -300,7 +362,7 @@ imgui.OnFrame(function() return window[0] end, function(player)
 		 inicfg.save(mainIni, "MiniHelper-CR")
 		end
 
-  
+        imgui.Image(imhandle, imgui.ImVec2(250, 300)) -- эта функция рендерит саму картинку
 		--- 1 страница ебать ---	
 		
 		
@@ -334,12 +396,18 @@ imgui.OnFrame(function() return window[0] end, function(player)
 	    inicfg.save(mainIni, "MiniHelper-CR")
         end 
         
-        if imgui.Checkbox(u8'Запустить Авто-Открытие###777', workbotton) then
+        if imgui.Checkbox(u8'Запустить Сундуки###777', workbotton) then
             work = true
        
         end
         imgui.SameLine()
         imgui.TextQuestion(u8("Right Shift + 4"))
+        imgui.SameLine()
+        imgui.SetCursorPosX(195)
+        if imgui.Button(u8'Позиция##2') then
+            sms('Нажмите {mc}ПРОБЕЛ{-1}, чтобы сохранить позицию.')
+            chestpos = true
+        end
         imgui.Separator()
         imgui.Text(u8'Запустить через:')
         imgui.SameLine()
@@ -352,102 +420,229 @@ imgui.OnFrame(function() return window[0] end, function(player)
         imgui.PopItemWidth()
         if imgui.Checkbox(u8'Отложенный Запуск', delayedtimer) then
         end
+        imgui.SameLine()
+        imgui.SetCursorPosX(195)
+        if imgui.Button(u8'Позиция##3') then
+            sms('Нажмите {mc}ПРОБЕЛ{-1}, чтобы сохранить позицию.')
+            delayedtimerpos = true
+        end
         
         --- 2 страница ебать ---
 		
 	
 	    --- 3 страница ебать ---
-		elseif tab == 3 then
-        imgui.Checkbox(u8'Авто нажатие 1 кнопки', autokey1)
-		imgui.SliderInt(u8'задерж в мс', timekey1, 5, 100) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
-        imgui.InputTextWithHint(u8'HEX код', u8'Введите HEX код клавиши', buttonkey1, 256)
-		imgui.Separator()
-		 imgui.Checkbox(u8'Авто нажатие 2 кнопок###auto1', autokey2)
-		imgui.SliderInt(u8'задерж в мс###auto2', timekey2, 5, 100) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
-        imgui.InputTextWithHint(u8'HEX код###auto3', u8'Введите HEX код клавиши', buttonkey2, 256)
-		imgui.SliderInt(u8'задерж в мс###auto4', timekey3, 5, 100) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
-        imgui.InputTextWithHint(u8'HEX код###auto5', u8'Введите HEX код клавиши', buttonkey3, 256)
-		imgui.Separator()
-		if imgui.Button(u8'СПИСОК КОДОВ КЛАВИШ', imgui.ImVec2(210, 25) ) then -- размер указал потомучто так привычней
-       os.execute("start https://narvell.nl/keys")
-	   end
-        --- 3 страница ебать ---
-		
-		
-		--- 4 страница ебать ---
-        elseif tab == 4 then 
+    elseif tab == 3 then 
             
-            if imgui.ActiveButton(u8(marketBool.now[0] and 'Включено' or 'Выключено'), imgui.ImVec2(170)) then marketBool.now[0] = not marketBool.now[0] end
-            imgui.SameLine()
-            imgui.Text(u8('Статус окна'))
+        if imgui.ActiveButton(u8(marketBool.now[0] and 'Включено' or 'Выключено'), imgui.ImVec2(170)) then marketBool.now[0] = not marketBool.now[0] end
+        imgui.SameLine()
+        imgui.Text(u8('Статус окна'))
 
-          
+      
+
 
     
-		
 
 
-        if imgui.Button(u8('Тестовые строчки'), imgui.ImVec2(120)) then
-            marketShop = {}
-            for i = 1, 5 do marketShop[i] = 'Вы купили Семейный талон (1 шт.) у игрока Test за $123.123.123.123' end
-            
-
-        end
-        imgui.SameLine()
-        if imgui.Button(u8('Очистить строчки'), imgui.ImVec2(120)) then
+    if imgui.Button(u8('Тестовые строчки'), imgui.ImVec2(120)) then
         marketShop = {}
-        end
+        for i = 1, 5 do marketShop[i] = 'Вы купили Семейный талон (1 шт.) у игрока Test за $123.123.123.123' end
+        
 
-        if imgui.DragFloat(u8('Размер шрифта'), fontSize, 0.01, 0.1, 2.0, "%.1f") then
-            jsonConfig['market'].fontSize = fontSize[0]
-            json('Config.json'):save(jsonConfig)
-        end
-        if imgui.DragFloat(u8('Прозрачность шрифта'), fontAlpha, 0.01, 0.0, 1.0, "%.2f") then
-            jsonConfig['market'].fontAlpha = fontAlpha[0]
-            json('Config.json'):save(jsonConfig)
-        end
-        if imgui.DragFloat(u8('Прозрачность окна'), marketAlpha, 0.01, 0.0, 1.0, "%.2f") then
-            jsonConfig['market'].marketAlpha = marketAlpha[0]
-            json('Config.json'):save(jsonConfig)
-        end
+    end
+    imgui.SameLine()
+    if imgui.Button(u8('Очистить строчки'), imgui.ImVec2(120)) then
+    marketShop = {}
+    end
 
-        if imgui.ColorEdit3(u8('Цвет текста'), marketColor.text) then
-            jsonConfig['market'].marketColor.text = {marketColor.text[0], marketColor.text[1], marketColor.text[2]}
-            json('Config.json'):save(jsonConfig)
-        end
-        if imgui.ColorEdit3(u8('Цвет окна'), marketColor.window) then
-            jsonConfig['market'].marketColor.window = {marketColor.window[0], marketColor.window[1], marketColor.window[2]}
-            json('Config.json'):save(jsonConfig)
-        end
-        if imgui.ActiveButton(u8('Позиция'), imgui.ImVec2(85 - 2.5)) then
-            sms('Нажмите {mc}ЛКМ{-1}, чтобы сохранить позицию.')
-            window[0], marketBool.now[0] = false, true
-            sampSetCursorMode(4)
-            lua_thread.create(function()
-                while true do
-                    marketPos = imgui.ImVec2(select(1, getCursorPos()), select(2, getCursorPos()))
-                    jsonConfig['market'].marketPos = {x = marketPos.x, y = marketPos.y}
-                    json('Config.json'):save(jsonConfig)
-                    if imgui.IsMouseClicked(0) then
-                        sms('Местоположение сохранено.')
-                        
-                        window[0], marketBool.now[0] = true, false
-                        sampSetCursorMode(0)
-                        break
-                    end
-                    wait(0)
+    if imgui.DragFloat(u8('Размер шрифта'), fontSize, 0.01, 0.1, 2.0, "%.1f") then
+        jsonConfig['market'].fontSize = fontSize[0]
+        json('Config.json'):save(jsonConfig)
+    end
+    if imgui.DragFloat(u8('Прозрачность шрифта'), fontAlpha, 0.01, 0.0, 1.0, "%.2f") then
+        jsonConfig['market'].fontAlpha = fontAlpha[0]
+        json('Config.json'):save(jsonConfig)
+    end
+    if imgui.DragFloat(u8('Прозрачность окна'), marketAlpha, 0.01, 0.0, 1.0, "%.2f") then
+        jsonConfig['market'].marketAlpha = marketAlpha[0]
+        json('Config.json'):save(jsonConfig)
+    end
+
+    if imgui.ColorEdit3(u8('Цвет текста'), marketColor.text) then
+        jsonConfig['market'].marketColor.text = {marketColor.text[0], marketColor.text[1], marketColor.text[2]}
+        json('Config.json'):save(jsonConfig)
+    end
+    if imgui.ColorEdit3(u8('Цвет окна'), marketColor.window) then
+        jsonConfig['market'].marketColor.window = {marketColor.window[0], marketColor.window[1], marketColor.window[2]}
+        json('Config.json'):save(jsonConfig)
+    end
+    if imgui.ActiveButton(u8('Позиция'), imgui.ImVec2(85 - 2.5)) then
+        sms('Нажмите {mc}ПРОБЕЛ{-1}, чтобы сохранить позицию.')
+        window[0], marketBool.now[0] = false, true
+        sampSetCursorMode(4)
+        lua_thread.create(function()
+            while true do
+                marketPos = imgui.ImVec2(select(1, getCursorPos()), select(2, getCursorPos()))
+                jsonConfig['market'].marketPos = {x = marketPos.x, y = marketPos.y}
+                json('Config.json'):save(jsonConfig)
+                if isKeyDown(32) then
+                    sms('Местоположение сохранено.')
+                    
+                    window[0], marketBool.now[0] = true, true
+                    sampSetCursorMode(0)
+                    break
                 end
-            end)
+                wait(0)
+            end
+        end)
+    end
+    imgui.SameLine()
+    imgui.Text(u8('Местоположение окна'))
+
+    if imgui.ColorEdit3(u8('Цвет скрипта'), scriptColor) then getTheme() end
+        --- 3 страница ебать ---
+		
+       	
+		--- 4 страница ебать ---
+    
+
+
+
+        
+
+    elseif tab == 4 then
+        --imgui.Checkbox(u8'Авто нажатие 1 кнопки', autokey1)
+		--imgui.SliderInt(u8'задерж в мс', timekey1, 5, 100) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
+        --imgui.InputTextWithHint(u8'HEX код', u8'Введите HEX код клавиши', buttonkey1, 256)
+		--imgui.Separator()
+		--imgui.Checkbox(u8'Авто нажатие 2 кнопок###auto1', autokey2)
+		--imgui.SliderInt(u8'задерж в мс###auto2', timekey2, 5, 100) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
+        --imgui.InputTextWithHint(u8'HEX код###auto3', u8'Введите HEX код клавиши', buttonkey2, 256)
+		--imgui.SliderInt(u8'задерж в мс###auto4', timekey3, 5, 100) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
+        --imgui.InputTextWithHint(u8'HEX код###auto5', u8'Введите HEX код клавиши', buttonkey3, 256)
+		--imgui.Separator()
+
+
+        imgui.Checkbox(u8'Рендер на лён', lenwh)
+        imgui.Checkbox(u8'Рендер на хлопак', xlopokwh)
+        imgui.Checkbox(u8'Рендер на шахту', shaxta)
+        imgui.Checkbox(u8'Авто Alt', autoalt)
+
+
+        imgui.Separator()	
+        if imgui.Checkbox(u8'Бесконечный бег', running) then
+            mainIni.main.running = running[0] 
+            inicfg.save(mainIni, "MiniHelper-CR")
         end
+
+
+        if imgui.Checkbox(u8'Быстрый бег и езда', speedrunning) then
+            mainIni.main.speedrunning = speedrunning[0] 
+            inicfg.save(mainIni, "MiniHelper-CR")
+        end
+        
         imgui.SameLine()
-        imgui.Text(u8('Местоположение окна'))
+        
+        imgui.PushItemWidth(40)
+        if imgui.InputText(u8"HEX код", speedrunningkey, 256) then
+            mainIni.main.speedrunningkey = u8:decode(str(speedrunningkey))
+		    inicfg.save(mainIni, "MiniHelper-CR")
+	    end
 
-        if imgui.ColorEdit3(u8('Цвет скрипта'), scriptColor) then getTheme() end
+  
+        if imgui.Button(u8'[Коды клавиш клавиатуры и мыши]') then -- размер указал потомучто так привычней
+            os.execute("start https://narvell.nl/keys")
+            end
 
+
+        elseif tab == 5 then  
+       
+            if imgui.Checkbox(u8'Вкл/выкл', show) then
+                mainIni.main.show = show[0] 
+                inicfg.save(mainIni, "MiniHelper-CR")
+        
+            end
+            imgui.SameLine()
+            imgui.SetCursorPosX(135)
+            if imgui.Checkbox(u8'Онлайн##1', infonline) then
+            mainIni.main.infonline = infonline[0] 
+            inicfg.save(mainIni, "MiniHelper-CR")
+            end
+        
+            if imgui.Checkbox(u8'Рендер лавок##1', infrender) then
+                mainIni.main.infrender = infrender[0] 
+                inicfg.save(mainIni, "MiniHelper-CR")
+            end
+        
+            imgui.SameLine()
+            imgui.SetCursorPosX(135)
+            if imgui.Checkbox(u8'Радиус лавок##1', infradius) then
+                mainIni.main.infradius = infradius[0] 
+                inicfg.save(mainIni, "MiniHelper-CR")
+            end
+        
+            if imgui.Checkbox(u8'Удале Игроков##1', infclean) then
+                mainIni.main.infclean = infclean[0] 
+                inicfg.save(mainIni, "MiniHelper-CR")
+            end
+        
+            imgui.SameLine()
+            imgui.SetCursorPosX(135)
+            if imgui.Checkbox(u8'Авто-Удаление##1', infautoclean) then
+                mainIni.main.infautoclean = infautoclean[0] 
+                inicfg.save(mainIni, "MiniHelper-CR")
+            end
+        
+            if imgui.Checkbox(u8'Авто-Лавка##1', infautolavka) then
+                mainIni.main.infautolavka = infautolavka[0] 
+                inicfg.save(mainIni, "MiniHelper-CR")
+            end
+        
+        
+            if imgui.DragFloat(u8('Размер шрифта'), fontSizea, 0.01, 0.1, 2.0, "%.1f") then
+                jsonConfig['informer'].fontSizea = fontSizea[0]
+                json('Config.json'):save(jsonConfig)
+            end
+        
+            if imgui.DragFloat(u8('Прозрачность окна'), marketAlphaa, 0.01, 0.0, 1.0, "%.2f") then
+                jsonConfig['informer'].marketAlphaa = marketAlphaa[0]
+                json('Config.json'):save(jsonConfig)
+            end
+        
+            if imgui.ColorEdit3(u8('Цвет текста'), marketColora.text) then
+                jsonConfig['informer'].marketColora.text = {marketColora.text[0], marketColora.text[1], marketColora.text[2]}
+                json('Config.json'):save(jsonConfig)
+            end
+            if imgui.ColorEdit3(u8('Цвет окна'), marketColora.window) then
+                jsonConfig['informer'].marketColora.window = {marketColora.window[0], marketColora.window[1], marketColora.window[2]}
+                json('Config.json'):save(jsonConfig)
+            end
+        
+            if imgui.ActiveButton(u8('Позиция'), imgui.ImVec2(85 - 2.5)) then
+                sms('Нажмите {mc}ПРОБЕЛ{-1}, чтобы сохранить позицию.')
+                window[0], show[0] = false, true
+                sampSetCursorMode(4)
+                lua_thread.create(function()
+                    while true do
+                        marketPosa = imgui.ImVec2(select(1, getCursorPos()), select(2, getCursorPos()))
+                        jsonConfig['informer'].marketPosa = {x = marketPosa.x, y = marketPosa.y}
+                        json('Config.json'):save(jsonConfig)
+                        if isKeyDown(32) then
+                            sms('Местоположение сохранено.')
+                            
+                            window[0], show[0] = true, true
+                            sampSetCursorMode(0)
+                            break
+                        end
+                        wait(0)
+                    end
+                end)
+            end
+            imgui.SameLine()
+            imgui.Text(u8('Местоположение окна'))
 
    
 	    --- 5 страница ебать ---
-	    elseif tab == 5 then
+	    elseif tab == 6 then
         if imgui.Checkbox(u8'Принимать команды из TG', cmd) then
 		mainIni.main.cmd = cmd[0] 
 		inicfg.save(mainIni, "MiniHelper-CR")
@@ -474,10 +669,6 @@ imgui.OnFrame(function() return window[0] end, function(player)
         
         imgui.EndChild()
 		imgui.SetCursorPos(imgui.ImVec2(5, 270))
-		if imgui.Button(('Reload'), imgui.ImVec2(80,44)) then
-        sampAddChatMessage('Скрипт перезагружается', 0xFF0000)
-	    thisScript():reload()
-        end
         end
         imgui.End()
         end)
@@ -504,7 +695,113 @@ imgui.OnFrame(function() return window[0] end, function(player)
                 end
             )
 
+     
+            fpsID = ''
+            ping = ''
+            local sessionStart = os.time()
+            local sessiononline = 0
+            
 
+            local marketFramea = imgui.OnFrame(
+                function() return  show[0] and not isPauseMenuActive() and not sampIsScoreboardOpen() end,
+                function(player)
+                    player.HideCursor = true
+                    local sx, sy = getScreenResolution()
+                    local position = marketPosa.x ~= -1 and marketPosa or imgui.ImVec2((sx - marketSizea.x[0]) / 2, sy - marketSizea.y[0] - sy * 0.01)
+                    imgui.SetNextWindowPos(position, imgui.Cond.Always)
+                    imgui.PushStyleColor(imgui.Col.Text, imgui.ImVec4(marketColora.text[0], marketColora.text[1], marketColora.text[2], fontAlphaa[0]))
+                    imgui.PushStyleColor(imgui.Col.WindowBg, imgui.ImVec4(marketColora.window[0], marketColora.window[1], marketColora.window[2], marketAlphaa[0]))
+                        imgui.Begin('informer', show, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.AlwaysAutoResize)
+                            imgui.SetWindowFontScale(fontSizea[0])
+
+
+
+                  
+                            imgui.Text(u8"Fps: "..fpsID)
+                            imgui.SameLine() 
+                            imgui.Text(u8" Ping: "..ping) 
+                            if infonline[0] then
+                            imgui.Text(u8("Онлайн за сессию: "..get_timer(sessiononline)..' ')) 
+                            end
+
+
+--infonline
+
+                            if infrender[0] then
+                            if lavka[0] == true then
+                                imgui.Text(u8"Рендер лавок") 
+                                imgui.SameLine() 
+                                imgui.TextColored(imgui.ImVec4(0.0, 1.0, 0.0, 1.0), u8"Включён")
+                                else
+                                imgui.Text(u8"Рендер лавок")  
+                                imgui.SameLine()
+                                imgui.TextColored(imgui.ImVec4(1.0, 0.0, 0.0, 1.0), u8"Выключен") 
+                            end  
+                        end
+                           
+                           
+                            
+                            if infradius[0] then
+                            if radiuslavki[0] == true then
+                                imgui.Text(u8"Радиус лавок") 
+                                imgui.SameLine()
+                                imgui.TextColored(imgui.ImVec4(0.0, 1.0, 0.0, 1.0), u8"Включён")
+                                    else
+                                imgui.Text(u8"Радиус лавок")
+                                imgui.SameLine()
+                                imgui.TextColored(imgui.ImVec4(1.0, 0.0, 0.0, 1.0), u8"Выключен") 
+                    
+                            end 
+                        end
+                            
+                            if infclean[0] then
+                            if clean[0] == true then
+                                imgui.Text(u8"Удаление Игроков")
+                                imgui.SameLine()                  
+                                imgui.TextColored(imgui.ImVec4(0.0, 1.0, 0.0, 1.0), u8"Включён")
+                                    else
+                                imgui.Text(u8"Удаление Игроков")
+                                imgui.SameLine()
+                                imgui.TextColored(imgui.ImVec4(1.0, 0.0, 0.0, 1.0), u8"Выключен") 
+                            end
+                        end 
+
+                            if infautoclean[0] then
+                            if autoclean[0] == true then
+                                imgui.Text(u8"Авто-Удаление")
+                                imgui.SameLine()                  
+                                imgui.TextColored(imgui.ImVec4(0.0, 1.0, 0.0, 1.0), u8"Включён")
+                                    else
+                                imgui.Text(u8"Авто-Удаление")
+                                imgui.SameLine()
+                                imgui.TextColored(imgui.ImVec4(1.0, 0.0, 0.0, 1.0), u8"Выключен") 
+                            end 
+                        end
+
+                            if infautolavka[0] then
+                            if settingslavka[0] == true then
+                                imgui.Text(u8"Авто-Лавка") 
+                                imgui.SameLine()                 
+                                imgui.TextColored(imgui.ImVec4(0.0, 1.0, 0.0, 1.0), u8"Включён")
+                                    else
+                                imgui.Text(u8"Авто-Лавка")
+                                imgui.SameLine()
+                                imgui.TextColored(imgui.ImVec4(1.0, 0.0, 0.0, 1.0), u8"Выключен") 
+                            end
+                        end
+
+
+
+
+                            --settingslavka
+                            
+                        imgui.End()
+                    imgui.PopStyleColor(2)
+                end
+            )
+
+            
+    
 
 
 
@@ -567,14 +864,29 @@ function main()
             lua_thread.create(sizewindow)
             lua_thread.create(lavkatextand)
             lua_thread.create(bike)
+            lua_thread.create(runnings)
+            lua_thread.create(lenandxlopak)
+            lua_thread.create(shaxtas)
+            lua_thread.create(autoalts)
+            lua_thread.create(posxy)
+            lua_thread.create(showfps)
+            lua_thread.create(camhack)
+            lua_thread.create(photopng)
+
+         
      
            
-        
 
 
-			
 
-			
+
+            
+            
+                  
+                        
+
+                    
+
 	while true do wait(0)
 	  if wasKeyPressed(VK_F2) and not sampIsCursorActive() then -- если нажата клавиша R и не активен самп курсор
             window[0] = not window[0]  
@@ -584,6 +896,575 @@ function main()
             
              
             
+end
+end
+end
+
+
+
+local dhook, hook = pcall(require, 'lib.samp.events')
+function photopng()
+	if not doesDirectoryExist("moonloader\\config\\MiniCrHelper") then createDirectory('moonloader\\config\\MiniCrHelper') end	
+	downloadUrlToFile('https://i.imgur.com/THUtlo7.png', getWorkingDirectory() .. '/config/MiniCrHelper/123.png')
+	end
+
+
+function camhack()
+	--sampAddChatMessage('шо?', 0xFFFFFF)
+	flymode = 0  
+	speed = 1.0
+	radarHud = 0
+	time = 0
+	keyPressed = 0
+	while true do
+	--displayRadar(false)
+		wait(0)
+		time = time + 1
+		if isKeyDown(VK_X) and isKeyDown(VK_1) then
+			if flymode == 0 then
+				--setPlayerControl(playerchar, false)
+				displayRadar(false)
+				displayHud(false)	    
+				posX, posY, posZ = getCharCoordinates(playerPed)
+				angZ = getCharHeading(playerPed)
+				angZ = angZ * -1.0
+				setFixedCameraPosition(posX, posY, posZ, 0.0, 0.0, 0.0)
+				angY = 0.0
+				--freezeCharPosition(playerPed, false)
+				--setCharProofs(playerPed, 1, 1, 1, 1, 1)
+				--setCharCollision(playerPed, false)
+				lockPlayerControl(true)
+				flymode = 1
+			--	sampSendChat('/anim 35')
+			end
+		end
+		if flymode == 1 and not sampIsChatInputActive() and not isSampfuncsConsoleActive() then
+			offMouX, offMouY = getPcMouseMovement()  
+			  
+			offMouX = offMouX / 4.0
+			offMouY = offMouY / 4.0
+			angZ = angZ + offMouX
+			angY = angY + offMouY
+
+			if angZ > 360.0 then angZ = angZ - 360.0 end
+			if angZ < 0.0 then angZ = angZ + 360.0 end
+
+			if angY > 89.0 then angY = 89.0 end
+			if angY < -89.0 then angY = -89.0 end   
+
+			radZ = math.rad(angZ) 
+			radY = math.rad(angY)             
+			sinZ = math.sin(radZ)
+			cosZ = math.cos(radZ)      
+			sinY = math.sin(radY)
+			cosY = math.cos(radY)       
+			sinZ = sinZ * cosY      
+			cosZ = cosZ * cosY 
+			sinZ = sinZ * 1.0      
+			cosZ = cosZ * 1.0     
+			sinY = sinY * 1.0        
+			poiX = posX
+			poiY = posY
+			poiZ = posZ      
+			poiX = poiX + sinZ 
+			poiY = poiY + cosZ 
+			poiZ = poiZ + sinY      
+			pointCameraAtPoint(poiX, poiY, poiZ, 2)
+
+			curZ = angZ + 180.0
+			curY = angY * -1.0      
+			radZ = math.rad(curZ) 
+			radY = math.rad(curY)                   
+			sinZ = math.sin(radZ)
+			cosZ = math.cos(radZ)      
+			sinY = math.sin(radY)
+			cosY = math.cos(radY)       
+			sinZ = sinZ * cosY      
+			cosZ = cosZ * cosY 
+			sinZ = sinZ * 10.0     
+			cosZ = cosZ * 10.0       
+			sinY = sinY * 10.0                       
+			posPlX = posX + sinZ 
+			posPlY = posY + cosZ 
+			posPlZ = posZ + sinY              
+			angPlZ = angZ * -1.0
+			--setCharHeading(playerPed, angPlZ)
+
+			radZ = math.rad(angZ) 
+			radY = math.rad(angY)             
+			sinZ = math.sin(radZ)
+			cosZ = math.cos(radZ)      
+			sinY = math.sin(radY)
+			cosY = math.cos(radY)       
+			sinZ = sinZ * cosY      
+			cosZ = cosZ * cosY 
+			sinZ = sinZ * 1.0      
+			cosZ = cosZ * 1.0     
+			sinY = sinY * 1.0        
+			poiX = posX
+			poiY = posY
+			poiZ = posZ      
+			poiX = poiX + sinZ 
+			poiY = poiY + cosZ 
+			poiZ = poiZ + sinY      
+			pointCameraAtPoint(poiX, poiY, poiZ, 2)
+
+			if isKeyDown(VK_W) then      
+				radZ = math.rad(angZ) 
+				radY = math.rad(angY)                   
+				sinZ = math.sin(radZ)
+				cosZ = math.cos(radZ)      
+				sinY = math.sin(radY)
+				cosY = math.cos(radY)       
+				sinZ = sinZ * cosY      
+				cosZ = cosZ * cosY 
+				sinZ = sinZ * speed      
+				cosZ = cosZ * speed       
+				sinY = sinY * speed  
+				posX = posX + sinZ 
+				posY = posY + cosZ 
+				posZ = posZ + sinY      
+				setFixedCameraPosition(posX, posY, posZ, 0.0, 0.0, 0.0)      
+			end 
+
+			radZ = math.rad(angZ) 
+			radY = math.rad(angY)             
+			sinZ = math.sin(radZ)
+			cosZ = math.cos(radZ)      
+			sinY = math.sin(radY)
+			cosY = math.cos(radY)       
+			sinZ = sinZ * cosY      
+			cosZ = cosZ * cosY 
+			sinZ = sinZ * 1.0      
+			cosZ = cosZ * 1.0     
+			sinY = sinY * 1.0         
+			poiX = posX
+			poiY = posY
+			poiZ = posZ      
+			poiX = poiX + sinZ 
+			poiY = poiY + cosZ 
+			poiZ = poiZ + sinY      
+			pointCameraAtPoint(poiX, poiY, poiZ, 2)
+
+			if isKeyDown(VK_S) then  
+				curZ = angZ + 180.0
+				curY = angY * -1.0      
+				radZ = math.rad(curZ) 
+				radY = math.rad(curY)                   
+				sinZ = math.sin(radZ)
+				cosZ = math.cos(radZ)      
+				sinY = math.sin(radY)
+				cosY = math.cos(radY)       
+				sinZ = sinZ * cosY      
+				cosZ = cosZ * cosY 
+				sinZ = sinZ * speed      
+				cosZ = cosZ * speed       
+				sinY = sinY * speed                       
+				posX = posX + sinZ 
+				posY = posY + cosZ 
+				posZ = posZ + sinY      
+				setFixedCameraPosition(posX, posY, posZ, 0.0, 0.0, 0.0)
+			end 
+
+			radZ = math.rad(angZ) 
+			radY = math.rad(angY)             
+			sinZ = math.sin(radZ)
+			cosZ = math.cos(radZ)      
+			sinY = math.sin(radY)
+			cosY = math.cos(radY)       
+			sinZ = sinZ * cosY      
+			cosZ = cosZ * cosY 
+			sinZ = sinZ * 1.0      
+			cosZ = cosZ * 1.0     
+			sinY = sinY * 1.0        
+			poiX = posX
+			poiY = posY
+			poiZ = posZ      
+			poiX = poiX + sinZ 
+			poiY = poiY + cosZ 
+			poiZ = poiZ + sinY      
+			pointCameraAtPoint(poiX, poiY, poiZ, 2)
+			  
+			if isKeyDown(VK_A) then  
+				curZ = angZ - 90.0
+				radZ = math.rad(curZ)
+				radY = math.rad(angY)
+				sinZ = math.sin(radZ)
+				cosZ = math.cos(radZ)
+				sinZ = sinZ * speed
+				cosZ = cosZ * speed
+				posX = posX + sinZ
+				posY = posY + cosZ
+				setFixedCameraPosition(posX, posY, posZ, 0.0, 0.0, 0.0)
+			end 
+
+			radZ = math.rad(angZ) 
+			radY = math.rad(angY)             
+			sinZ = math.sin(radZ)
+			cosZ = math.cos(radZ)      
+			sinY = math.sin(radY)
+			cosY = math.cos(radY)       
+			sinZ = sinZ * cosY      
+			cosZ = cosZ * cosY 
+			sinZ = sinZ * 1.0      
+			cosZ = cosZ * 1.0     
+			sinY = sinY * 1.0        
+			poiX = posX
+			poiY = posY
+			poiZ = posZ      
+			poiX = poiX + sinZ 
+			poiY = poiY + cosZ 
+			poiZ = poiZ + sinY
+			pointCameraAtPoint(poiX, poiY, poiZ, 2)       
+
+			if isKeyDown(VK_D) then  
+				curZ = angZ + 90.0
+				radZ = math.rad(curZ)
+				radY = math.rad(angY)
+				sinZ = math.sin(radZ)
+				cosZ = math.cos(radZ)       
+				sinZ = sinZ * speed
+				cosZ = cosZ * speed
+				posX = posX + sinZ
+				posY = posY + cosZ      
+				setFixedCameraPosition(posX, posY, posZ, 0.0, 0.0, 0.0)
+			end 
+
+			radZ = math.rad(angZ) 
+			radY = math.rad(angY)             
+			sinZ = math.sin(radZ)
+			cosZ = math.cos(radZ)      
+			sinY = math.sin(radY)
+			cosY = math.cos(radY)       
+			sinZ = sinZ * cosY      
+			cosZ = cosZ * cosY 
+			sinZ = sinZ * 1.0      
+			cosZ = cosZ * 1.0     
+			sinY = sinY * 1.0        
+			poiX = posX
+			poiY = posY
+			poiZ = posZ      
+			poiX = poiX + sinZ 
+			poiY = poiY + cosZ 
+			poiZ = poiZ + sinY      
+			pointCameraAtPoint(poiX, poiY, poiZ, 2)   
+
+			if isKeyDown(VK_SPACE) then  
+				posZ = posZ + speed
+				setFixedCameraPosition(posX, posY, posZ, 0.0, 0.0, 0.0)
+			end 
+
+			radZ = math.rad(angZ) 
+			radY = math.rad(angY)             
+			sinZ = math.sin(radZ)
+			cosZ = math.cos(radZ)      
+			sinY = math.sin(radY)
+			cosY = math.cos(radY)       
+			sinZ = sinZ * cosY      
+			cosZ = cosZ * cosY 
+			sinZ = sinZ * 1.0      
+			cosZ = cosZ * 1.0     
+			sinY = sinY * 1.0       
+			poiX = posX
+			poiY = posY
+			poiZ = posZ      
+			poiX = poiX + sinZ 
+			poiY = poiY + cosZ 
+			poiZ = poiZ + sinY      
+			pointCameraAtPoint(poiX, poiY, poiZ, 2) 
+
+			if isKeyDown(VK_SHIFT) then  
+				posZ = posZ - speed
+				setFixedCameraPosition(posX, posY, posZ, 0.0, 0.0, 0.0)
+			end 
+
+			radZ = math.rad(angZ) 
+			radY = math.rad(angY)             
+			sinZ = math.sin(radZ)
+			cosZ = math.cos(radZ)      
+			sinY = math.sin(radY)
+			cosY = math.cos(radY)       
+			sinZ = sinZ * cosY      
+			cosZ = cosZ * cosY 
+			sinZ = sinZ * 1.0      
+			cosZ = cosZ * 1.0     
+			sinY = sinY * 1.0       
+			poiX = posX
+			poiY = posY
+			poiZ = posZ      
+			poiX = poiX + sinZ 
+			poiY = poiY + cosZ 
+			poiZ = poiZ + sinY      
+			pointCameraAtPoint(poiX, poiY, poiZ, 2) 
+
+			if keyPressed == 0 and isKeyDown(VK_F10) then
+				keyPressed = 1
+				if radarHud == 0 then
+					displayRadar(true)
+					displayHud(true)
+					radarHud = 1
+				else
+					displayRadar(false)
+					displayHud(false)
+					radarHud = 0
+				end
+			end
+
+			if wasKeyReleased(VK_F10) and keyPressed == 1 then keyPressed = 0 end
+
+			if isKeyDown(187) then 
+				speed = speed + 0.01
+				printStringNow(speed, 1000)
+			end 
+			               
+			if isKeyDown(189) then 
+				speed = speed - 0.01 
+				if speed < 0.01 then speed = 0.01 end
+				printStringNow(speed, 1000)
+			end   
+
+			if isKeyDown(VK_X) and isKeyDown(VK_2) then
+				--setPlayerControl(playerchar, true)
+				displayRadar(true)
+				displayHud(true)
+				radarHud = 0	    
+				angPlZ = angZ * -1.0
+				--setCharHeading(playerPed, angPlZ)
+				--freezeCharPosition(playerPed, false)
+				lockPlayerControl(false)
+				--setCharProofs(playerPed, 0, 0, 0, 0, 0)
+				--setCharCollision(playerPed, true)
+				restoreCameraJumpcut()
+				setCameraBehindPlayer()
+				flymode = 0     
+			end
+		end
+	end
+end
+
+function get_timer(time)
+    return string.format("%s:%s:%s",string.format("%s%s",((tonumber(os.date("%H",time)) < tonumber(os.date("%H",0)) and (24 + tonumber(os.date("%H",time))) - tonumber(os.date("%H",0)) or tonumber(os.date("%H",time)) - (tonumber(os.date("%H",0)))) < 10 and 0 or ""),(tonumber(os.date("%H",time)) < tonumber(os.date("%H",0)) and (24 + tonumber(os.date("%H",time))) - tonumber(os.date("%H",0)) or tonumber(os.date("%H",time)) - (tonumber(os.date("%H",0))))),os.date("%M",time),os.date("%S",time))
+    end
+
+function showfps()
+    while true do wait(400)
+        if sampGetGamestate() == 3 then sessiononline = os.time() - sessionStart end
+        fps = Memory.getfloat(0xB7CB50, 0, false)
+        fpsID = string.format('%.f', fps)
+        _, PINGUPDATE = sampGetPlayerIdByCharHandle(PLAYER_PED)
+        ping = sampGetPlayerPing(PINGUPDATE)
+        end
+    end
+
+
+
+
+
+function posxy()
+while true do wait(0)
+    if renderlavok then
+        local mouseX, mouseY = getCursorPos()
+        mainIni.main.renderlavokx, mainIni.main.renderlavoky = mouseX, mouseY
+        if isKeyDown(32) then
+            inicfg.save(mainIni, "MiniHelper-CR")
+            renderlavok = false
+            sampAddChatMessage("Позиция сохранена", -1)
+        end
+    end
+if chestpos then
+    local chestposX, chestposY = getCursorPos()
+    mainIni.main.chestposx, mainIni.main.chestposy = chestposX, chestposY
+    if isKeyDown(32) then
+        inicfg.save(mainIni, "MiniHelper-CR")
+        chestpos = false
+        sampAddChatMessage("Позиция сохранена", -1)
+    end
+end
+if delayedtimerpos then
+    local delayedtimerpossX, delayedtimerpossY = getCursorPos()
+    mainIni.main.delayedtimerposx, mainIni.main.delayedtimerposy = delayedtimerpossX, delayedtimerpossY
+    if isKeyDown(32) then
+        inicfg.save(mainIni, "MiniHelper-CR")
+        delayedtimerpos = false
+        sampAddChatMessage("Позиция сохранена", -1)
+    end
+end
+end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+local fontlenandxlopak = renderCreateFont("arial", 10, 12)
+
+---------WH------
+function lenandxlopak()
+    while true do wait(0)
+        if lenwh[0] then
+        for id = 0, 2048 do
+            local result = sampIs3dTextDefined( id )
+            if result then
+                local text, color, posX, posY, posZ, distance, ignoreWalls, playerId, vehicleId = sampGet3dTextInfoById( id )
+                if text:match('Лён%((%d+) из (%d+)%)') then
+                    n1,n2=text:match('Лён%((%d+) из (%d+)%)') 
+                    local wposX, wposY = convert3DCoordsToScreen(posX,posY,posZ)
+                    local resX, resY = getScreenResolution()
+                    if wposX < resX and wposY < resY and isPointOnScreen (posX,posY,posZ,1) then
+                        x2,y2,z2 = getCharCoordinates(PLAYER_PED)
+                        x10, y10 = convert3DCoordsToScreen(x2,y2,z2)
+                        renderFontDrawText(fontlenandxlopak, "Лён("..n1..' из '..n2..')', wposX, wposY, 0xFF00FF00)			
+                    end
+                end
+                if text:match('Лён в процессе роста (.+)') then
+                    t1=text:match('Лён в процессе роста (.+)')
+                    local wposX, wposY = convert3DCoordsToScreen(posX,posY,posZ)
+                    local resX, resY = getScreenResolution()
+                    if wposX < resX and wposY < resY and isPointOnScreen (posX,posY,posZ,1)  then
+                        x2,y2,z2 = getCharCoordinates(PLAYER_PED)
+                        x10, y10 = convert3DCoordsToScreen(x2,y2,z2)
+                        renderFontDrawText(fontlenandxlopak, ""..t1, wposX, wposY,-1)
+                    end				
+                end
+            end
+        end
+    end
+    for id = 0, 2048 do
+        local result = sampIs3dTextDefined( id )
+        if result then
+    local text, color, posX, posY, posZ, distance, ignoreWalls, playerId, vehicleId = sampGet3dTextInfoById( id )
+                if xlopokwh[0] then
+                if text:match('Хлопок%((%d+) из (%d+)%)') then
+                    n1,n2=text:match('Хлопок%((%d+) из (%d+)%)') 
+                    local wposX, wposY = convert3DCoordsToScreen(posX,posY,posZ)
+                    local resX, resY = getScreenResolution()
+                    if wposX < resX and wposY < resY and isPointOnScreen (posX,posY,posZ,1) then
+                        x2,y2,z2 = getCharCoordinates(PLAYER_PED)
+                        x10, y10 = convert3DCoordsToScreen(x2,y2,z2)
+                        renderFontDrawText(fontlenandxlopak, "Хлопок("..n1..' из '..n2..')', wposX, wposY, 0xFF00FF00)
+                    end
+                end
+                if text:match('Хлопок в процессе роста (.+)') then
+                    t1=text:match('Хлопок в процессе роста (.+)')
+                    local wposX, wposY = convert3DCoordsToScreen(posX,posY,posZ)
+                    local resX, resY = getScreenResolution()
+                    if wposX < resX and wposY < resY and isPointOnScreen (posX,posY,posZ,1)  then
+                        x2,y2,z2 = getCharCoordinates(PLAYER_PED)
+                        x10, y10 = convert3DCoordsToScreen(x2,y2,z2)
+                        renderFontDrawText(fontlenandxlopak, ""..t1, wposX, wposY,-1)
+                    end				
+                end              
+          end
+        end
+    end
+end
+end
+
+
+
+function Search3Dtext(x, y, z, radius, patern) -- https://www.blast.hk/threads/13380/post-119168
+    local text = ""
+    local color = 0
+    local posX = 0.0
+    local posY = 0.0
+    local posZ = 0.0
+    local distance = 0.0
+    local ignoreWalls = false
+    local player = -1
+    local vehicle = -1
+    local result = false
+
+    for id = 0, 2048 do
+        if sampIs3dTextDefined(id) then
+            local text2, color2, posX2, posY2, posZ2, distance2, ignoreWalls2, player2, vehicle2 = sampGet3dTextInfoById(id)
+            if getDistanceBetweenCoords3d(x, y, z, posX2, posY2, posZ2) < radius then
+                if string.len(patern) ~= 0 then
+                    if string.match(text2, patern, 0) ~= nil then result = true end
+                else
+                    result = true
+                end
+                if result then
+                    text = text2
+                    color = color2
+                    posX = posX2
+                    posY = posY2
+                    posZ = posZ2
+                    distance = distance2
+                    ignoreWalls = ignoreWalls2
+                    player = player2
+                    vehicle = vehicle2
+                    radius = getDistanceBetweenCoords3d(x, y, z, posX, posY, posZ)
+                end
+            end
+        end
+    end
+    return result, text, color, posX, posY, posZ, distance, ignoreWalls, player, vehicle
+end
+
+
+function autoalts()
+    while true do
+		wait(450) -- задержка
+		if autoalt[0] then
+			local x, y, z = getCharCoordinates(PLAYER_PED)
+			local result, _, _, _, _, _, _, _, _, _ = Search3Dtext(x, y, z, 3, "{73B461}Для")
+			if result then
+				setGameKeyState(21, 255)
+				wait(5)
+				setGameKeyState(21, 0)
+				result = false
+			end
+        end
+    end
+end
+
+
+local fontshaxta = renderCreateFont("impact", 12, 12)
+
+function shaxtas()
+while true do wait(0)
+if shaxta[0] then
+        for id = 0, 2048 do
+            local result = sampIs3dTextDefined( id )
+            if result then
+                local text, color, posX, posY, posZ, distance, ignoreWalls, playerId, vehicleId = sampGet3dTextInfoById( id )
+                if text:match('Месторождение ресурсов') then
+                    n10= 'Руда'
+                    local wposX, wposY = convert3DCoordsToScreen(posX,posY,posZ)
+                    local resX, resY = getScreenResolution()
+                    if wposX < resX and wposY < resY and isPointOnScreen (posX,posY,posZ,1) then
+                        x2,y2,z2 = getCharCoordinates(PLAYER_PED)
+                        x10, y10 = convert3DCoordsToScreen(x2,y2,z2)
+                        renderFontDrawText(fontshaxta, n10, wposX, wposY, 0xFF00FF00)
+                    end
+                end
+            end
+        end
+    end
+end
+end
+
+
+
+---------WH------
+
+
+local mem = require "memory"
+function runnings()
+    while true do
+        wait(0)
+if running[0] then
+    mem.setint8(0xB7CEE4, 1)
+else
+    mem.setint8(0xB7CEE4, 0)
 end
 end
 end
@@ -608,8 +1489,8 @@ end
 function bike()
     while true do
         wait(0)
-        
-            if isCharOnAnyBike(playerPed) and isKeyCheckAvailable() and isKeyDown(0x14) then	-- onBike&onMoto SpeedUP [[LSHIFT]] --
+        if speedrunning[0] then
+            if isCharOnAnyBike(playerPed) and isKeyCheckAvailable() and isKeyDown(u8:decode(str(speedrunningkey))) then	-- onBike&onMoto SpeedUP [[LSHIFT]] --
                 if getCarModel(storeCarCharIsInNoSave(playerPed)) then
                     setGameKeyState(16, 255)
                     wait(10)
@@ -618,7 +1499,7 @@ function bike()
             end
             
             
-        if isKeyDown(0x14) and isKeyCheckAvailable() then -- onFoot&inWater SpeedUP [[1]] --
+        if isKeyDown(u8:decode(str(speedrunningkey))) and isKeyCheckAvailable() then -- onFoot&inWater SpeedUP [[1]] --
                 setGameKeyState(16, 256)
                 wait(10)
                 setGameKeyState(16, 0)  
@@ -627,6 +1508,9 @@ function bike()
     end
 end
 end
+end
+
+
 
         
     
@@ -704,7 +1588,7 @@ function delayedtimers()
                 local minutess = math.floor(timeRemainings / 60)
                 local secondss = timeRemainings % 60
                 local timeStrings = string.format("%02d:%02d", minutess, secondss)
-                renderFontDrawText(font,'Timer '..timeStrings, 95, 510 + 80, 0xFFFF0000, 0x90000000)
+                renderFontDrawText(font,'Timer '..timeStrings, mainIni.main.delayedtimerposx, mainIni.main.delayedtimerposy, 0xFFFF0000, 0x90000000)
             end
             -- Действия по завершению таймера
             
@@ -812,49 +1696,63 @@ end
 function imgui.TextColoredRGB(text)
     local style = imgui.GetStyle()
     local colors = style.Colors
-    local ImVec4 = imgui.ImVec4
-    local explode_argb = function(argb)
-        local a = bit.band(bit.rshift(argb, 24), 0xFF)
-        local r = bit.band(bit.rshift(argb, 16), 0xFF)
-        local g = bit.band(bit.rshift(argb, 8), 0xFF)
-        local b = bit.band(argb, 0xFF)
-        return a, r, g, b
-    end
-    local getcolor = function(color)
-        if color:sub(1, 6):upper() == 'SSSSSS' then
-            local r, g, b = colors[1].x, colors[1].y, colors[1].z
-            local a = tonumber(color:sub(7, 8), 16) or colors[1].w * 255
-            return ImVec4(r, g, b, a / 255)
-        end
-        local color = type(color) == 'string' and tonumber(color, 16) or color
-        if type(color) ~= 'number' then return end
-        local r, g, b, a = explode_argb(color)
-        return imgui.ImVec4(r/255, g/255, b/255, a/255)
-    end
-    local render_text = function(text_)
-        for w in text_:gmatch('[^\r\n]+') do
-            local text, colors_, m = {}, {}, 1
-            w = w:gsub('{(......)}', '{%1FF}')
-            while w:find('{........}') do
-                local n, k = w:find('{........}')
-                local color = getcolor(w:sub(n + 1, k - 1))
-                if color then
-                    text[#text], text[#text + 1] = w:sub(m, n - 1), w:sub(k + 1, #w)
-                    colors_[#colors_ + 1] = color
-                    m = n
-                end
-                w = w:sub(1, n - 1) .. w:sub(k + 1, #w)
+    local col = imgui.Col
+    
+    local designText = function(text__)
+        local pos = imgui.GetCursorPos()
+        if sampGetChatDisplayMode() == 2 then
+            for i = 1, 1 --[[Степень тени]] do
+                imgui.SetCursorPos(imgui.ImVec2(pos.x + i, pos.y))
+                imgui.TextColored(imgui.ImVec4(0, 0, 0, 1), text__) -- shadow
+                imgui.SetCursorPos(imgui.ImVec2(pos.x - i, pos.y))
+                imgui.TextColored(imgui.ImVec4(0, 0, 0, 1), text__) -- shadow
+                imgui.SetCursorPos(imgui.ImVec2(pos.x, pos.y + i))
+                imgui.TextColored(imgui.ImVec4(0, 0, 0, 1), text__) -- shadow
+                imgui.SetCursorPos(imgui.ImVec2(pos.x, pos.y - i))
+                imgui.TextColored(imgui.ImVec4(0, 0, 0, 1), text__) -- shadow
             end
-            if text[0] then
-                for i = 0, #text do
-                    imgui.TextColored(colors_[i] or colors[1], u8(text[i]))
-                    imgui.SameLine(nil, 0)
-                end
-                imgui.NewLine()
-            else imgui.Text(u8(w)) end
         end
+        imgui.SetCursorPos(pos)
     end
-    render_text(text)
+    
+    
+    
+    local text = text:gsub('{(%x%x%x%x%x%x)}', '{%1FF}')
+
+    local color = colors[col.Text]
+    local start = 1
+    local a, b = text:find('{........}', start)   
+    
+    while a do
+        local t = text:sub(start, a - 1)
+        if #t > 0 then
+            designText(t)
+            imgui.TextColored(color, t)
+            imgui.SameLine(nil, 0)
+        end
+
+        local clr = text:sub(a + 1, b - 1)
+        if clr:upper() == 'STANDART' then color = colors[col.Text]
+        else
+            clr = tonumber(clr, 16)
+            if clr then
+                local r = bit.band(bit.rshift(clr, 24), 0xFF)
+                local g = bit.band(bit.rshift(clr, 16), 0xFF)
+                local b = bit.band(bit.rshift(clr, 8), 0xFF)
+                local a = bit.band(clr, 0xFF)
+                color = imgui.ImVec4(r / 255, g / 255, b / 255, a / 255)
+            end
+        end
+
+        start = b + 1
+        a, b = text:find('{........}', start)
+    end
+    imgui.NewLine()
+    if #text >= start then
+        imgui.SameLine(nil, 0)
+        designText(text:sub(start))
+        imgui.TextColored(color, text:sub(start))
+    end
 end
 
 
@@ -923,7 +1821,7 @@ function chestss()
                 local seconds = timeRemaining % 60
                
                 local timeString = string.format("%02d:%02d", minutes, seconds)
-                renderFontDrawText(font,'Timer '..timeString, 95, 510 + 80, 0xFF00FF00, 0x90000000)
+                renderFontDrawText(font,'Timer '..timeString, mainIni.main.chestposx, mainIni.main.chestposy, 0xFF00FF00, 0x90000000)
                 
             end
             work = true -- Устанавливаем флаг work в true после завершения таймера
@@ -964,40 +1862,52 @@ function bind()
 
     if isKeyDown(161) and isKeyDown(49) then 
         activediaq = not activediaq
-        if activediaq then 
+        if activediaq then
+        if lavka[0] == false then 
         sampAddChatMessage('{FFFF00}[Binder] {FFFFFF}Рендер лавок {00FF00}включено.', -1)
         lavka[0] = true
         wait(200) 
         else
+        if lavka[0] == true then
         sampAddChatMessage('{FFFF00}[Binder] {FFFFFF}Рендер лавок {FF0000}отключено.', -1)   
         lavka[0] = false
         wait(200) 
     end
 end
+end
+end
     if isKeyDown(161) and isKeyDown(50) then 
         activediaw = not activediaw
-        if activediaw then  
+        if activediaw then 
+        if radiuslavki[0] == false then  
         sampAddChatMessage('{FFFF00}[Binder] {FFFFFF}Радиус между лавками {00FF00}включено.', -1)
         radiuslavki[0] = true
         wait(200)
         else 
+        if radiuslavki[0] == true then  
         sampAddChatMessage('{FFFF00}[Binder] {FFFFFF}Радиус между лавками {FF0000}отключено.', -1)   
         radiuslavki[0] = false
         wait(200)
     end
 end
+end
+end
 
     if isKeyDown(161) and isKeyDown(51) then
         activediae = not activediae
         if activediae then
+        if clean[0] == false then  
         sampAddChatMessage('{FFFF00}[Binder] {FFFFFF}Удаление игроков и тс {00FF00}включено.', -1)
         clean[0] = true 
         wait(200)
         else 
+        if clean[0] == true then  
         sampAddChatMessage('{FFFF00}[Binder] {FFFFFF}Удаление игроков и тс {FF0000}отключено.', -1)   
         clean[0] = false 
         wait(200)
     end
+end
+end
 end
     if isKeyDown(161) and isKeyDown(52) then  
         workbotton[0] = true 
@@ -1009,7 +1919,6 @@ end
 end
 end
 
-    
 
 
    function lavkirendor()
@@ -1041,7 +1950,7 @@ end
                 local input = getStructElement(input, 0x8, 4)
                 local PosX = getStructElement(input, 0x8, 4)
                 local PosY = getStructElement(input, 0xC, 4)
-                renderFontDrawText(font, 'Свободно: '..lavki, 95, 510 + 80, 0xFFFF0000, 0x90000000)
+                renderFontDrawText(font, 'Свободно: '..lavki, mainIni.main.renderlavokx, mainIni.main.renderlavoky, 0xFFFF0000, 0x90000000)
                 
         end
         end
@@ -1400,7 +2309,7 @@ function sampev.onServerMessage(color, text)
 			local args = splitArguments({text:match(v['text'])}, text:find('купил у вас'))
 			local textLog = getTypeMessageMarket(text, args)
 
-            sendTelegramNotification(textLog)
+            sendTelegramNotification(''..textLog.. '\n\n'..sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(PLAYER_PED))))
 			
 
 			if #marketShop >= 5  then marketShop = {} end
@@ -1426,7 +2335,8 @@ function sampev.onServerMessage(color, text)
     if text:find('{FFFFFF}У вас есть 3 минуты, чтобы настроить товар, иначе аренда ларька будет отменена.') then
         lavka = new.bool(false) 
         marketBool.now[0] = true
-        sendTelegramNotification('[Информация] Вы заняли лавку!')
+        local text = '[Информация] Вы заняли лавку!'
+        sendTelegramNotification(''..text.. '\n\n'..sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(PLAYER_PED))))
         marketShop = {}
         if autoclean[0] then
             clean = new.bool(true)
@@ -1446,7 +2356,7 @@ local hookActionsShop = {
 for k, v in ipairs(hookActionsShop) do
     if text:find(v) then
         marketBool.now[0] = false       
-        sendTelegramNotification(text)
+        sendTelegramNotification(''..text.. '\n\n'..sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(PLAYER_PED))))
         end
     end
 end
@@ -1629,6 +2539,12 @@ function getTheme()
 end
 
 imgui.OnInitialize(function()
+    imgui.OnInitialize(function()
+        if doesFileExist(getWorkingDirectory()..'\\config\\MiniCrHelper\\123.png') then -- находим необходимую картинку с названием example.png в папке moonloader/resource/
+            imhandle = imgui.CreateTextureFromFile(getWorkingDirectory() .. '\\config\\MiniCrHelper\\123.png') -- если найдена, то записываем в переменную хендл картинки
+        end
+    end)
+
 	imgui.GetIO().IniFilename = nil
 	getTheme()
 
