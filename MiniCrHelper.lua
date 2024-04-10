@@ -1,5 +1,5 @@
 script_name("MiniCrHelper")
-script_version("0.1.1")
+script_version("0.1.2")
 
 
 --ебаные библиотеки--
@@ -700,7 +700,7 @@ imgui.OnFrame(function() return window[0] end, function(player)
             ping = ''
             local sessionStart = os.time()
             local sessiononline = 0
-            
+           
 
             local marketFramea = imgui.OnFrame(
                 function() return  show[0] and not isPauseMenuActive() and not sampIsScoreboardOpen() end,
@@ -725,7 +725,7 @@ imgui.OnFrame(function() return window[0] end, function(player)
                             end
 
 
---infonline
+                       
 
                             if infrender[0] then
                             if lavka[0] == true then
@@ -872,16 +872,8 @@ function main()
             lua_thread.create(showfps)
             lua_thread.create(camhack)
             lua_thread.create(photopng)
+      
 
-         
-     
-           
-
-
-
-
-            
-            
                   
                         
 
@@ -907,6 +899,10 @@ function photopng()
 	if not doesDirectoryExist("moonloader\\config\\MiniCrHelper") then createDirectory('moonloader\\config\\MiniCrHelper') end	
 	downloadUrlToFile('https://i.imgur.com/THUtlo7.png', getWorkingDirectory() .. '/config/MiniCrHelper/123.png')
 	end
+
+
+
+
 
 
 function camhack()
