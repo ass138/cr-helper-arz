@@ -1,5 +1,5 @@
 script_name("MiniCrHelper")
-script_version("0.1.2")
+script_version("0.1.3")
 
 
 --ебаные библиотеки--
@@ -2183,11 +2183,13 @@ function processing_telegram_messages(result) -- функция проверОчки того что отп
                                 moneya = getPlayerMoney()
                                 sendTelegramNotification('Наличные: $'..moneya)
 
-                            
+                         
+                                elseif text:match('^/version') then
+                                sendTelegramNotification('Версия скрипта v'..thisScript().version)
 
-                           
+                                
 								elseif text:match('^/help') then
-								sendTelegramNotification('%E2%9D%97Команды%E2%9D%97\n/stats -- Статистика аккаунта.\n/money -- Деньги на руках.\n/pcоff -- Выключение Пк.\n/reс -- Перезайти на сервер с задержкой 5 сек.\n/monitoroff -- выключить монитор(NirCmd)\n/status -- Статус сервера.\n/diolog -- включить или отключить отправку диалогов в TG.\n/killdiolog -- Закрытие всех диологов\n/send -- Написать сообщение в чат.\n/dell --включить или отключить удаление игроков и тс.\n/chest -- Запустить Авто открытие Сундуков.\n/reload -- Перезапустить Скрипт.')	 
+								sendTelegramNotification('%E2%9D%97Команды%E2%9D%97\n/stats -- Статистика аккаунта.\n/money -- Деньги на руках.\n/pcоff -- Выключение Пк.\n/reс -- Перезайти на сервер с задержкой 5 сек.\n/monitoroff -- выключить монитор(NirCmd)\n/status -- Статус сервера.\n/diolog -- включить или отключить отправку диалогов в TG.\n/killdiolog -- Закрытие всех диологов\n/send -- Написать сообщение в чат.\n/dell --включить или отключить удаление игроков и тс.\n/chest -- Запустить Авто открытие Сундуков.\n/version -- Версия скрипта.\n/reload -- Перезапустить Скрипт.')	 
                                 else -- если же не найдется ни одна из команд выше, выведем сообщение
                                 sendTelegramNotification('Неизвестная команда!')
                            
@@ -2247,6 +2249,7 @@ local function collectAndSendPayDayData(text)
         payday_notification_str = ("%s\n%s"):format(payday_notification_str, text)
         if bank_check then
             sendTelegramNotification(("%s"):format(payday_notification_str)) -- copy string
+            sendTelegramNotification('Открыто всего '..counter.. ' сундуков')
             payday_notification_str = '%E2%9D%97__________Банковский чек__________%E2%9D%97\n'
         end
         bank_check = false
@@ -2267,30 +2270,35 @@ function sampev.onServerMessage(color, text)
 
     if text:find('^%[Информация%] %{ffffff%}Вы использовали сундук с рулетками и получили') and color == 1941201407 then
         local drop_starter_donate = text:match('^%[Информация%] %{ffffff%}Вы использовали сундук с рулетками и получили (.+)!')
+        counter = counter + 1
         message = message .. drop_starter_donate .. "\n"
     end
     
     if text:find('^%[Информация%] %{ffffff%}Вы использовали платиновый сундук с рулетками и получили') and color == 1941201407 then
         local drop_platinum = text:match('^%[Информация%] %{ffffff%}Вы использовали платиновый сундук с рулетками и получили (.+)!')
+        counter = counter + 1
         message = message .. drop_platinum .. "\n"
     end 
     
     if text:find('^%[Информация%] %{ffffff%}Вы использовали тайник Илона Маска и получили') and color == 1941201407 then
         local drop_elon_musk = text:match('^%[Информация%] %{ffffff%}Вы использовали тайник Илона Маска и получили (.+)!')
+        counter = counter + 1
         message = message .. drop_elon_musk .. "\n"
     end
     
     if (text:find('^Вы открыли Тайник Лос Сантоса!') or text:find('^Вы открыли Тайник Vice City!')) and color == 1118842111 then
     elseif text:find('^%[Информация%] %{ffffff%}Получено: (.+) и (.+)!') and color == 1941201407 then
+        counter = counter + 1
         local drop_ls_vc_1, drop_ls_vc_2 = text:match('^%[Информация%] %{ffffff%}Получено: (.+) и (.+)!')
         message = message .. drop_ls_vc_1 .. "\n" .. drop_ls_vc_2 .. "\n"
     end
     
     sendTelegramNotification(message)
+   
     
     if text:find('^%[Ошибка%] %{ffffff%}Время после прошлого использования ещё не прошло!') and color == -1104335361 then
-        counter = counter + 1
-        sendTelegramNotification('Время после прошлого использования ещё не прошло!')  
+        local text = 'Время после прошлого использования ещё не прошло!'
+        sendTelegramNotification(''..text.. '\n'..sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(PLAYER_PED))))  
     end
 
     local hookMarket = {
