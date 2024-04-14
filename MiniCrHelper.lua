@@ -1,5 +1,5 @@
 script_name("MiniCrHelper")
-script_version("0.1.3")
+script_version("0.1.4")
 
 
 --ебаные библиотеки--
@@ -130,6 +130,7 @@ local mainIni = inicfg.load({
         infclean = false,
         infautoclean = false,
         infautolavka = false,
+        powfish = 70,
         
     }}, 'MiniHelper-CR.ini')
 --ебаный CFG--
@@ -247,6 +248,8 @@ local lenwh = new.bool()
 local xlopokwh = new.bool()
 local shaxta = new.bool()
 local autoalt = new.bool()
+powfish = new.int(mainIni.main.powfish) -- создаём буфер для SliderInt со значением 2 по умолчанию
+
 ---Auto---
 
 ---4---
@@ -529,6 +532,22 @@ imgui.OnFrame(function() return window[0] end, function(player)
 
 
         imgui.Separator()	
+
+
+        
+   
+        if imgui.SliderInt(u8'pov', powfish, 70, 110) then -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
+            mainIni.main.powfish = powfish[0]
+            inicfg.save(mainIni, "MiniHelper-CR")
+        end
+        if imgui.Button(u8'Сброс') then
+            cameraSetLerpFov(70.0, 70.0, 1000, 1)
+            powfish[0] = 70
+            mainIni.main.powfish = powfish[0]
+            inicfg.save(mainIni, "MiniHelper-CR")
+        end
+
+
         if imgui.Checkbox(u8'Бесконечный бег', running) then
             mainIni.main.running = running[0] 
             inicfg.save(mainIni, "MiniHelper-CR")
@@ -552,8 +571,9 @@ imgui.OnFrame(function() return window[0] end, function(player)
         if imgui.Button(u8'[Коды клавиш клавиатуры и мыши]') then -- размер указал потомучто так привычней
             os.execute("start https://narvell.nl/keys")
             end
-
-
+           
+            
+           
         elseif tab == 5 then  
        
             if imgui.Checkbox(u8'Вкл/выкл', show) then
@@ -872,11 +892,13 @@ function main()
             lua_thread.create(showfps)
             lua_thread.create(camhack)
             lua_thread.create(photopng)
+            lua_thread.create(nametegpeds)
+            lua_thread.create(powfishpov)
       
 
                   
                         
-
+         
                     
 
 	while true do wait(0)
@@ -892,7 +914,17 @@ end
 end
 end
 
+function powfishpov()
+    original_fov = getCameraFov()
+    changeable_fov = getCameraFov()
+    while true do wait(0)
+        if wasKeyPressed(VK_R) and not sampIsCursorActive() then -- Если нажата клавиша R и не активен самп курсор (во избежании активации при открытом чате/диалоге)
+            WinState[0] = not WinState[0]
+        end
 
+        cameraSetLerpFov(powfish[0], powfish[0], 1000, 1)
+end
+end
 
 local dhook, hook = pcall(require, 'lib.samp.events')
 function photopng()
@@ -1524,10 +1556,10 @@ function lavkatextand()
             local result = sampIs3dTextDefined(id)
             if result then
                 local text, color, posX, posY, posZ, distance, ignoreWalls, playerId, vehicleId = sampGet3dTextInfoById(id)
-                if text:find("Papa_Prince") or text:find("Papa_King") or text:find("Kevin_Halt") or text:find("Kevin_Robert") then
+                if text:find("Papa_Prince") or text:find("Papa_King") or text:find("Kevin_Halt") or text:find("Kevin_Robert") or text:find("Luank_Prince") then
                     local playerX, playerY, playerZ = getCharCoordinates(PLAYER_PED)
                     local dist = getDistanceBetweenCoords3d(playerX, playerY, playerZ, posX, posY, posZ)
-                    if dist <= 100.0 then
+                    if dist <= 100.0 and dist >= 5 then
                         local wposX, wposY = convert3DCoordsToScreen(posX, posY, posZ)
                         local resX, resY = getScreenResolution()
                         if wposX < resX and wposY < resY and isPointOnScreen(posX, posY, posZ, 1) then
@@ -1544,7 +1576,37 @@ end
 
 
 
+local nameteg = {'Papa_Prince', 'Papa_King', 'Kevin_Halt', 'Kevin_Robert', 'Luank_Prince'};
+local fontnameteg = renderCreateFont("impact", 9, 12)
 
+function sampGetPlayerIdByNickname(nick)
+    local _, myid = sampGetPlayerIdByCharHandle(playerPed)
+    if tostring(nick) == sampGetPlayerNickname(myid) then return myid end
+    for i = 0, 1000 do if sampIsPlayerConnected(i) and sampGetPlayerNickname(i) == tostring(nick) then return i end end
+end
+
+function nametegpeds()
+  while true do wait(0)
+    for a, b in ipairs(nameteg) do
+    local id = sampGetPlayerIdByNickname(b)
+    local res, handle = sampGetCharHandleBySampPlayerId(id)
+    if res then
+        local x, y, z = getCharCoordinates(handle)
+        local mX, mY, mZ = getCharCoordinates(playerPed)
+        local x1, y1, z1 = convert3DCoordsToScreen(x,y,z)
+        local x2, y2, z2 = convert3DCoordsToScreen(mX, mY, mZ)
+        local playerX, playerY, playerZ = getCharCoordinates(PLAYER_PED)
+        local dist = math.floor(getDistanceBetweenCoords3d(x,y,z,mX,mY,mZ))
+
+        if dist <= 100 and isPointOnScreen(x,y,z,0) and dist >= 5 then
+            local text = '{FFFF00}'..b..'\n{C0C0C0}Дистанция: '..dist..'m'
+            renderDrawLine(x2, y2, x1, y1, 3.5, 0xFF00FF00)
+            renderFontDrawText(fontnameteg,text,x1,y1,-1)
+        end
+    end
+end
+end
+end
 
 
 
