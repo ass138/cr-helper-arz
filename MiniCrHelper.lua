@@ -1,5 +1,5 @@
 script_name("MiniCrHelper")
-script_version("0.1.6")
+script_version("0.1.7")
 
 
 --ебаные библиотеки--
@@ -1985,10 +1985,10 @@ end
 end
 end
 end
-    if isKeyDown(161) and isKeyDown(52) then  
-        workbotton[0] = true 
-        work = true 
-    end
+   -- if isKeyDown(161) and isKeyDown(52) then  
+        --workbotton[0] = true 
+        --work = true 
+    --end
     if isKeyDown(161) and isKeyDown(54) then  
         thisScript():reload() 
     end
