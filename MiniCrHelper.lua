@@ -1,50 +1,53 @@
 script_name("MiniCrHelper")
-script_version("0.1.4")
+script_version("0.1.5")
 
 
 --ебаные библиотеки--
 require 'lib.moonloader'
-local imgui = require 'mimgui' -- подключаем библиотеку мимгуи
-local encoding = require 'encoding' -- подключаем библиотеку для работы с разными кодировками
+ imgui = require 'mimgui' -- подключаем библиотеку мимгуи
+ encoding = require 'encoding' -- подключаем библиотеку для работы с разными кодировками
 encoding.default = 'CP1251' -- задаём кодировку по умолчанию
-local u8 = encoding.UTF8 -- это позволит нам писать задавать названия/текст на кириллице
-local new = imgui.new -- создаём короткий псевдоним для удобства
-local window = new.bool() -- создаём буффер для открытия окна
+ u8 = encoding.UTF8 -- это позволит нам писать задавать названия/текст на кириллице
+ new = imgui.new -- создаём короткий псевдоним для удобства
+ window = new.bool() -- создаём буффер для открытия окна
 require 'lib.moonloader'
-local imgui = require 'mimgui'
-local ffi = require 'ffi'
-local encoding = require 'encoding'
+ imgui = require 'mimgui'
+ ffi = require 'ffi'
+ encoding = require 'encoding'
 encoding.default = 'CP1251'
-local u8 = encoding.UTF8
-local new, str = imgui.new, ffi.string
-local renderWindow = new.bool()
-local sampev = require 'samp.events'
-local f = require 'moonloader'.font_flag
-local font = renderCreateFont('Arial', 15, f.BOLD + f.SHADOW)
-local clean = false
-local counter = 0
-local monet_check, monet			= pcall(require, 'MoonMonet')
-local ev = require 'samp.events'
-local lavki = {}
-local marketShop = {}
-local keys = require "vkeys"
-local ffi = require 'ffi'
-local new, str = imgui.new, ffi.string
-local effil = require("effil")
-local encoding = require("encoding")
+ u8 = encoding.UTF8
+ new, str = imgui.new, ffi.string
+ renderWindow = new.bool()
+ sampev = require 'samp.events'
+ f = require 'moonloader'.font_flag
+ font = renderCreateFont('Arial', 15, f.BOLD + f.SHADOW)
+ clean = false
+ counter = 0
+ monet_check, monet			= pcall(require, 'MoonMonet')
+ ev = require 'samp.events'
+ lavki = {}
+ marketShop = {}
+ keys = require "vkeys"
+ ffi = require 'ffi'
+ ti = require 'tabler_icons'
+ new, str = imgui.new, ffi.string
+ effil = require("effil")
+ encoding = require("encoding")
 encoding.default = 'CP1251'
 u8 = encoding.UTF8
-local imgui_check, imgui			= pcall(require, 'mimgui')
-local samp_check, samp				= pcall(require, 'samp.events')
-local effil_check, effil			= pcall(require, 'effil')
-local requests_check, requests		= pcall(require, 'requests')
-local monet_check, monet			= pcall(require, 'MoonMonet')
-local dlstatus						= require('moonloader').download_status
-local weapons						= require('game.weapons')
-local ffi							= require('ffi')
-local encoding						= require('encoding')
+ imgui_check, imgui			= pcall(require, 'mimgui')
+ samp_check, samp				= pcall(require, 'samp.events')
+ effil_check, effil			= pcall(require, 'effil')
+ requests_check, requests		= pcall(require, 'requests')
+monet_check, monet			= pcall(require, 'MoonMonet')
+dlstatus						= require('moonloader').download_status
+weapons						= require('game.weapons')
+ffi							= require('ffi')
+encoding						= require('encoding')
 encoding.default					= 'CP1251'
 u8 = encoding.UTF8
+
+
 
 --ебаные библиотеки--
 function table.assign(target, def, deep)
@@ -131,6 +134,7 @@ local mainIni = inicfg.load({
         infautoclean = false,
         infautolavka = false,
         powfish = 70,
+        stroki = 5,
         
     }}, 'MiniHelper-CR.ini')
 --ебаный CFG--
@@ -278,6 +282,7 @@ Memory = require 'memory'
         local marketColor = {text = imgui.new.float[3](jsonConfig['market'].marketColor.text), window = imgui.new.float[3](jsonConfig['market'].marketColor.window)}
         local marketPos = imgui.ImVec2(jsonConfig['market'].marketPos.x, jsonConfig['market'].marketPos.y)
         local marketShop = {}
+        local stroki = new.int(mainIni.main.stroki) -- создаём буфер для SliderInt со значением 2 по умолчанию
         local scriptColor = imgui.new.float[3](jsonConfig['script'].scriptColor)
 
 
@@ -297,21 +302,55 @@ Memory = require 'memory'
         local marketSizea = {x = imgui.new.int(jsonConfig['informer'].marketSizea.x), y = imgui.new.int(jsonConfig['informer'].marketSizea.y)}
         local marketPosa = imgui.ImVec2(jsonConfig['informer'].marketPosa.x, jsonConfig['informer'].marketPosa.y)
 
+       
 
-
+ 
 --color--
 
 imgui.OnFrame(function() return window[0] end, function(player)
-    imgui.SetNextWindowPos(imgui.ImVec2(500, 500), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
+    local sw, sh = getScreenResolution()
+    imgui.SetNextWindowPos(imgui.ImVec2(sw/2,sh/2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5,0.5))
     imgui.SetNextWindowSize(imgui.ImVec2(370, 320), imgui.Cond.Always)
     imgui.Begin(u8'Залупа Helper v'..thisScript().version, window, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse)
-    for numberTab,nameTab in pairs({'Main','Chests','Lavka','Сheats','Informer','Telegram'}) do -- создаём и парсим таблицу с названиями будущих вкладок
-        if imgui.Button(u8(nameTab), imgui.ImVec2(80,43)) then -- 2ым аргументом настраивается размер кнопок (подробнее в гайде по мимгуи)
-            tab = numberTab -- меняем значение переменной tab на номер нажатой кнопки
-        end
-    end--Informer
+
+    local diamond = ti 'diamond'
+    local package = ti 'package'
+    local store = ti 'building-store'
+    local code = ti 'code'
+    local info = ti 'info-circle'
+    local telegram = ti 'brand-telegram'
+    local refresh = ti 'refresh-alert'
+
+    if imgui.Button(diamond .. '##0001', imgui.ImVec2(80,36.8)) then
+        tab = 1
+        
+    end
+    if imgui.Button(package .. '##0001', imgui.ImVec2(80,36.8)) then
+        tab = 2
+    end
+    if imgui.Button(store .. '##0001', imgui.ImVec2(80,36.8)) then
+        tab = 3
+    end
+    if imgui.Button(code .. '##0001', imgui.ImVec2(80,36.8)) then
+        tab = 4
+    end
+    if imgui.Button(info .. '##0001', imgui.ImVec2(80,36.8)) then
+        tab = 5
+    end
+    if imgui.Button(telegram .. '##0001', imgui.ImVec2(80,36.8)) then
+        tab = 6
+    end
+
+    if imgui.Button(refresh .. '##0001', imgui.ImVec2(80,36.8)) then  
+        sampAddChatMessage('Скрипт перезагружается', 0xFF0000)
+	    thisScript():reload()
+    end
+
+
+
     imgui.SetCursorPos(imgui.ImVec2(95, 28)) -- [Для декора] Устанавливаем позицию для чайлда ниже
     if imgui.BeginChild('Name##'..tab, imgui.ImVec2(268 , 285), true) then -- [Для декора] Создаём чайлд в который поместим содержимое
+
         
         --- 1 страница ебать ---
 		if tab == 1 then
@@ -374,61 +413,64 @@ imgui.OnFrame(function() return window[0] end, function(player)
 
         --- 2 страница ебать ---
 		elseif tab == 2 then
-		if imgui.Checkbox(u8'Сундук рулетки', checkbox_standart) then
-		mainIni.main.standart = checkbox_standart[0] 
-		inicfg.save(mainIni, "MiniHelper-CR")
-        end
-		if imgui.Checkbox(u8'Сундук платиновой рулетки', checkbox_platina) then
-	    mainIni.main.platina = checkbox_platina[0] 
-		inicfg.save(mainIni, "MiniHelper-CR")
-	    end
-		if imgui.Checkbox(u8'Сундук рулетки (донат)', checkbox_donate) then
-		mainIni.main.donate = checkbox_donate[0] 
-		inicfg.save(mainIni, "MiniHelper-CR")
-	    end
-		if imgui.Checkbox(u8'Тайник Илона Маска', checkbox_mask) then
-        mainIni.main.mask = checkbox_mask[0] 
-	    inicfg.save(mainIni, "MiniHelper-CR")
-        end	
-		if imgui.Checkbox(u8'Тайник Лос Сантоса', checkbox_tainik) then
-	    mainIni.main.tainik = checkbox_tainik[0] 
-	    inicfg.save(mainIni, "MiniHelper-CR")
-	    end 	
-		if imgui.Checkbox(u8'Тайник Vice City', checkbox_vice) then
-	    mainIni.main.vice = checkbox_vice[0] 
-	    inicfg.save(mainIni, "MiniHelper-CR")
-        end 
+		--if imgui.Checkbox(u8'Сундук рулетки', checkbox_standart) then
+		--mainIni.main.standart = checkbox_standart[0] 
+		--inicfg.save(mainIni, "MiniHelper-CR")
+        --end
+		--if imgui.Checkbox(u8'Сундук платиновой рулетки', checkbox_platina) then
+	    --mainIni.main.platina = checkbox_platina[0] 
+		--inicfg.save(mainIni, "MiniHelper-CR")
+	    --end
+		--if imgui.Checkbox(u8'Сундук рулетки (донат)', checkbox_donate) then
+		--mainIni.main.donate = checkbox_donate[0] 
+		--inicfg.save(mainIni, "MiniHelper-CR")
+	    --end
+		--if imgui.Checkbox(u8'Тайник Илона Маска', checkbox_mask) then
+        --mainIni.main.mask = checkbox_mask[0] 
+	    --inicfg.save(mainIni, "MiniHelper-CR")
+        --end	
+		--if imgui.Checkbox(u8'Тайник Лос Сантоса', checkbox_tainik) then
+	    --mainIni.main.tainik = checkbox_tainik[0] 
+	   -- inicfg.save(mainIni, "MiniHelper-CR")
+	    --end 	
+		--if imgui.Checkbox(u8'Тайник Vice City', checkbox_vice) then
+	    --mainIni.main.vice = checkbox_vice[0] 
+	   -- inicfg.save(mainIni, "MiniHelper-CR")
+       -- end 
         
-        if imgui.Checkbox(u8'Запустить Сундуки###777', workbotton) then
-            work = true
+        --if imgui.Checkbox(u8'Запустить Сундуки###777', workbotton) then
+        --    work = true
        
-        end
-        imgui.SameLine()
-        imgui.TextQuestion(u8("Right Shift + 4"))
-        imgui.SameLine()
-        imgui.SetCursorPosX(195)
-        if imgui.Button(u8'Позиция##2') then
-            sms('Нажмите {mc}ПРОБЕЛ{-1}, чтобы сохранить позицию.')
-            chestpos = true
-        end
-        imgui.Separator()
-        imgui.Text(u8'Запустить через:')
-        imgui.SameLine()
-        imgui.PushItemWidth(30)
-        imgui.InputText(u8"мин##15689", timechestto, 256, imgui.InputTextFlags.CharsDecimal)
-        imgui.SameLine()
+       -- end
+        --imgui.SameLine()
+        --imgui.TextQuestion(u8("Right Shift + 4"))
+        --imgui.SameLine()
+       -- imgui.SetCursorPosX(195)
+        --if imgui.Button(u8'Позиция##2') then
+        --    sms('Нажмите {mc}ПРОБЕЛ{-1}, чтобы сохранить позицию.')
+          --  chestpos = true
+       -- end
+       -- imgui.Separator()
+       -- imgui.Text(u8'Запустить через:')
+       -- imgui.SameLine()
+       -- imgui.PushItemWidth(30)
+       -- imgui.InputText(u8"мин##15689", timechestto, 256, imgui.InputTextFlags.CharsDecimal)
+       -- imgui.SameLine()
        
-        imgui.Text('                  '..counter)
+       -- imgui.Text('                  '..counter)
    
-        imgui.PopItemWidth()
-        if imgui.Checkbox(u8'Отложенный Запуск', delayedtimer) then
-        end
-        imgui.SameLine()
-        imgui.SetCursorPosX(195)
-        if imgui.Button(u8'Позиция##3') then
-            sms('Нажмите {mc}ПРОБЕЛ{-1}, чтобы сохранить позицию.')
-            delayedtimerpos = true
-        end
+       -- imgui.PopItemWidth()
+       -- if imgui.Checkbox(u8'Отложенный Запуск', delayedtimer) then
+      --  end
+      --  imgui.SameLine()
+       -- imgui.SetCursorPosX(195)
+       -- if imgui.Button(u8'Позиция##3') then
+       --     sms('Нажмите {mc}ПРОБЕЛ{-1}, чтобы сохранить позицию.')
+        --    delayedtimerpos = true
+      --  end
+      imgui.Text(u8'Тут ничего нет :(')
+
+      
         
         --- 2 страница ебать ---
 		
@@ -448,7 +490,7 @@ imgui.OnFrame(function() return window[0] end, function(player)
 
     if imgui.Button(u8('Тестовые строчки'), imgui.ImVec2(120)) then
         marketShop = {}
-        for i = 1, 5 do marketShop[i] = 'Вы купили Семейный талон (1 шт.) у игрока Test за $123.123.123.123' end
+        for i = 1, stroki[0] do marketShop[i] = 'Вы купили Семейный талон (1 шт.) у игрока Test за $123.123.123.123' end
         
 
     end
@@ -461,15 +503,19 @@ imgui.OnFrame(function() return window[0] end, function(player)
         jsonConfig['market'].fontSize = fontSize[0]
         json('Config.json'):save(jsonConfig)
     end
-    if imgui.DragFloat(u8('Прозрачность шрифта'), fontAlpha, 0.01, 0.0, 1.0, "%.2f") then
-        jsonConfig['market'].fontAlpha = fontAlpha[0]
-        json('Config.json'):save(jsonConfig)
-    end
+    --if imgui.DragFloat(u8('Прозрачность шрифта'), fontAlpha, 0.01, 0.0, 1.0, "%.2f") then
+        --jsonConfig['market'].fontAlpha = fontAlpha[0]
+       -- json('Config.json'):save(jsonConfig)
+   -- end
     if imgui.DragFloat(u8('Прозрачность окна'), marketAlpha, 0.01, 0.0, 1.0, "%.2f") then
         jsonConfig['market'].marketAlpha = marketAlpha[0]
         json('Config.json'):save(jsonConfig)
     end
 
+    if imgui.SliderInt(u8'Кол-во строк', stroki, 5, 30) then -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
+        mainIni.main.stroki = stroki[0]
+		inicfg.save(mainIni, "MiniHelper-CR")
+    end
     if imgui.ColorEdit3(u8('Цвет текста'), marketColor.text) then
         jsonConfig['market'].marketColor.text = {marketColor.text[0], marketColor.text[1], marketColor.text[2]}
         json('Config.json'):save(jsonConfig)
@@ -688,7 +734,6 @@ imgui.OnFrame(function() return window[0] end, function(player)
 
         
         imgui.EndChild()
-		imgui.SetCursorPos(imgui.ImVec2(5, 270))
         end
         imgui.End()
         end)
@@ -894,6 +939,7 @@ function main()
             lua_thread.create(photopng)
             lua_thread.create(nametegpeds)
             lua_thread.create(powfishpov)
+
       
 
                   
@@ -914,13 +960,14 @@ end
 end
 end
 
+
+
+
 function powfishpov()
     original_fov = getCameraFov()
     changeable_fov = getCameraFov()
     while true do wait(0)
-        if wasKeyPressed(VK_R) and not sampIsCursorActive() then -- Если нажата клавиша R и не активен самп курсор (во избежании активации при открытом чате/диалоге)
-            WinState[0] = not WinState[0]
-        end
+        
 
         cameraSetLerpFov(powfish[0], powfish[0], 1000, 1)
 end
@@ -1547,7 +1594,7 @@ end
 
 
 local fontas = renderCreateFont("Arial", 10, 5)
-
+local nametegs = {'Papa_Prince', 'Papa_King', 'Kevin_Halt', 'Kevin_Robert', 'Luank_Prince'};--[25]Kevin_Halt
 
 function lavkatextand()
     while true do
@@ -1556,7 +1603,8 @@ function lavkatextand()
             local result = sampIs3dTextDefined(id)
             if result then
                 local text, color, posX, posY, posZ, distance, ignoreWalls, playerId, vehicleId = sampGet3dTextInfoById(id)
-                if text:find("Papa_Prince") or text:find("Papa_King") or text:find("Kevin_Halt") or text:find("Kevin_Robert") or text:find("Luank_Prince") then
+                for a, b in ipairs(nametegs) do
+                if text:find(b) then
                     local playerX, playerY, playerZ = getCharCoordinates(PLAYER_PED)
                     local dist = getDistanceBetweenCoords3d(playerX, playerY, playerZ, posX, posY, posZ)
                     if dist <= 100.0 and dist >= 5 then
@@ -1570,6 +1618,7 @@ function lavkatextand()
             end
         end
     end
+end
 end
 
 
@@ -2378,7 +2427,7 @@ function sampev.onServerMessage(color, text)
             sendTelegramNotification(''..textLog.. '\n\n'..sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(PLAYER_PED))))
 			
 
-			if #marketShop >= 5  then marketShop = {} end
+			if #marketShop >= stroki[0]  then marketShop = {} end
 			table.insert(marketShop, textLog)
 
 
@@ -2604,6 +2653,15 @@ function getTheme()
 	theme(tonumber('0x' .. hex), 1.5, true)
 end
 
+local function loadIconicFont(fontSize)
+    local config = imgui.ImFontConfig()
+    config.MergeMode = true
+    config.PixelSnapH = true
+    local iconRanges = imgui.new.ImWchar[3](ti.min_range, ti.max_range, 0)
+    imgui.GetIO().Fonts:AddFontFromMemoryCompressedBase85TTF(ti.get_font_data_base85(), fontSize, config, iconRanges)
+end
+
+
 imgui.OnInitialize(function()
     imgui.OnInitialize(function()
         if doesFileExist(getWorkingDirectory()..'\\config\\MiniCrHelper\\123.png') then -- находим необходимую картинку с названием example.png в папке moonloader/resource/
@@ -2613,13 +2671,14 @@ imgui.OnInitialize(function()
 
 	imgui.GetIO().IniFilename = nil
 	getTheme()
+    
+    loadIconicFont(26)
+    imgui.GetIO().IniFilename = nil
 
 	fonts = {}
 	local glyph_ranges = imgui.GetIO().Fonts:GetGlyphRangesCyrillic()
 
 	-->> Default Font
-	imgui.GetIO().Fonts:Clear()
-	imgui.GetIO().Fonts:AddFontFromFileTTF(u8(getFolderPath(0x14)..'\\arial.ttf'), 15, nil, glyph_ranges)
 
 	-->> Other Fonts
     for k, v in ipairs({15, 18, 25, 30}) do
@@ -2703,3 +2762,5 @@ function theme(color, chroma_multiplier, accurate_shades)
 	colors[flags.DragDropTarget] = convertDecimalToRGBA(palette.accent1.color_100)
 	colors[flags.ModalWindowDimBg] = imgui.ImVec4(0.00, 0.00, 0.00, 0.95)
 end
+
+
