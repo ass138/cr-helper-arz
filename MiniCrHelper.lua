@@ -1,5 +1,5 @@
 script_name("MiniCrHelper")
-script_version("0.1.5")
+script_version("0.1.6")
 
 
 --ебаные библиотеки--
@@ -937,7 +937,6 @@ function main()
             lua_thread.create(showfps)
             lua_thread.create(camhack)
             lua_thread.create(photopng)
-            lua_thread.create(nametegpeds)
             lua_thread.create(powfishpov)
 
       
@@ -1625,37 +1624,7 @@ end
 
 
 
-local nameteg = {'Papa_Prince', 'Papa_King', 'Kevin_Halt', 'Kevin_Robert', 'Luank_Prince'};
-local fontnameteg = renderCreateFont("impact", 9, 12)
 
-function sampGetPlayerIdByNickname(nick)
-    local _, myid = sampGetPlayerIdByCharHandle(playerPed)
-    if tostring(nick) == sampGetPlayerNickname(myid) then return myid end
-    for i = 0, 1000 do if sampIsPlayerConnected(i) and sampGetPlayerNickname(i) == tostring(nick) then return i end end
-end
-
-function nametegpeds()
-  while true do wait(0)
-    for a, b in ipairs(nameteg) do
-    local id = sampGetPlayerIdByNickname(b)
-    local res, handle = sampGetCharHandleBySampPlayerId(id)
-    if res then
-        local x, y, z = getCharCoordinates(handle)
-        local mX, mY, mZ = getCharCoordinates(playerPed)
-        local x1, y1, z1 = convert3DCoordsToScreen(x,y,z)
-        local x2, y2, z2 = convert3DCoordsToScreen(mX, mY, mZ)
-        local playerX, playerY, playerZ = getCharCoordinates(PLAYER_PED)
-        local dist = math.floor(getDistanceBetweenCoords3d(x,y,z,mX,mY,mZ))
-
-        if dist <= 100 and isPointOnScreen(x,y,z,0) and dist >= 5 then
-            local text = '{FFFF00}'..b..'\n{C0C0C0}Дистанция: '..dist..'m'
-            renderDrawLine(x2, y2, x1, y1, 3.5, 0xFF00FF00)
-            renderFontDrawText(fontnameteg,text,x1,y1,-1)
-        end
-    end
-end
-end
-end
 
 
 
@@ -2360,7 +2329,7 @@ local function collectAndSendPayDayData(text)
         payday_notification_str = ("%s\n%s"):format(payday_notification_str, text)
         if bank_check then
             sendTelegramNotification(("%s"):format(payday_notification_str)) -- copy string
-            sendTelegramNotification('Открыто всего '..counter.. ' сундуков')
+            --sendTelegramNotification('Открыто всего '..counter.. ' сундуков')
             payday_notification_str = '%E2%9D%97__________Банковский чек__________%E2%9D%97\n'
         end
         bank_check = false
@@ -2449,6 +2418,7 @@ function sampev.onServerMessage(color, text)
 	
     if text:find('{FFFFFF}У вас есть 3 минуты, чтобы настроить товар, иначе аренда ларька будет отменена.') then
         lavka = new.bool(false) 
+        radiuslavki = new.bool(false)
         marketBool.now[0] = true
         local text = '[Информация] Вы заняли лавку!'
         sendTelegramNotification(''..text.. '\n\n'..sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(PLAYER_PED))))
