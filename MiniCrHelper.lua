@@ -1,5 +1,5 @@
 script_name("MiniCrHelper")
-script_version("0.1.7")
+script_version("0.1.8")
 
 
 --ебаные библиотеки--
@@ -227,6 +227,7 @@ local timertrue = false
 ---Chests---
 
 local window = imgui.new.bool()
+local showdebug = imgui.new.bool(false)
 local tab = 1 -- в этой переменной будет хранится номер открытой вкладки
 
 local timechestto = new.char[256]() -- создаём буфер для инпута
@@ -312,7 +313,11 @@ imgui.OnFrame(function() return window[0] end, function(player)
     imgui.SetNextWindowPos(imgui.ImVec2(sw/2,sh/2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5,0.5))
     imgui.SetNextWindowSize(imgui.ImVec2(370, 320), imgui.Cond.Always)
     imgui.Begin(u8'Залупа Helper v'..thisScript().version, window, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse)
-
+    imgui.SetCursorPosY(1) -- позволяет задать положение функции по вертикали
+    if imgui.Button('DEBUG') then
+        showdebug[0] = true
+        window[0] = false
+    end
     local diamond = ti 'diamond'
     local package = ti 'package'
     local store = ti 'building-store'
@@ -413,61 +418,61 @@ imgui.OnFrame(function() return window[0] end, function(player)
 
         --- 2 страница ебать ---
 		elseif tab == 2 then
-		--if imgui.Checkbox(u8'Сундук рулетки', checkbox_standart) then
-		--mainIni.main.standart = checkbox_standart[0] 
-		--inicfg.save(mainIni, "MiniHelper-CR")
-        --end
-		--if imgui.Checkbox(u8'Сундук платиновой рулетки', checkbox_platina) then
-	    --mainIni.main.platina = checkbox_platina[0] 
-		--inicfg.save(mainIni, "MiniHelper-CR")
-	    --end
-		--if imgui.Checkbox(u8'Сундук рулетки (донат)', checkbox_donate) then
-		--mainIni.main.donate = checkbox_donate[0] 
-		--inicfg.save(mainIni, "MiniHelper-CR")
-	    --end
-		--if imgui.Checkbox(u8'Тайник Илона Маска', checkbox_mask) then
-        --mainIni.main.mask = checkbox_mask[0] 
-	    --inicfg.save(mainIni, "MiniHelper-CR")
-        --end	
-		--if imgui.Checkbox(u8'Тайник Лос Сантоса', checkbox_tainik) then
-	    --mainIni.main.tainik = checkbox_tainik[0] 
-	   -- inicfg.save(mainIni, "MiniHelper-CR")
-	    --end 	
-		--if imgui.Checkbox(u8'Тайник Vice City', checkbox_vice) then
-	    --mainIni.main.vice = checkbox_vice[0] 
-	   -- inicfg.save(mainIni, "MiniHelper-CR")
-       -- end 
+		--[[if imgui.Checkbox(u8'Сундук рулетки', checkbox_standart) then
+		mainIni.main.standart = checkbox_standart[0] 
+		inicfg.save(mainIni, "MiniHelper-CR")
+        end
+		if imgui.Checkbox(u8'Сундук платиновой рулетки', checkbox_platina) then
+	    mainIni.main.platina = checkbox_platina[0] 
+		inicfg.save(mainIni, "MiniHelper-CR")
+	    end
+		if imgui.Checkbox(u8'Сундук рулетки (донат)', checkbox_donate) then
+		mainIni.main.donate = checkbox_donate[0] 
+		inicfg.save(mainIni, "MiniHelper-CR")
+	    end
+		if imgui.Checkbox(u8'Тайник Илона Маска', checkbox_mask) then
+        mainIni.main.mask = checkbox_mask[0] 
+	    inicfg.save(mainIni, "MiniHelper-CR")
+        end	
+		if imgui.Checkbox(u8'Тайник Лос Сантоса', checkbox_tainik) then
+	    mainIni.main.tainik = checkbox_tainik[0] 
+	    inicfg.save(mainIni, "MiniHelper-CR")
+	    end 	
+		if imgui.Checkbox(u8'Тайник Vice City', checkbox_vice) then
+	    mainIni.main.vice = checkbox_vice[0] 
+	    inicfg.save(mainIni, "MiniHelper-CR")
+        end 
         
-        --if imgui.Checkbox(u8'Запустить Сундуки###777', workbotton) then
-        --    work = true
+        if imgui.Checkbox(u8'Запустить Сундуки###777', workbotton) then
+            work = true
        
-       -- end
-        --imgui.SameLine()
-        --imgui.TextQuestion(u8("Right Shift + 4"))
-        --imgui.SameLine()
-       -- imgui.SetCursorPosX(195)
-        --if imgui.Button(u8'Позиция##2') then
-        --    sms('Нажмите {mc}ПРОБЕЛ{-1}, чтобы сохранить позицию.')
-          --  chestpos = true
-       -- end
-       -- imgui.Separator()
-       -- imgui.Text(u8'Запустить через:')
-       -- imgui.SameLine()
-       -- imgui.PushItemWidth(30)
-       -- imgui.InputText(u8"мин##15689", timechestto, 256, imgui.InputTextFlags.CharsDecimal)
-       -- imgui.SameLine()
+        end
+        imgui.SameLine()
+        imgui.TextQuestion(u8("Right Shift + 4"))
+        imgui.SameLine()
+        imgui.SetCursorPosX(195)
+        if imgui.Button(u8'Позиция##2') then
+            sms('Нажмите {mc}ПРОБЕЛ{-1}, чтобы сохранить позицию.')
+            chestpos = true
+        end
+        imgui.Separator()
+        imgui.Text(u8'Запустить через:')
+        imgui.SameLine()
+        imgui.PushItemWidth(30)
+        imgui.InputText(u8"мин##15689", timechestto, 256, imgui.InputTextFlags.CharsDecimal)
+        imgui.SameLine()
        
-       -- imgui.Text('                  '..counter)
+        imgui.Text('                  '..counter)
    
-       -- imgui.PopItemWidth()
-       -- if imgui.Checkbox(u8'Отложенный Запуск', delayedtimer) then
-      --  end
-      --  imgui.SameLine()
-       -- imgui.SetCursorPosX(195)
-       -- if imgui.Button(u8'Позиция##3') then
-       --     sms('Нажмите {mc}ПРОБЕЛ{-1}, чтобы сохранить позицию.')
-        --    delayedtimerpos = true
-      --  end
+        imgui.PopItemWidth()
+        if imgui.Checkbox(u8'Отложенный Запуск', delayedtimer) then
+        end
+        imgui.SameLine()
+        imgui.SetCursorPosX(195)
+        if imgui.Button(u8'Позиция##3') then
+            sms('Нажмите {mc}ПРОБЕЛ{-1}, чтобы сохранить позицию.')
+            delayedtimerpos = true
+        end]]
       imgui.Text(u8'Тут ничего нет :(')
 
       
@@ -751,7 +756,8 @@ imgui.OnFrame(function() return window[0] end, function(player)
                     imgui.PushStyleColor(imgui.Col.Text, imgui.ImVec4(marketColor.text[0], marketColor.text[1], marketColor.text[2], fontAlpha[0]))
                     imgui.PushStyleColor(imgui.Col.WindowBg, imgui.ImVec4(marketColor.window[0], marketColor.window[1], marketColor.window[2], marketAlpha[0]))
                         imgui.Begin('market', market, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.AlwaysAutoResize)
-                            imgui.SetWindowFontScale(fontSize[0])
+                      
+                        imgui.SetWindowFontScale(fontSize[0])
                             for i = #marketShop, 1, -1 do
                                 imgui.Text(u8(marketShop[i]))
                             end
@@ -760,6 +766,45 @@ imgui.OnFrame(function() return window[0] end, function(player)
                 end
             )
 
+
+
+
+local debugwh3d = new.bool()
+local Sliderdebugwh3d = new.int(10)
+local debugwh = new.bool()
+local textdrawid = new.bool()
+local textdiologid = ''
+
+imgui.OnFrame(function() return showdebug[0] end, function(player)
+    local sw, sh = getScreenResolution()
+    imgui.SetNextWindowPos(imgui.ImVec2(sw/2,sh/2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5,0.5))
+    local bug = ti 'bug'
+    imgui.Begin(bug..' Debug', showdebug, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.AlwaysAutoResize)
+    imgui.Checkbox(u8'WH 3d text', debugwh3d)
+    if debugwh3d[0] == true then
+    imgui.PushItemWidth(150)   
+    imgui.SliderInt(u8'dist##1', Sliderdebugwh3d, 10, 200)
+    imgui.PopItemWidth()
+    end
+    imgui.Checkbox(u8'WH Object', debugwh)
+    imgui.Checkbox(u8'id textdraw', textdrawid)
+    
+    if imgui.Button('id diolog') then
+        local dtx = sampGetDialogText()
+        local dtp = sampGetCurrentDialogType()
+        local did = sampGetCurrentDialogId()
+        local dcp = sampGetDialogCaption()
+        textdiologid = string.format("{00BEFC}Current dialog info:\nDialog ID:{FFFFFF} %d \n{00BEFC}Dialog Type:{FFFFFF} %d \n{00BEFC}Dialog Caption:{FFFFFF}\n%s\n{00BEFC}Dialog text:{FFFFFF}\n%s", did, dtp, dcp, dtx)
+    end
+    imgui.SameLine()
+    if imgui.Button('clean') then
+        textdiologid = ''
+    end   
+
+    imgui.TextColoredRGBs(''..textdiologid)
+
+    imgui.End()
+end).HideCursor = true -- HideCursor отвечает за то, чтобы курсор не показывался
      
             fpsID = ''
             ping = ''
@@ -938,6 +983,9 @@ function main()
             lua_thread.create(camhack)
             lua_thread.create(photopng)
             lua_thread.create(powfishpov)
+            lua_thread.create(textdraws) 
+            lua_thread.create(whobject)  
+            lua_thread.create(wh3dtext)  
 
       
 
@@ -959,8 +1007,127 @@ end
 end
 end
 
+function imgui.TextColoredRGBs(text)
+    local style = imgui.GetStyle()
+    local colors = style.Colors
+    local ImVec4 = imgui.ImVec4
+    local explode_argb = function(argb)
+        local a = bit.band(bit.rshift(argb, 24), 0xFF)
+        local r = bit.band(bit.rshift(argb, 16), 0xFF)
+        local g = bit.band(bit.rshift(argb, 8), 0xFF)
+        local b = bit.band(argb, 0xFF)
+        return a, r, g, b
+    end
+    local getcolor = function(color)
+        if color:sub(1, 6):upper() == 'SSSSSS' then
+            local r, g, b = colors[1].x, colors[1].y, colors[1].z
+            local a = tonumber(color:sub(7, 8), 16) or colors[1].w * 255
+            return ImVec4(r, g, b, a / 255)
+        end
+        local color = type(color) == 'string' and tonumber(color, 16) or color
+        if type(color) ~= 'number' then return end
+        local r, g, b, a = explode_argb(color)
+        return imgui.ImVec4(r/255, g/255, b/255, a/255)
+    end
+    local render_text = function(text_)
+        for w in text_:gmatch('[^\r\n]+') do
+            local text, colors_, m = {}, {}, 1
+            w = w:gsub('{(......)}', '{%1FF}')
+            while w:find('{........}') do
+                local n, k = w:find('{........}')
+                local color = getcolor(w:sub(n + 1, k - 1))
+                if color then
+                    text[#text], text[#text + 1] = w:sub(m, n - 1), w:sub(k + 1, #w)
+                    colors_[#colors_ + 1] = color
+                    m = n
+                end
+                w = w:sub(1, n - 1) .. w:sub(k + 1, #w)
+            end
+            if text[0] then
+                for i = 0, #text do
+                    imgui.TextColored(colors_[i] or colors[1], u8(text[i]))
+                    imgui.SameLine(nil, 0)
+                end
+                imgui.NewLine()
+            else imgui.Text(u8(w)) end
+        end
+    end
+    render_text(text)
+end
 
 
+
+function wh3dtext()
+    while true do
+        wait(0)
+        if debugwh3d[0] then 
+        local font = renderCreateFont("Arial", 10, 14)
+        for id = 0, 2048 do
+            local result = sampIs3dTextDefined(id)
+            if result then
+                local text, color, posX, posY, posZ, distance, ignoreWalls, playerId, vehicleId = sampGet3dTextInfoById( id )
+                    local playerX, playerY, playerZ = getCharCoordinates(PLAYER_PED)
+                    local dist = getDistanceBetweenCoords3d(playerX, playerY, playerZ, posX, posY, posZ)
+                    if dist <= Sliderdebugwh3d[0] then
+                    local wposX, wposY = convert3DCoordsToScreen(posX,posY,posZ)
+                    local resX, resY = getScreenResolution()
+                    if wposX < resX and wposY < resY and isPointOnScreen (posX,posY,posZ,1) then
+                        x2,y2,z2 = getCharCoordinates(PLAYER_PED)
+                        x10, y10 = convert3DCoordsToScreen(x2,y2,z2)
+                        renderFontDrawText(font,text, wposX, wposY,-1)
+                    end
+                end
+            end
+        end
+    end
+end
+end
+
+function whobject()
+    while true do
+		wait(0)
+        local font = renderCreateFont("Arial", 7, 4)
+		if debugwh[0] then
+			for _, v in pairs(getAllObjects()) do
+				local asd
+				if sampGetObjectSampIdByHandle(v) ~= -1 then
+					asd = sampGetObjectSampIdByHandle(v)
+				end
+				if isObjectOnScreen(v) then
+					local _, x, y, z = getObjectCoordinates(v)
+					local x1, y1 = convert3DCoordsToScreen(x,y,z)
+					local model = getObjectModel(v)
+					local x2,y2,z2 = getCharCoordinates(PLAYER_PED)
+					local x10, y10 = convert3DCoordsToScreen(x2,y2,z2)
+					local distance = string.format("%.1f", getDistanceBetweenCoords3d(x, y, z, x2, y2, z2))
+               
+					if debugwh[0] then
+    
+						renderFontDrawText(font, (debugwh[0] and asd and "model = "..model.."; id = "..asd or "model = "..model).."; distance: "..distance, x1, y1, -1)	          
+					end
+				end
+			end
+		end
+	end
+end
+
+
+
+function textdraws()
+    local font = renderCreateFont("Arial", 8, 7) --creating font	
+	while true do --inf loop
+	wait(0) --this shit is important
+		if textdrawid[0] then --params that not declared has a nil value that same as false
+			for a = 0, 2304	do --cycle trough all textdeaw id
+				if sampTextdrawIsExists(a) then --if textdeaw exists then
+					x, y = sampTextdrawGetPos(a) --we get it's position. value returns in game coords
+					x1, y1 = convertGameScreenCoordsToWindowScreenCoords(x, y) --so we convert it to screen cuz render needs screen coords
+					renderFontDrawText(font, a, x1, y1, 0xFFBEBEBE) --and then we draw it's id on textdeaw position
+				end
+			end
+		end
+	end
+end
 
 function powfishpov()
     original_fov = getCameraFov()
@@ -1985,10 +2152,20 @@ end
 end
 end
 end
-   -- if isKeyDown(161) and isKeyDown(52) then  
+   if isKeyDown(161) and isKeyDown(52) then  
+    activediae = not activediae
+        if activediae then
+            wait(200)
+    marketBool.now[0] = true
         --workbotton[0] = true 
         --work = true 
-    --end
+    else
+        wait(200)
+            marketBool.now[0] = false
+        end
+    end
+    
+
     if isKeyDown(161) and isKeyDown(54) then  
         thisScript():reload() 
     end
@@ -2262,6 +2439,7 @@ function processing_telegram_messages(result) -- функция проверОчки того что отп
                                 elseif text:match('^/money') then
                                 moneya = getPlayerMoney()
                                 sendTelegramNotification('Наличные: $'..moneya)
+                                
 
                          
                                 elseif text:match('^/version') then
