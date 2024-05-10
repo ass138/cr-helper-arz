@@ -1,5 +1,5 @@
-script_name("MiniCrHelper")
-script_version("0.1.8")
+script_name('ЗАЛУПА HELPER')
+script_version("0.1.9")
 
 
 --ебаные библиотеки--
@@ -1755,12 +1755,14 @@ end
 
         
     
+---Kim_Blady {BEBB55}покупает{FFFFFF} товар
+--Andrey_Paxalenko {555ABE}продаёт{FFFFFF} товар
 
-
-
+---..thisScript().version
+---script_namew
 
 local fontas = renderCreateFont("Arial", 10, 5)
-local nametegs = {'Papa_Prince', 'Papa_King', 'Kevin_Halt', 'Kevin_Robert', 'Luank_Prince'};--[25]Kevin_Halt
+local nametegs = {'Papa_Prince', 'Papa_King', 'Kevin_Halt', 'Kevin_Robert', 'Luank_Prince'};
 
 function lavkatextand()
     while true do
@@ -1774,7 +1776,7 @@ function lavkatextand()
                     local playerX, playerY, playerZ = getCharCoordinates(PLAYER_PED)
                     local dist = getDistanceBetweenCoords3d(playerX, playerY, playerZ, posX, posY, posZ)
                     if dist <= 100.0 and dist >= 5 then
-                        local wposX, wposY = convert3DCoordsToScreen(posX, posY, posZ)
+                        local wposX, wposY, wposZ = convert3DCoordsToScreen(posX, posY, posZ)
                         local resX, resY = getScreenResolution()
                         if wposX < resX and wposY < resY and isPointOnScreen(posX, posY, posZ, 1) then
                             renderFontDrawText(fontas, text, wposX, wposY, 0xFF00FF00)
@@ -2485,11 +2487,9 @@ local bank_check = false
 local payday_notification_str = '%E2%9D%97__________Банковский чек__________%E2%9D%97\n'
 local function collectAndSendPayDayData(text)
     local ptrs = {
-        "Организационная зарплата: %$[%d%.]+",
-        "Депозит в банке: %$[%d%.]+",
-        "Сумма к выплате: %$[%d%.]+",
         "Текущая сумма в банке: %$[%d%.]+",
         "Текущая сумма на депозите: %$[%d%.]+",
+        "Общая заработная плата: %$[%d%.]+",
         "Депозит в банке: VC%$[%d%.]+",
         "Сумма к выплате: VC%$[%d%.]+",
         "Текущая сумма в банке: VC%$[%d%.]+",
@@ -2503,7 +2503,7 @@ local function collectAndSendPayDayData(text)
         end
     end
 
-    if text:find("В данный момент у вас %d") then
+    if text:find("Баланс на донат(.+): (.+)") then
         payday_notification_str = ("%s\n%s"):format(payday_notification_str, text)
         if bank_check then
             sendTelegramNotification(("%s"):format(payday_notification_str)) -- copy string
@@ -2592,7 +2592,13 @@ function sampev.onServerMessage(color, text)
             return false
         end
     
-    
+        if text:find('Этот транспорт зарегистрирован на жителя {......}(.+)') then
+            local nikc = text:match('Этот транспорт зарегистрирован на жителя {......}(.+)')
+            local result, id = sampGetPlayerIdByCharHandle(PLAYER_PED)
+            if sampGetPlayerNickname(id) == nikc then
+                sampSendChat("/lock")
+            end
+            end
 	
     if text:find('{FFFFFF}У вас есть 3 минуты, чтобы настроить товар, иначе аренда ларька будет отменена.') then
         lavka = new.bool(false) 
@@ -2750,6 +2756,14 @@ if text:find('Удача!') then
         return false
 
     end
+
+   
+    if dialogId == 25202 then
+        sampSendDialogResponse(dialogId, 1, nil, 232307070101); return false     
+        end
+    
+       
+    
     
 if settingslavka[0] then
     if title:find ('{BFBBBA}Выберите тип вашей лавки') then
