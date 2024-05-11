@@ -1,5 +1,5 @@
 script_name('ЗАЛУПА HELPER')
-script_version("0.1.9")
+script_version("0.2.0")
 
 
 --ебаные библиотеки--
@@ -418,7 +418,7 @@ imgui.OnFrame(function() return window[0] end, function(player)
 
         --- 2 страница ебать ---
 		elseif tab == 2 then
-		--[[if imgui.Checkbox(u8'Сундук рулетки', checkbox_standart) then
+		if imgui.Checkbox(u8'Сундук рулетки', checkbox_standart) then
 		mainIni.main.standart = checkbox_standart[0] 
 		inicfg.save(mainIni, "MiniHelper-CR")
         end
@@ -472,8 +472,8 @@ imgui.OnFrame(function() return window[0] end, function(player)
         if imgui.Button(u8'Позиция##3') then
             sms('Нажмите {mc}ПРОБЕЛ{-1}, чтобы сохранить позицию.')
             delayedtimerpos = true
-        end]]
-      imgui.Text(u8'Тут ничего нет :(')
+        end
+   
 
       
         
