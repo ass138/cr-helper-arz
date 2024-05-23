@@ -1,5 +1,5 @@
 script_name('ЗАЛУПА HELPER')
-script_version("0.2.0")
+script_version("0.2.1")
 
 
 --ебаные библиотеки--
@@ -135,6 +135,10 @@ local mainIni = inicfg.load({
         infautolavka = false,
         powfish = 70,
         stroki = 5,
+        checkboxkodbank = false,
+        kodbank = '',
+        checkboxkodsklad = false,
+        kodsklad = '',
         
     }}, 'MiniHelper-CR.ini')
 --ебаный CFG--
@@ -221,7 +225,7 @@ local textdraw = {
 local Chest = new.bool()
 local sw, sh = getScreenResolution() 
 local active_standart, active_mask, active_platina, active_donate, active_tainik, vice = false, false, false, false, false, false
-local work = false
+
 local workbotton = new.bool()
 local timertrue = false
 ---Chests---
@@ -255,6 +259,10 @@ local shaxta = new.bool()
 local autoalt = new.bool()
 powfish = new.int(mainIni.main.powfish) -- создаём буфер для SliderInt со значением 2 по умолчанию
 
+checkboxkodbank = new.bool(mainIni.main.checkboxkodbank) -- создём буфер для чекбокса, который возвращает true/false
+checkboxkodsklad = new.bool(mainIni.main.checkboxkodsklad) -- создём буфер для чекбокса, который возвращает true/false
+kodbank = new.char[256](u8(mainIni.main.kodbank)) -- создаём буфер для инпута
+kodsklad = new.char[256](u8(mainIni.main.kodsklad)) -- создаём буфер для инпута
 ---Auto---
 
 ---4---
@@ -445,8 +453,18 @@ imgui.OnFrame(function() return window[0] end, function(player)
         
         if imgui.Checkbox(u8'Запустить Сундуки###777', workbotton) then
             work = true
-       
+            chestonoff = true
         end
+
+            if workbotton[0] == false then
+                chestonoff = false
+                work = false
+                startTime = os.time()  
+            end
+        
+
+           
+        
         imgui.SameLine()
         imgui.TextQuestion(u8("Right Shift + 4"))
         imgui.SameLine()
@@ -466,6 +484,9 @@ imgui.OnFrame(function() return window[0] end, function(player)
    
         imgui.PopItemWidth()
         if imgui.Checkbox(u8'Отложенный Запуск', delayedtimer) then
+        end
+        if delayedtimer[0] == false then
+            delaychect = os.time()
         end
         imgui.SameLine()
         imgui.SetCursorPosX(195)
@@ -576,53 +597,72 @@ imgui.OnFrame(function() return window[0] end, function(player)
 		--imgui.Separator()
 
 
+        -- Комментарий: Вкладка "Разное"
+        
+        -- Поля для выбора рендера на различные объекты
         imgui.Checkbox(u8'Рендер на лён', lenwh)
         imgui.Checkbox(u8'Рендер на хлопак', xlopokwh)
         imgui.Checkbox(u8'Рендер на шахту', shaxta)
         imgui.Checkbox(u8'Авто Alt', autoalt)
-
-
+    
         imgui.Separator()	
-
-
-        
-   
-        if imgui.SliderInt(u8'pov', powfish, 70, 110) then -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
+        -- Ползунок для выбора значения pov
+         if imgui.SliderInt(u8'pov', powfish, 70, 110) then 
             mainIni.main.powfish = powfish[0]
             inicfg.save(mainIni, "MiniHelper-CR")
         end
+        imgui.SameLine()
+        -- Кнопка для сброса значения pov
         if imgui.Button(u8'Сброс') then
             cameraSetLerpFov(70.0, 70.0, 1000, 1)
             powfish[0] = 70
             mainIni.main.powfish = powfish[0]
             inicfg.save(mainIni, "MiniHelper-CR")
-        end
-
-
+        end  
+        imgui.Separator()	
+        -- Поля для выбора настроек бега
         if imgui.Checkbox(u8'Бесконечный бег', running) then
             mainIni.main.running = running[0] 
             inicfg.save(mainIni, "MiniHelper-CR")
         end
-
-
+    
         if imgui.Checkbox(u8'Быстрый бег и езда', speedrunning) then
             mainIni.main.speedrunning = speedrunning[0] 
             inicfg.save(mainIni, "MiniHelper-CR")
         end
-        
         imgui.SameLine()
-        
         imgui.PushItemWidth(40)
         if imgui.InputText(u8"HEX код", speedrunningkey, 256) then
             mainIni.main.speedrunningkey = u8:decode(str(speedrunningkey))
-		    inicfg.save(mainIni, "MiniHelper-CR")
-	    end
+            inicfg.save(mainIni, "MiniHelper-CR")
+        end
+        imgui.PopItemWidth()
 
-  
-        if imgui.Button(u8'[Коды клавиш клавиатуры и мыши]') then -- размер указал потомучто так привычней
+        imgui.Separator()
+        imgui.PushItemWidth(80)
+        if imgui.Checkbox(u8'Вкл/Выкл###checkboxkodbank', checkboxkodbank) then
+            mainIni.main.checkboxkodbank = checkboxkodbank[0] 
+            inicfg.save(mainIni, "MiniHelper-CR")
+        end
+        imgui.SameLine()
+        if imgui.InputText(u8"Пароль Банк", kodbank, 256, imgui.InputTextFlags.CharsDecimal) then
+            mainIni.main.kodbank = u8:decode(str(kodbank))
+            inicfg.save(mainIni, "MiniHelper-CR")
+        end
+        if imgui.Checkbox(u8'Вкл/Выкл###checkboxkodsklad', checkboxkodsklad) then
+            mainIni.main.checkboxkodsklad = checkboxkodsklad[0] 
+            inicfg.save(mainIni, "MiniHelper-CR")
+        end
+        imgui.SameLine()
+        if imgui.InputText(u8"Пароль Склад", kodsklad, 256, imgui.InputTextFlags.CharsDecimal) then
+            mainIni.main.kodsklad = u8:decode(str(kodsklad))
+            inicfg.save(mainIni, "MiniHelper-CR")
+        end
+        imgui.PopItemWidth()
+        --[[if imgui.Button(u8'[Коды клавиш клавиатуры и мыши]') then -- размер указал потомучто так привычней
             os.execute("start https://narvell.nl/keys")
             end
-           
+           ]]
             
            
         elseif tab == 5 then  
@@ -1825,11 +1865,11 @@ end
 function delayedtimers()
     while true do 
         wait(0)
-        if delayedtimer[0] then	
-            startTimes = os.time() + u8:decode(str(timechestto)) * 60 -- Устанавливаем таймер на 5 минут
-            while os.time() < startTimes do
+        if delayedtimer[0] == true then	
+            delaychect = os.time() + u8:decode(str(timechestto)) * 60 -- Устанавливаем таймер на 5 минут
+            while os.time() < delaychect do
                 wait(0)
-                local timeRemainings = startTimes - os.time()
+                local timeRemainings = delaychect - os.time()
                 local minutess = math.floor(timeRemainings / 60)
                 local secondss = timeRemainings % 60
                 local timeStrings = string.format("%02d:%02d", minutess, secondss)
@@ -1838,10 +1878,13 @@ function delayedtimers()
             -- Действия по завершению таймера
             
             -- Здесь могут быть другие действия в зависимости от вашей логики
+            if delayedtimer[0] == true then	
             workbotton = new.bool(true)
+            chestonoff = true
             work = true
             delayedtimer = new.bool(false)
             break -- Выход из цикла после завершения таймера
+            end
         end
     end
 end
@@ -2037,7 +2080,7 @@ end
 function chestss()
     while true do
         wait(0)
-
+        if chestonoff then
         if work then
             sampCloseCurrentDialogWithButton(0)
             wait(200)
@@ -2068,8 +2111,9 @@ function chestss()
                 local timeString = string.format("%02d:%02d", minutes, seconds)
                 renderFontDrawText(font,'Timer '..timeString, mainIni.main.chestposx, mainIni.main.chestposy, 0xFF00FF00, 0x90000000)
                 
+                end
+                work = true -- Устанавливаем флаг work в true после завершения таймера
             end
-            work = true -- Устанавливаем флаг work в true после завершения таймера
         end
     end
 end
@@ -2159,14 +2203,21 @@ end
         if activediae then
             wait(200)
     marketBool.now[0] = true
-        --workbotton[0] = true 
-        --work = true 
     else
         wait(200)
             marketBool.now[0] = false
         end
     end
     
+    if isKeyDown(161) and isKeyDown(53) then 
+        activediaw = not activediaw
+        if activediaw then 
+        wait(200)
+        workbotton[0] = true 
+        chestonoff = true
+        work = true 
+        end
+    end
 
     if isKeyDown(161) and isKeyDown(54) then  
         thisScript():reload() 
@@ -2425,6 +2476,7 @@ function processing_telegram_messages(result) -- функция проверОчки того что отп
                                     sampSendClickTextdraw(65535)
                                 workbotton = new.bool(true)
                                 work = true
+                                chestonoff = true
                                 sendTelegramNotification('Авто открытие сундуков ВКЛ')
 
                                 elseif text:match('^/killdiolog') then
@@ -2757,13 +2809,29 @@ if text:find('Удача!') then
 
     end
 
-   
-    if dialogId == 25202 then
-        sampSendDialogResponse(dialogId, 1, nil, 232307070101); return false     
+    if dialogId == 26558 then
+        if checkboxkodbank[0] == true then
+        sampSendDialogResponse(dialogId, 1, nil); return false 
         end
+    end
+
+    if dialogId == 26559 then
+        if checkboxkodbank[0] == true then
+            sampSendDialogResponse(dialogId, 1, nil, mainIni.main.kodbank); return false   
+        end
+    end
+
+
+    if dialogId == 25202 then
+        if checkboxkodsklad[0] == true then
+        sampSendDialogResponse(dialogId, 1, nil, mainIni.main.kodsklad); return false     
+        end
+    end
+
+   
     
-       
-    
+--26558      
+--26559    
     
 if settingslavka[0] then
     if title:find ('{BFBBBA}Выберите тип вашей лавки') then
@@ -2796,6 +2864,8 @@ end
 end
 end
 end
+
+
 
 function convertDecimalToRGBA(u32, alpha)
 	local a = bit.band(bit.rshift(u32, 24), 0xFF) / 0xFF
