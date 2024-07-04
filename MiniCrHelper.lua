@@ -1,5 +1,5 @@
 script_name('ЗАЛУПА HELPER')
-script_version("0.2.1")
+script_version("0.2.2")
 
 
 --ебаные библиотеки--
@@ -139,6 +139,9 @@ local mainIni = inicfg.load({
         kodbank = '',
         checkboxkodsklad = false,
         kodsklad = '',
+        skipdiolog = false,
+        nickrecons = '',
+        serverrecon = '',
         
     }}, 'MiniHelper-CR.ini')
 --ебаный CFG--
@@ -275,6 +278,8 @@ local diolog = new.bool(mainIni.main.diolog) -- создём буффер для чекбокса, кото
 local chat_id = new.char[256](u8(mainIni.main.chat_id)) -- создаём буффер для инпута
 local token = new.char[256](u8(mainIni.main.token)) -- создаём буффер для инпута
 ---Telegram---
+
+local skipdiolog = new.bool(mainIni.main.skipdiolog)
 
 --color--
 
@@ -774,10 +779,31 @@ imgui.OnFrame(function() return window[0] end, function(player)
         sendTelegramNotification('Тестовое сообщение от '..sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(PLAYER_PED)))) -- отправляем сообщение юзеру
 	    end
         imgui.Text(u8'/help -- Список команд.')
-		end
+		
+        imgui.Separator()
         --- 5 страница ебать ---
+        if imgui.Checkbox(u8'Скип диалогов', skipdiolog) then
+        mainIni.main.skipdiolog = skipdiolog[0] 
+        inicfg.save(mainIni, "MiniHelper-CR")
+        end
+       
+         nickrecons = new.char[256](u8(mainIni.main.nickrecons))
+         serverrecon = new.char[256](u8(mainIni.main.serverrecon))
 
-        
+        if imgui.InputText(u8"Никнейм", nickrecons, 256) then 
+            mainIni.main.nickrecons = u8:decode(str(nickrecons))
+            inicfg.save(mainIni, "MiniHelper-CR")
+            end
+      
+
+            if imgui.InputText(u8"ip сервера", serverrecon, 256) then 
+                mainIni.main.serverrecon = u8:decode(str(serverrecon))
+                inicfg.save(mainIni, "MiniHelper-CR")
+                end
+                
+                
+              
+        end
         imgui.EndChild()
         end
         imgui.End()
@@ -991,6 +1017,8 @@ if enable_autoupdate then
 end
 ---ебать эта хуйня с авто обновлением---
 
+
+
 function main()
     while not isSampAvailable() do wait(100) end -- ждём когда загрузится самп
 	wait(500)
@@ -1026,12 +1054,12 @@ function main()
             lua_thread.create(textdraws) 
             lua_thread.create(whobject)  
             lua_thread.create(wh3dtext)  
+            
 
       
 
                   
-                        
-         
+            
                     
 
 	while true do wait(0)
@@ -2086,6 +2114,10 @@ function chestss()
             wait(200)
             sampCloseCurrentDialogWithButton(0)
             sampAddChatMessage('[Сhest] {FFFFFF}Сейчас откроется инвентарь.', 0xFFFF00)
+            wait(200)
+            sampSendChat('/mn')
+            wait(1000)
+            sampCloseCurrentDialogWithButton(0)
             wait(1000)
             sampSendChat('/invent')
             wait(1000)
@@ -2453,6 +2485,9 @@ function processing_telegram_messages(result) -- функция проверОчки того что отп
 								elseif text:match('^/rec') then
 								sendTelegramNotification('переподключение к серверу 15 сек')
                                 rec()
+                                elseif text:match('^/nickrecon') then
+								sendTelegramNotification('переподключение к серверу 5 сек')
+                                nickrecon()
 								elseif text:match('^/status') then
 								sendStatusTg()
                                 elseif text:match('^/send') then
@@ -2501,7 +2536,7 @@ function processing_telegram_messages(result) -- функция проверОчки того что отп
 
                                 
 								elseif text:match('^/help') then
-								sendTelegramNotification('%E2%9D%97Команды%E2%9D%97\n/stats -- Статистика аккаунта.\n/money -- Деньги на руках.\n/pcоff -- Выключение Пк.\n/reс -- Перезайти на сервер с задержкой 5 сек.\n/monitoroff -- выключить монитор(NirCmd)\n/status -- Статус сервера.\n/diolog -- включить или отключить отправку диалогов в TG.\n/killdiolog -- Закрытие всех диологов\n/send -- Написать сообщение в чат.\n/dell --включить или отключить удаление игроков и тс.\n/chest -- Запустить Авто открытие Сундуков.\n/version -- Версия скрипта.\n/reload -- Перезапустить Скрипт.')	 
+								sendTelegramNotification('%E2%9D%97Команды%E2%9D%97\n/stats -- Статистика аккаунта.\n/money -- Деньги на руках.\n/pcоff -- Выключение Пк.\n/reс -- Перезайти на сервер с задержкой 5 сек.\n/nickrecon -- Перезайти на сервер с сохранным ником.\n/monitoroff -- выключить монитор(NirCmd)\n/status -- Статус сервера.\n/diolog -- включить или отключить отправку диалогов в TG.\n/killdiolog -- Закрытие всех диологов\n/send -- Написать сообщение в чат.\n/dell --включить или отключить удаление игроков и тс.\n/chest -- Запустить Авто открытие Сундуков.\n/version -- Версия скрипта.\n/relоad -- Перезапустить Скрипт.')	 
                                 else -- если же не найдется ни одна из команд выше, выведем сообщение
                                 sendTelegramNotification('Неизвестная команда!')
                            
@@ -2722,6 +2757,8 @@ end
 
 ---[Информация] {ffffff}Вы использовали сундук с рулетками и получили платиновую рулетку!
 
+
+
 function telegrams()
 if cmd[0] then
 diolog[0] = true
@@ -2746,6 +2783,19 @@ wait(5000)
 sampSetGamestate(1)
 end
 end
+
+function nickrecon()
+    if cmd[0] then
+    wait(1000)
+    sampDisconnectWithReason(quit)
+    wait(200)
+    sampSetLocalPlayerName(mainIni.main.nickrecons)
+    wait(5000)
+    sampConnectToServer(mainIni.main.serverrecon, 7777)
+    end
+    end
+
+    
 
 function getOnline()
 	local countvers = 0
@@ -2828,6 +2878,42 @@ if text:find('Удача!') then
         end
     end
 
+
+    if dialogId == 26827 then  
+        if skipdiolog[0] then
+        sampSendDialogResponse(dialogId, 0, 0, nil); return false         
+    end
+end
+
+
+    if dialogId == 25526 then
+        if skipdiolog[0] then
+        sampSendDialogResponse(dialogId, 1, 1, nil); return false      
+    end
+end
+
+
+    if text:find('Мы рады видеть вас на сервере') then 
+        if skipdiolog[0] then
+		sampSendDialogResponse(id, 0, _, _)
+		return false
+	end
+end
+
+    if text:find('Вы впервые прибыли в') then 
+        if skipdiolog[0] then
+		sampSendDialogResponse(id, 0, _, _)
+		return false
+	end
+end
+
+    if text:find('Мы рады видеть вас на проекте') then 
+        if skipdiolog[0] then
+		sampSendDialogResponse(id, 0, _, _)
+		return false
+	end
+end
+
    
     
 --26558      
@@ -2865,7 +2951,12 @@ end
 end
 end
 
+local on = require 'lib.samp.events'
 
+function on.onSendSpawn()
+sendTelegramNotification('Персонаж под ником '..sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(PLAYER_PED)))..' был заспавнен.')
+
+end
 
 function convertDecimalToRGBA(u32, alpha)
 	local a = bit.band(bit.rshift(u32, 24), 0xFF) / 0xFF
