@@ -1,5 +1,5 @@
 script_name('ЗАЛУПА HELPER')
-script_version("0.2.2")
+script_version("0.2.3")
 
 
 --ебаные библиотеки--
@@ -1054,13 +1054,14 @@ function main()
             lua_thread.create(textdraws) 
             lua_thread.create(whobject)  
             lua_thread.create(wh3dtext)  
+            lua_thread.create(autoreconectrandom)  
             
 
       
 
                   
             
-                    
+            
 
 	while true do wait(0)
 	  if wasKeyPressed(VK_F2) and not sampIsCursorActive() then -- если нажата клавиша R и не активен самп курсор
@@ -1917,16 +1918,64 @@ function delayedtimers()
     end
 end
 
+pizdap = false
 
 function onReceivePacket(id)
     if id == 32 then
         sendTelegramNotification('CЕРВЕР ЗАКРЫЛ СОЕДИНЕНИЕ')
+            workbotton[0] = false 
+            chestonoff = false
+            work = false
+            startTime = os.time()  
+            pizdap = true
+
     end
     if id == 33 then
         sendTelegramNotification('CЕРВЕР ЗАКРЫЛ СОЕДИНЕНИЕ')
+            workbotton[0] = false 
+            chestonoff = false
+            work = false
+            startTime = os.time() 
+            pizdap = true
+
     end
 end
 
+function random(min, max)
+    local kf = math.random(min, max)
+    math.randomseed(os.time() * kf)
+    local rand = math.random(min, max)
+    return tonumber(rand)
+end
+
+
+
+function autoreconectrandom()
+    while true do
+		wait(0)
+    if pizdap then
+            delaychectqaq = os.time() +  random(15,30) * 60 -- Устанавливаем таймер на 5 минут.
+            local wwwwwwwwwwwad = delaychectqaq - os.time()
+            local minuawdawdatessa = math.floor(wwwwwwwwwwwad / 60)
+            sendTelegramNotification('Автоматический перезаход через: '..minuawdawdatessa.. ' мин.')
+            while os.time() < delaychectqaq do
+                wait(0)
+                local sw,sh = getScreenResolution()
+                local timeRemainingsa = delaychectqaq - os.time()
+                local minutessa = math.floor(timeRemainingsa / 60)
+                local secondssa = timeRemainingsa % 60
+                local rtimea  = string.format("%02d:%02d", minutessa, secondssa)
+                renderFontDrawText(font,''..rtimea,sw/2-renderGetFontDrawTextLength(font,'текст!')/2,sh/2,0xFFFF0000 )             
+            end           
+            sampSetLocalPlayerName(mainIni.main.nickrecons)
+            wait(200)
+            sampConnectToServer(mainIni.main.serverrecon, 7777)
+            pizdap = false
+         end
+    end
+end
+
+    
 
 
 -- Создаем переменную для хранения информации об окружностях
