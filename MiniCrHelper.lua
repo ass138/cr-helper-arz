@@ -1,5 +1,5 @@
 script_name('ЗАЛУПА HELPER')
-script_version("0.2.3")
+script_version("0.2.4")
 
 
 --ебаные библиотеки--
@@ -235,7 +235,7 @@ local timertrue = false
 
 local window = imgui.new.bool()
 local showdebug = imgui.new.bool(false)
-local tab = 1 -- в этой переменной будет хранится номер открытой вкладки
+local tab = 2 -- в этой переменной будет хранится номер открытой вкладки
 
 local timechestto = new.char[256]() -- создаём буфер для инпута
 local delayedtimer = new.bool() -- авто space
@@ -323,7 +323,7 @@ Memory = require 'memory'
 
 imgui.OnFrame(function() return window[0] end, function(player)
     local sw, sh = getScreenResolution()
-    imgui.SetNextWindowPos(imgui.ImVec2(sw/2,sh/2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5,0.5))
+    imgui.SetNextWindowPos(imgui.ImVec2(sw/2.5,sh/2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5,0.5))
     imgui.SetNextWindowSize(imgui.ImVec2(370, 320), imgui.Cond.Always)
     imgui.Begin(u8'Залупа Helper v'..thisScript().version, window, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse)
     imgui.SetCursorPosY(1) -- позволяет задать положение функции по вертикали
@@ -464,11 +464,13 @@ imgui.OnFrame(function() return window[0] end, function(player)
             if workbotton[0] == false then
                 chestonoff = false
                 work = false
-                startTime = os.time()  
+                startTime = os.time() 
+                delayedtimeraaaa = false
+                
             end
         
 
-           
+            delayedtimeraaaa = false
         
         imgui.SameLine()
         imgui.TextQuestion(u8("Right Shift + 4"))
@@ -489,10 +491,15 @@ imgui.OnFrame(function() return window[0] end, function(player)
    
         imgui.PopItemWidth()
         if imgui.Checkbox(u8'Отложенный Запуск', delayedtimer) then
+            delayedtimeraaaa = true
         end
+
+
         if delayedtimer[0] == false then
             delaychect = os.time()
+            delayedtimeraaaa = false
         end
+
         imgui.SameLine()
         imgui.SetCursorPosX(195)
         if imgui.Button(u8'Позиция##3') then
@@ -1068,12 +1075,9 @@ function main()
             window[0] = not window[0]  
             imgui.Process = main_window_state
             imgui.ShowCursor = false
-            posX, posY = getCursorPos() -- функция позволяет получить координаты курсора на экране
-            
-             
-            
-end
-end
+            posX, posY = getCursorPos() -- функция позволяет получить координаты курсора на экране           
+        end
+    end
 end
 
 function imgui.TextColoredRGBs(text)
@@ -1894,7 +1898,7 @@ end
 function delayedtimers()
     while true do 
         wait(0)
-        if delayedtimer[0] == true then	
+        if delayedtimeraaaa then	
             delaychect = os.time() + u8:decode(str(timechestto)) * 60 -- Устанавливаем таймер на 5 минут
             while os.time() < delaychect do
                 wait(0)
@@ -1907,13 +1911,15 @@ function delayedtimers()
             -- Действия по завершению таймера
             
             -- Здесь могут быть другие действия в зависимости от вашей логики
-            if delayedtimer[0] == true then	
+            
             workbotton = new.bool(true)
             chestonoff = true
             work = true
             delayedtimer = new.bool(false)
-            break -- Выход из цикла после завершения таймера
-            end
+            imgui.StrCopy(timechestto, '')
+            delaychect = os.time()
+            delayedtimeraaaa = false
+            --break -- Выход из цикла после завершения таймера
         end
     end
 end
@@ -2360,6 +2366,26 @@ function senddell()
 end
 
 
+function chestts()
+    activedia = not activedia
+    if activedia then 
+    sendTelegramNotification('Авто открытие сундуков включено.')
+    sampSendClickTextdraw(65535)
+    workbotton[0] = true 
+    chestonoff = true
+    work = true
+    else
+    sendTelegramNotification('Авто открытие сундуков отключено.')
+    sampSendClickTextdraw(65535)
+    startTime = os.time() 
+    workbotton[0] = false 
+    chestonoff = false
+    work = false
+    wait(10000)
+    startTime = os.time() 
+    end
+end
+
 function cleanr()
     while true do wait(0)
      if clean[0] then
@@ -2557,11 +2583,7 @@ function processing_telegram_messages(result) -- функция проверОчки того что отп
                               
                                 
                                 elseif text:match('^/chest') then
-                                    sampSendClickTextdraw(65535)
-                                workbotton = new.bool(true)
-                                work = true
-                                chestonoff = true
-                                sendTelegramNotification('Авто открытие сундуков ВКЛ')
+                                chestts()
 
                                 elseif text:match('^/killdiolog') then
                                 sampCloseCurrentDialogWithButton(0)
@@ -2585,7 +2607,7 @@ function processing_telegram_messages(result) -- функция проверОчки того что отп
 
                                 
 								elseif text:match('^/help') then
-								sendTelegramNotification('%E2%9D%97Команды%E2%9D%97\n/stats -- Статистика аккаунта.\n/money -- Деньги на руках.\n/pcоff -- Выключение Пк.\n/reс -- Перезайти на сервер с задержкой 5 сек.\n/nickrecon -- Перезайти на сервер с сохранным ником.\n/monitoroff -- выключить монитор(NirCmd)\n/status -- Статус сервера.\n/diolog -- включить или отключить отправку диалогов в TG.\n/killdiolog -- Закрытие всех диологов\n/send -- Написать сообщение в чат.\n/dell --включить или отключить удаление игроков и тс.\n/chest -- Запустить Авто открытие Сундуков.\n/version -- Версия скрипта.\n/relоad -- Перезапустить Скрипт.')	 
+								sendTelegramNotification('%E2%9D%97Команды%E2%9D%97\n\n/stats -- Статистика аккаунта.\n\n/money -- Деньги на руках.\n\n/pcоff -- Выключение Пк.\n\n/reс -- Перезайти на сервер с задержкой 5 сек.\n\n/nickrecon -- Перезайти на сервер с сохранным ником.\n\n/monitoroff -- выключить монитор(NirCmd)\n\n/status -- Статус сервера.\n\n/diоlog -- включить или отключить отправку диалогов в TG.\n\n/killdiolоg -- Закрытие всех диологов\n\n/send -- Написать сообщение в чат.\n\n/dеll --включить или отключить удаление игроков и тс.\n\n/chest -- Запустить Авто открытие Сундуков.\n\n/version -- Версия скрипта.\n\n/relоad -- Перезапустить Скрипт.')	 
                                 else -- если же не найдется ни одна из команд выше, выведем сообщение
                                 sendTelegramNotification('Неизвестная команда!')
                            
@@ -2814,6 +2836,7 @@ diolog[0] = true
 sampSendChat('/stats')
 wait(500)
 diolog[0] = false
+sampCloseCurrentDialogWithButton(0)
 end
 end
 
