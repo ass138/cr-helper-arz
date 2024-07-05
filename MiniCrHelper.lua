@@ -1,5 +1,5 @@
 script_name('ЗАЛУПА HELPER')
-script_version("0.2.4")
+script_version("0.2.5")
 
 
 --ебаные библиотеки--
@@ -237,7 +237,8 @@ local window = imgui.new.bool()
 local showdebug = imgui.new.bool(false)
 local tab = 2 -- в этой переменной будет хранится номер открытой вкладки
 
-local timechestto = new.char[256]() -- создаём буфер для инпута
+--local timechestto = new.char[256]() -- создаём буфер для инпута
+local timechestto = new.int(10) -- создаём буфер для SliderInt со значением 2 по умолчанию
 local delayedtimer = new.bool() -- авто space
 ---Auto---
 local autokey1 = new.bool() -- авто space
@@ -481,13 +482,15 @@ imgui.OnFrame(function() return window[0] end, function(player)
             chestpos = true
         end
         imgui.Separator()
-        imgui.Text(u8'Запустить через:')
-        imgui.SameLine()
-        imgui.PushItemWidth(30)
-        imgui.InputText(u8"мин##15689", timechestto, 256, imgui.InputTextFlags.CharsDecimal)
-        imgui.SameLine()
        
-        imgui.Text('                  '..counter)
+        
+        imgui.PushItemWidth(220)
+        --imgui.InputText(u8"мин##15689", timechestto, 256, imgui.InputTextFlags.CharsDecimal)
+        
+        imgui.SliderInt(u8'мин##15689', timechestto, 1, 150) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
+        --imgui.SameLine()
+       
+        --imgui.Text('                  '..counter)
    
         imgui.PopItemWidth()
         if imgui.Checkbox(u8'Отложенный Запуск', delayedtimer) then
@@ -509,7 +512,9 @@ imgui.OnFrame(function() return window[0] end, function(player)
    
 
       
-        
+        if imgui.Button(u8'Inventory', imgui.ImVec2(250, 8)) then
+        sampSendChat('/invent')   
+        end
         --- 2 страница ебать ---
 		
 	
@@ -1899,7 +1904,7 @@ function delayedtimers()
     while true do 
         wait(0)
         if delayedtimeraaaa then	
-            delaychect = os.time() + u8:decode(str(timechestto)) * 60 -- Устанавливаем таймер на 5 минут
+            delaychect = os.time() + timechestto[0] * 60 -- Устанавливаем таймер на 5 минут
             while os.time() < delaychect do
                 wait(0)
                 local timeRemainings = delaychect - os.time()
@@ -1916,7 +1921,7 @@ function delayedtimers()
             chestonoff = true
             work = true
             delayedtimer = new.bool(false)
-            imgui.StrCopy(timechestto, '')
+            --imgui.StrCopy(timechestto, '')
             delaychect = os.time()
             delayedtimeraaaa = false
             --break -- Выход из цикла после завершения таймера
@@ -2166,16 +2171,18 @@ function chestss()
         if chestonoff then
         if work then
             sampCloseCurrentDialogWithButton(0)
-            wait(200)
+            wait(500)
             sampCloseCurrentDialogWithButton(0)
             sampAddChatMessage('[Сhest] {FFFFFF}Сейчас откроется инвентарь.', 0xFFFF00)
-            wait(200)
+            wait(500)
             sampSendChat('/mn')
-            wait(1000)
+            wait(500)
             sampCloseCurrentDialogWithButton(0)
-            wait(1000)
+            wait(500)   
+            sampSendClickTextdraw(65535)
+            wait(500)
             sampSendChat('/invent')
-            wait(1000)
+            wait(500)
             for i = 1, 6 do
                 if not work then break end
                 sampSendClickTextdraw(textdraw[i][1])
