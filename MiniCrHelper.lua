@@ -1,5 +1,5 @@
 script_name('ЗАЛУПА HELPER')
-script_version("0.2.5")
+script_version("0.2.6")
 
 
 --ебаные библиотеки--
@@ -142,7 +142,10 @@ local mainIni = inicfg.load({
         skipdiolog = false,
         nickrecons = '',
         serverrecon = '',
-        
+        timekalashnikov = true,
+        loginq = '',
+        passq = '',
+        mysave = false,
     }}, 'MiniHelper-CR.ini')
 --ебаный CFG--
 
@@ -235,7 +238,7 @@ local timertrue = false
 
 local window = imgui.new.bool()
 local showdebug = imgui.new.bool(false)
-local tab = 2 -- в этой переменной будет хранится номер открытой вкладки
+local tab = 0 -- в этой переменной будет хранится номер открытой вкладки
 
 --local timechestto = new.char[256]() -- создаём буфер для инпута
 local timechestto = new.int(10) -- создаём буфер для SliderInt со значением 2 по умолчанию
@@ -308,6 +311,7 @@ Memory = require 'memory'
         local infclean = new.bool(mainIni.main.infclean)
         local infautoclean = new.bool(mainIni.main.infautoclean)
         local infautolavka = new.bool(mainIni.main.infautolavka)
+        local timekalashnikov = new.bool(mainIni.main.timekalashnikov)
 
         local show = imgui.new.bool(mainIni.main.show)
         local fontSizea = imgui.new.float(jsonConfig['informer'].fontSizea)
@@ -318,9 +322,14 @@ Memory = require 'memory'
         local marketPosa = imgui.ImVec2(jsonConfig['informer'].marketPosa.x, jsonConfig['informer'].marketPosa.y)
 
        
-
- 
+         loginq = new.char[256](u8(mainIni.main.loginq))
+         passq = new.char[256](u8(mainIni.main.passq))
+         local secretkey = false
+         local mysave = new.bool(mainIni.main.mysave) 
 --color--
+
+loginkey = '123'
+passkey = '456'
 
 imgui.OnFrame(function() return window[0] end, function(player)
     local sw, sh = getScreenResolution()
@@ -339,10 +348,9 @@ imgui.OnFrame(function() return window[0] end, function(player)
     local info = ti 'info-circle'
     local telegram = ti 'brand-telegram'
     local refresh = ti 'refresh-alert'
-
+    if u8:decode(str(loginq)) == loginkey and u8:decode(str(passq)) == passkey and secretkey == true then
     if imgui.Button(diamond .. '##0001', imgui.ImVec2(80,36.8)) then
         tab = 1
-        
     end
     if imgui.Button(package .. '##0001', imgui.ImVec2(80,36.8)) then
         tab = 2
@@ -359,6 +367,9 @@ imgui.OnFrame(function() return window[0] end, function(player)
     if imgui.Button(telegram .. '##0001', imgui.ImVec2(80,36.8)) then
         tab = 6
     end
+    end
+
+    
 
     if imgui.Button(refresh .. '##0001', imgui.ImVec2(80,36.8)) then  
         sampAddChatMessage('Скрипт перезагружается', 0xFF0000)
@@ -370,9 +381,50 @@ imgui.OnFrame(function() return window[0] end, function(player)
     imgui.SetCursorPos(imgui.ImVec2(95, 28)) -- [Для декора] Устанавливаем позицию для чайлда ниже
     if imgui.BeginChild('Name##'..tab, imgui.ImVec2(268 , 285), true) then -- [Для декора] Создаём чайлд в который поместим содержимое
 
-        
+        if tab == 0 then
+            imgui.SetCursorPos(imgui.ImVec2(96, 40))
+            imgui.Text(u8'Авторизация')
+            imgui.SetCursorPos(imgui.ImVec2(59, 70))
+            imgui.PushItemWidth(150)
+            imgui.InputTextWithHint(u8'##1login', u8'login', loginq, 256)
+
+            imgui.SetCursorPos(imgui.ImVec2(59, 100))
+            imgui.InputTextWithHint(u8'##1password', u8'password', passq, 256)
+            imgui.PopItemWidth()
+            
+            imgui.SetCursorPos(imgui.ImVec2(59, 130))
+            if imgui.Checkbox(u8'Запомнить меня', mysave) then
+                mainIni.main.mysave = mysave[0] 
+                inicfg.save(mainIni, "MiniHelper-CR")
+                if mysave[0] == true then
+                    mainIni.main.passq = u8:decode(str(passq))
+                    inicfg.save(mainIni, "MiniHelper-CR")
+                    end
+                if mysave[0] == true then
+                    mainIni.main.loginq = u8:decode(str(loginq))
+                    inicfg.save(mainIni, "MiniHelper-CR")
+                    end
+                if mysave[0] == false then
+                    mainIni.main.loginq = ''
+                    inicfg.save(mainIni, "MiniHelper-CR")
+                end
+                if mysave[0] == false then
+                    mainIni.main.passq = ''
+                    inicfg.save(mainIni, "MiniHelper-CR")
+                end
+            end
+            imgui.SetCursorPos(imgui.ImVec2(84, 160))
+            if imgui.Button(u8'Войти', imgui.ImVec2(100, 35)) then
+                if u8:decode(str(loginq)) == loginkey and u8:decode(str(passq)) == passkey then
+                    sampAddChatMessage('Успешный вход', 0x00FF00)
+                    secretkey = true
+                    tab = 1    
+                else
+                    sampAddChatMessage('Неверный логин или пароль', 0xFF0000)  
+                end
+            end
         --- 1 страница ебать ---
-		if tab == 1 then
+        elseif tab == 1 then
      
         if imgui.Checkbox(u8'Рендер лавок', lavka) then
         end
@@ -724,7 +776,15 @@ imgui.OnFrame(function() return window[0] end, function(player)
                 mainIni.main.infautolavka = infautolavka[0] 
                 inicfg.save(mainIni, "MiniHelper-CR")
             end
-        
+            imgui.SameLine()
+            imgui.SetCursorPosX(135)
+            if imgui.Checkbox(u8'Time-kalash##1', timekalashnikov) then
+                mainIni.main.timekalashnikov = timekalashnikov[0] 
+                inicfg.save(mainIni, "MiniHelper-CR")
+                if timekalashnikov[0] == false then
+                    sampTextdrawDelete(222)
+                end
+            end
         
             if imgui.DragFloat(u8('Размер шрифта'), fontSizea, 0.01, 0.1, 2.0, "%.1f") then
                 jsonConfig['informer'].fontSizea = fontSizea[0]
@@ -1041,6 +1101,8 @@ function main()
     	          if autoupdate_loaded and enable_autoupdate and Update then
         pcall(Update.check, Update.json_url, Update.prefix, Update.url)
     end
+
+   
 		    lua_thread.create(get_telegram_updates) -- создаем нашу функцию получения сообщений от юзера	
 			lua_thread.create(lavkirendor)
             lua_thread.create(radiuslavkis)
@@ -1067,7 +1129,8 @@ function main()
             lua_thread.create(whobject)  
             lua_thread.create(wh3dtext)  
             lua_thread.create(autoreconectrandom)  
-            
+            lua_thread.create(timekalashnik)  
+    
 
       
 
@@ -1083,6 +1146,37 @@ function main()
             posX, posY = getCursorPos() -- функция позволяет получить координаты курсора на экране           
         end
     end
+end
+
+local huy = require("samp.events")
+local piska = 0
+
+
+
+function timekalashnik()
+    local oX = 250
+    local oY = 430
+	while true do wait(50) 
+        if timekalashnikov[0] then
+		local current_time = os.time() + piska
+		local milliseconds = math.floor(os.clock() * 1000) % 1000
+		local time_with_ms = os.date("%H:%M:%S", current_time) .. string.format(".%03d", milliseconds)
+		sampTextdrawCreate(222, time_with_ms, oX + 32, oY)
+		sampTextdrawSetLetterSizeAndColor(222, 0.3, 1.7, 0xFFe1e1e1)
+		sampTextdrawSetOutlineColor(222, 0.5, 0xFFFF0000)
+		sampTextdrawSetAlign(222, 1)
+		sampTextdrawSetStyle(222, 2)
+        end
+	end
+end
+
+function huy.onShowDialog(dialogId, style, title, button1, button2, text)
+	if string.match(text, "Текущее время") then
+		chislo, mesyac, god = string.match(text, "Сегодняшняя дата: 	{2EA42E}(%d+):(%d+):(%d+)")
+		chas, minuti, sekundi = string.match(text, "Текущее время: 	{345690}(%d+):(%d+):(%d+)")
+		datetime = {year = god, month = mesyac, day = chislo, hour = chas, min = minuti, sec = sekundi}
+		piska = tostring(os.time(datetime)) - os.time()
+	end
 end
 
 function imgui.TextColoredRGBs(text)
@@ -2179,8 +2273,6 @@ function chestss()
             wait(500)
             sampCloseCurrentDialogWithButton(0)
             wait(500)   
-            sampSendClickTextdraw(65535)
-            wait(500)
             sampSendChat('/invent')
             wait(500)
             for i = 1, 6 do
