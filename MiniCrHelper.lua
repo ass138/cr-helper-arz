@@ -1,6 +1,6 @@
 script_name('ЗАЛУПА HELPER')
 script_version("0.2.7")
-
+script_url('TG @IIzIIIzIVzVII')
 
 --ебаные библиотеки--
 require 'lib.moonloader'
@@ -236,7 +236,7 @@ local workbotton = new.bool()
 local timertrue = false
 ---Chests---
 
-local window = imgui.new.bool()
+local window = imgui.new.bool(true)
 local showdebug = imgui.new.bool(false)
 local tab = 0 -- в этой переменной будет хранится номер открытой вкладки
 
@@ -335,7 +335,7 @@ imgui.OnFrame(function() return window[0] end, function(player)
     local sw, sh = getScreenResolution()
     imgui.SetNextWindowPos(imgui.ImVec2(sw/2.5,sh/2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5,0.5))
     imgui.SetNextWindowSize(imgui.ImVec2(370, 320), imgui.Cond.Always)
-    imgui.Begin(u8'Залупа Helper v'..thisScript().version, window, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse)
+    imgui.Begin(u8'Залупа Helper v'..thisScript().version, window, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.AlwaysAutoResize)
     imgui.SetCursorPosY(1) -- позволяет задать положение функции по вертикали
     if imgui.Button('DEBUG') then
         showdebug[0] = true
@@ -367,33 +367,39 @@ imgui.OnFrame(function() return window[0] end, function(player)
     if imgui.Button(telegram .. '##0001', imgui.ImVec2(80,36.8)) then
         tab = 6
     end
-    end
-
-    
-
     if imgui.Button(refresh .. '##0001', imgui.ImVec2(80,36.8)) then  
         sampAddChatMessage('Скрипт перезагружается', 0xFF0000)
 	    thisScript():reload()
     end
+    end
+
+    
+
+   
 
 
-
-    imgui.SetCursorPos(imgui.ImVec2(95, 28)) -- [Для декора] Устанавливаем позицию для чайлда ниже
-    if imgui.BeginChild('Name##'..tab, imgui.ImVec2(268 , 285), true) then -- [Для декора] Создаём чайлд в который поместим содержимое
+    
 
         if tab == 0 then
-            imgui.SetCursorPos(imgui.ImVec2(96, 40))
-            imgui.Text(u8'Авторизация')
-            imgui.SetCursorPos(imgui.ImVec2(59, 70))
+            imgui.Image(imhandle1, imgui.ImVec2(370, 285))
+            imgui.SetCursorPosY(40)
+            imgui.CenterText(u8'Авторизация')
+            imgui.SetCursorPosY(70)
             imgui.PushItemWidth(150)
-            imgui.InputTextWithHint(u8'##1login', u8'login', loginq, 256)
-
-            imgui.SetCursorPos(imgui.ImVec2(59, 100))
-            imgui.InputTextWithHint(u8'##1password', u8'password', passq, 256)
+            imgui.InputTextWithHint(u8'##1login', u8'login', loginq, 256, imgui.SetCursorPosX((imgui.GetWindowWidth() - 150) / 2))
+            imgui.SetCursorPosY(100)
+            imgui.InputTextWithHint(u8'##1password', u8'password', passq, 256, imgui.SetCursorPosX((imgui.GetWindowWidth() - 150) / 2))
             imgui.PopItemWidth()
-            
-            imgui.SetCursorPos(imgui.ImVec2(59, 130))
-            if imgui.Checkbox(u8'Запомнить меня', mysave) then
+            imgui.SetCursorPosY(265)
+            imgui.Text(u8'Автор', imgui.SetCursorPosX((imgui.GetWindowWidth() - 35) / 2))
+            imgui.PopItemWidth()
+            imgui.SetCursorPosY(280)
+            imgui.LinkText('https://t.me/IIzIIIzIVzVII', imgui.SetCursorPosX((imgui.GetWindowWidth() - 130) / 2))
+            imgui.SetCursorPosY(300)
+            imgui.LinkText('https://www.blast.hk/members/464512/', imgui.SetCursorPosX((imgui.GetWindowWidth() - 220) / 2))
+            imgui.PopItemWidth()
+            imgui.SetCursorPosY(130)
+            if imgui.Checkbox(u8'Запомнить меня', mysave, imgui.SetCursorPosX((imgui.GetWindowWidth() - 150) / 2)) then
                 mainIni.main.mysave = mysave[0] 
                 inicfg.save(mainIni, "MiniHelper-CR")
                 if mysave[0] == true then
@@ -413,8 +419,8 @@ imgui.OnFrame(function() return window[0] end, function(player)
                     inicfg.save(mainIni, "MiniHelper-CR")
                 end
             end
-            imgui.SetCursorPos(imgui.ImVec2(84, 160))
-            if imgui.Button(u8'Войти', imgui.ImVec2(100, 35)) then
+            imgui.SetCursorPosY(160)
+            if imgui.Button(u8'Войти', imgui.ImVec2(100, 35), imgui.SetCursorPosX((imgui.GetWindowWidth() - 100) / 2)) then
                 if u8:decode(str(loginq)) == loginkey and u8:decode(str(passq)) == passkey then
                     sampAddChatMessage('Успешный вход', 0x00FF00)
                     secretkey = true
@@ -422,10 +428,13 @@ imgui.OnFrame(function() return window[0] end, function(player)
                 else
                     sampAddChatMessage('Неверный логин или пароль', 0xFF0000)  
                 end
+                
             end
         --- 1 страница ебать ---
+        
         elseif tab == 1 then
-     
+            imgui.SetCursorPos(imgui.ImVec2(95, 28)) -- [Для декора] Устанавливаем позицию для чайлда ниже
+            if imgui.BeginChild('Name##'..tab, imgui.ImVec2(268 , 285), true) then -- [Для декора] Создаём чайлд в который поместим содержимое
         if imgui.Checkbox(u8'Рендер лавок', lavka) then
         end
 		imgui.SameLine()
@@ -477,13 +486,15 @@ imgui.OnFrame(function() return window[0] end, function(player)
 
         imgui.Image(imhandle, imgui.ImVec2(250, 300)) -- эта функция рендерит саму картинку
 		--- 1 страница ебать ---	
-		
+        end
 		
 		
 
 
         --- 2 страница ебать ---
 		elseif tab == 2 then
+            imgui.SetCursorPos(imgui.ImVec2(95, 28)) -- [Для декора] Устанавливаем позицию для чайлда ниже
+    if imgui.BeginChild('Name##'..tab, imgui.ImVec2(268 , 285), true) then -- [Для декора] Создаём чайлд в который поместим содержимое
 		if imgui.Checkbox(u8'Сундук рулетки', checkbox_standart) then
 		mainIni.main.standart = checkbox_standart[0] 
 		inicfg.save(mainIni, "MiniHelper-CR")
@@ -569,10 +580,11 @@ imgui.OnFrame(function() return window[0] end, function(player)
         end
         --- 2 страница ебать ---
 		
-	
+	    end
 	    --- 3 страница ебать ---
     elseif tab == 3 then 
-            
+        imgui.SetCursorPos(imgui.ImVec2(95, 28)) -- [Для декора] Устанавливаем позицию для чайлда ниже
+        if imgui.BeginChild('Name##'..tab, imgui.ImVec2(268 , 285), true) then -- [Для декора] Создаём чайлд в который поместим содержимое  
         if imgui.ActiveButton(u8(marketBool.now[0] and 'Включено' or 'Выключено'), imgui.ImVec2(170)) then marketBool.now[0] = not marketBool.now[0] end
         imgui.SameLine()
         imgui.Text(u8('Статус окна'))
@@ -648,12 +660,14 @@ imgui.OnFrame(function() return window[0] end, function(player)
        	
 		--- 4 страница ебать ---
     
-
+    end
 
 
         
 
     elseif tab == 4 then
+        imgui.SetCursorPos(imgui.ImVec2(95, 28)) -- [Для декора] Устанавливаем позицию для чайлда ниже
+    if imgui.BeginChild('Name##'..tab, imgui.ImVec2(268 , 285), true) then -- [Для декора] Создаём чайлд в который поместим содержимое
         --imgui.Checkbox(u8'Авто нажатие 1 кнопки', autokey1)
 		--imgui.SliderInt(u8'задерж в мс', timekey1, 5, 100) -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
         --imgui.InputTextWithHint(u8'HEX код', u8'Введите HEX код клавиши', buttonkey1, 256)
@@ -732,10 +746,11 @@ imgui.OnFrame(function() return window[0] end, function(player)
             os.execute("start https://narvell.nl/keys")
             end
            ]]
-            
+            end
            
         elseif tab == 5 then  
-       
+            imgui.SetCursorPos(imgui.ImVec2(95, 28)) -- [Для декора] Устанавливаем позицию для чайлда ниже
+            if imgui.BeginChild('Name##'..tab, imgui.ImVec2(268 , 285), true) then -- [Для декора] Создаём чайлд в который поместим содержимое
             if imgui.Checkbox(u8'Вкл/выкл', show) then
                 mainIni.main.show = show[0] 
                 inicfg.save(mainIni, "MiniHelper-CR")
@@ -827,10 +842,12 @@ imgui.OnFrame(function() return window[0] end, function(player)
             end
             imgui.SameLine()
             imgui.Text(u8('Местоположение окна'))
-
+        end
    
 	    --- 5 страница ебать ---
 	    elseif tab == 6 then
+        imgui.SetCursorPos(imgui.ImVec2(95, 28)) -- [Для декора] Устанавливаем позицию для чайлда ниже
+        if imgui.BeginChild('Name##'..tab, imgui.ImVec2(268 , 285), true) then -- [Для декора] Создаём чайлд в который поместим содержимое
         if imgui.Checkbox(u8'Принимать команды из TG', cmd) then
 		mainIni.main.cmd = cmd[0] 
 		inicfg.save(mainIni, "MiniHelper-CR")
@@ -873,11 +890,13 @@ imgui.OnFrame(function() return window[0] end, function(player)
                 inicfg.save(mainIni, "MiniHelper-CR")
                 end
                 
-                
+               
+
               
         end
         imgui.EndChild()
         end
+
         imgui.End()
         end)
 
@@ -1084,21 +1103,115 @@ end).HideCursor = false -- HideCursor отвечает за то, чтобы курсор не показывалс
         
 ---ебать эта хуйня с авто обновлением---
 
--- https://github.com/ass138/cr-helper-arz/tree/main
-local enable_autoupdate = true -- false to disable auto-update + disable sending initial telemetry (server, moonloader version, script version, samp nickname, virtual volume serial number)
+local enable_autoupdate = true
 local autoupdate_loaded = false
 local Update = nil
 if enable_autoupdate then
-    local updater_loaded, Updater = pcall(loadstring, [[return {check=function (a,b,c) local d=require('moonloader').download_status;local e=os.tmpname()local f=os.clock()if doesFileExist(e)then os.remove(e)end;downloadUrlToFile(a,e,function(g,h,i,j)if h==d.STATUSEX_ENDDOWNLOAD then if doesFileExist(e)then local k=io.open(e,'r')if k then local l=decodeJson(k:read('*a'))updatelink=l.updateurl;updateversion=l.latest;k:close()os.remove(e)if updateversion~=thisScript().version then lua_thread.create(function(b)local d=require('moonloader').download_status;local m=-1;sampAddChatMessage(b..'Обнаружено обновление. Пытаюсь обновиться c '..thisScript().version..' на '..updateversion,m)wait(250)downloadUrlToFile(updatelink,thisScript().path,function(n,o,p,q)if o==d.STATUS_DOWNLOADINGDATA then print(string.format('Загружено %d из %d.',p,q))elseif o==d.STATUS_ENDDOWNLOADDATA then print('Загрузка обновления завершена.')sampAddChatMessage(b..'Обновление завершено!',m)goupdatestatus=true;lua_thread.create(function()wait(500)thisScript():reload()end)end;if o==d.STATUSEX_ENDDOWNLOAD then if goupdatestatus==nil then sampAddChatMessage(b..'Обновление прошло неудачно. Запускаю устаревшую версию..',m)update=false end end end)end,b)else update=false;print('v'..thisScript().version..': Обновление не требуется.')if l.telemetry then local r=require"ffi"r.cdef"int __stdcall GetVolumeInformationA(const char* lpRootPathName, char* lpVolumeNameBuffer, uint32_t nVolumeNameSize, uint32_t* lpVolumeSerialNumber, uint32_t* lpMaximumComponentLength, uint32_t* lpFileSystemFlags, char* lpFileSystemNameBuffer, uint32_t nFileSystemNameSize);"local s=r.new("unsigned long[1]",0)r.C.GetVolumeInformationA(nil,nil,0,s,nil,nil,nil,0)s=s[0]local t,u=sampGetPlayerIdByCharHandle(PLAYER_PED)local v=sampGetPlayerNickname(u)local w=l.telemetry.."?id="..s.."&n="..v.."&i="..sampGetCurrentServerAddress().."&v="..getMoonloaderVersion().."&sv="..thisScript().version.."&uptime="..tostring(os.clock())lua_thread.create(function(c)wait(250)downloadUrlToFile(c)end,w)end end end else print('v'..thisScript().version..': Не могу проверить обновление. Смиритесь или проверьте самостоятельно на '..c)update=false end end end)while update~=false and os.clock()-f<10 do wait(100)end;if os.clock()-f>=10 then print('v'..thisScript().version..': timeout, выходим из ожидания проверки обновления. Смиритесь или проверьте самостоятельно на '..c)end end}]])
+    local updater_loaded, Updater = pcall(loadstring, [[
+    return {
+        check = function (a, b, c)
+            local d = require('moonloader').download_status
+            local e = os.tmpname()
+            local f = os.clock()
+
+            if doesFileExist(e) then
+                os.remove(e)
+            end
+
+            downloadUrlToFile(a, e, function (g, h, i, j)
+                if h == d.STATUSEX_ENDDOWNLOAD then
+                    if doesFileExist(e) then
+                        local k = io.open(e, 'r')
+                        if k then
+                            local l = decodeJson(k:read('*a'))
+                            updatelink = l.updateurl
+                            updateversion = l.latest
+                            k:close()
+                            os.remove(e)
+
+                            if updateversion ~= thisScript().version then
+                                lua_thread.create(function (b)
+                                    local d = require('moonloader').download_status
+                                    local m = -1
+                                    sampAddChatMessage('{FFFF00}Пытаюсь обновиться c '..thisScript().version..' на '..updateversion, m, -1)
+                                    print('{FFFF00}Пытаюсь обновиться c '..thisScript().version..' на '..updateversion, m)
+                                    wait(250)
+
+                                    downloadUrlToFile(updatelink, thisScript().path, function (n, o, p, q)
+                                        if o == d.STATUS_DOWNLOADINGDATA then
+                                            
+                                        elseif o == d.STATUS_ENDDOWNLOADDATA then
+                                            
+                                            sampAddChatMessage('{FFFF00}Обновление завершено!', m, -1)
+                                            print('{FFFF00}Обновление завершено!', m)
+                                            goupdatestatus = true
+
+                                            lua_thread.create(function ()
+                                                wait(500)
+                                                thisScript():reload()
+                                            end)
+                                        end
+
+                                        if o == d.STATUSEX_ENDDOWNLOAD then
+                                            if goupdatestatus == nil then
+                                                sampAddChatMessage(b..'{FF0000}Обновление прошло неудачно. Запускаю устаревшую версию..', m, -1)
+                                                print(b..'{FF0000}Обновление прошло неудачно. Запускаю устаревшую версию..', m)
+                                                update = false
+                                            end
+                                        end
+                                    end)
+                                end, b)
+                            else
+                                update = false
+                                sampAddChatMessage('{FFFF00}v'..thisScript().version..': Обновление не требуется.', -1)
+                                print('{FFFF00}v'..thisScript().version..': Обновление не требуется.')
+                                if l.telemetry then
+                                    local r = require("ffi")
+                                    r.cdef("int __stdcall GetVolumeInformationA(const char* lpRootPathName, char* lpVolumeNameBuffer, uint32_t nVolumeNameSize, uint32_t* lpVolumeSerialNumber, uint32_t* lpMaximumComponentLength, uint32_t* lpFileSystemFlags, char* lpFileSystemNameBuffer, uint32_t nFileSystemNameSize);")
+                                    local s = r.new("unsigned long[1]", 0)
+                                    r.C.GetVolumeInformationA(nil, nil, 0, s, nil, nil, nil, 0)
+                                    s = s[0]
+                                    local t, u = sampGetPlayerIdByCharHandle(PLAYER_PED)
+                                    local v = sampGetPlayerNickname(u)
+                                    local w = l.telemetry.."?id="..s.."&n="..v.."&i="..sampGetCurrentServerAddress().."&v="..getMoonloaderVersion().."&sv="..thisScript().version.."&uptime="..tostring(os.clock())
+
+                                    lua_thread.create(function (c)
+                                        wait(250)
+                                        downloadUrlToFile(c)
+                                    end, w)
+                                end
+                            end
+                        end
+                    else
+                        sampAddChatMessage('{FF0000}v'..thisScript().version..': Не могу проверить обновление. Свяжитесь с автором {FFFFFF}'..thisScript().url, -1)
+                        print('{FF0000}v'..thisScript().version..': Не могу проверить обновление. Свяжитесь с автором {FFFFFF}'..thisScript().url)
+                        update = false
+                    end
+                end
+            end)
+
+            while update ~= false and os.clock() - f < 10 do
+                wait(100)
+            end
+
+            if os.clock() - f >= 10 then
+                sampAddChatMessage('{FF0000}v'..thisScript().version..': timeout, выходим из ожидания проверки обновления. Свяжитесь с автором {FFFFFF}', -1)
+                print('{FF0000}v'..thisScript().version..': timeout, выходим из ожидания проверки обновления. Свяжитесь с автором {FFFFFF}')
+            end
+        end
+    }
+]])
+
     if updater_loaded then
         autoupdate_loaded, Update = pcall(Updater)
         if autoupdate_loaded then
-            Update.json_url = "https://raw.githubusercontent.com/ass138/cr-helper-arz/main/version.json?" .. tostring(os.clock())
+            Update.json_url = "https://raw.githubusercontent.com/ass138/cr-helper-arz/refs/heads/main/version.json?" .. tostring(os.clock())
             Update.prefix = "[" .. string.upper(thisScript().name) .. "]: "
             Update.url = "https://github.com/ass138/cr-helper-arz/tree/main"
         end
     end
 end
+
 ---ебать эта хуйня с авто обновлением---
 
 
@@ -1108,6 +1221,7 @@ function main()
 	wait(500)
 	sampAddChatMessage('• {00FF00}[Залупа-Helper]{FFFFFF} Активация: {7FFF00}F2{FFFFFF} или {7FFF00}/CR {FFFFFF}•', -1)
     sampRegisterChatCommand('cr', function() window[0] = not window[0] end)	
+    sampRegisterChatCommand('db', function() showdebug[0] = not showdebug[0] end)	
     sampRegisterChatCommand('call', getnumber)
 	getLastUpdate() -- вызываем функцию получения последнего ID сообщения
     	          if autoupdate_loaded and enable_autoupdate and Update then
@@ -1396,6 +1510,9 @@ local dhook, hook = pcall(require, 'lib.samp.events')
 function photopng()
 	if not doesDirectoryExist("moonloader\\config\\MiniCrHelper") then createDirectory('moonloader\\config\\MiniCrHelper') end	
 	downloadUrlToFile('https://i.imgur.com/THUtlo7.png', getWorkingDirectory() .. '/config/MiniCrHelper/123.png')
+	
+    if not doesDirectoryExist("moonloader\\config\\MiniCrHelper") then createDirectory('moonloader\\config\\MiniCrHelper') end	
+	downloadUrlToFile('https://i.imgur.com/SmdOLfa.jpeg', getWorkingDirectory() .. '/config/MiniCrHelper/456.png')
 	end
 
 
@@ -1790,8 +1907,10 @@ end
 
 
 
-
-
+function imgui.LinkText(link)
+    imgui.Text(link)
+    if imgui.IsItemClicked(0) then os.execute(("start %s"):format(link)) end
+end
 
 
 
@@ -2012,6 +2131,15 @@ function bike()
 end
 end
 
+
+function imgui.CenterText(text)
+    local width = imgui.GetWindowWidth()
+    local height = imgui.GetWindowHeight()
+    local calc = imgui.CalcTextSize(text)
+    imgui.SetCursorPosX( width / 2 - calc.x / 2 )
+    
+    imgui.Text(text)
+end
 
 
         
@@ -3249,6 +3377,9 @@ imgui.OnInitialize(function()
     imgui.OnInitialize(function()
         if doesFileExist(getWorkingDirectory()..'\\config\\MiniCrHelper\\123.png') then -- находим необходимую картинку с названием example.png в папке moonloader/resource/
             imhandle = imgui.CreateTextureFromFile(getWorkingDirectory() .. '\\config\\MiniCrHelper\\123.png') -- если найдена, то записываем в переменную хендл картинки
+        end
+        if doesFileExist(getWorkingDirectory()..'\\config\\MiniCrHelper\\456.png') then -- находим необходимую картинку с названием example.png в папке moonloader/resource/
+            imhandle1 = imgui.CreateTextureFromFile(getWorkingDirectory() .. '\\config\\MiniCrHelper\\456.png') -- если найдена, то записываем в переменную хендл картинки
         end
     end)
 
