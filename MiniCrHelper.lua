@@ -1,5 +1,5 @@
 script_name('ЗАЛУПА HELPER')
-script_version("0.2.6")
+script_version("0.2.7")
 
 
 --ебаные библиотеки--
@@ -918,31 +918,43 @@ imgui.OnFrame(function() return showdebug[0] end, function(player)
     imgui.SetNextWindowPos(imgui.ImVec2(sw/2,sh/2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5,0.5))
     local bug = ti 'bug'
     imgui.Begin(bug..' Debug', showdebug, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.AlwaysAutoResize)
-    imgui.Checkbox(u8'WH 3d text', debugwh3d)
-    if debugwh3d[0] == true then
-    imgui.PushItemWidth(150)   
-    imgui.SliderInt(u8'dist##1', Sliderdebugwh3d, 10, 200)
-    imgui.PopItemWidth()
-    end
-    imgui.Checkbox(u8'WH Object', debugwh)
+    imgui.Checkbox(u8'3d text-key Q', debugwh3d)
+    
+    
+    --imgui.Checkbox(u8'WH Object', debugwh)
     imgui.Checkbox(u8'id textdraw', textdrawid)
     
-    if imgui.Button('id diolog') then
+    --if imgui.Button(u8'Найти') then
         local dtx = sampGetDialogText()
         local dtp = sampGetCurrentDialogType()
         local did = sampGetCurrentDialogId()
         local dcp = sampGetDialogCaption()
         textdiologid = string.format("{00BEFC}Current dialog info:\nDialog ID:{FFFFFF} %d \n{00BEFC}Dialog Type:{FFFFFF} %d \n{00BEFC}Dialog Caption:{FFFFFF}\n%s\n{00BEFC}Dialog text:{FFFFFF}\n%s", did, dtp, dcp, dtx)
+   -- end
+   -- imgui.SameLine()
+    if imgui.Button(u8'Копировать Dialog') then 
+        if lang == "Ru" then               
+        local dtx = sampGetDialogText()
+        local dtp = sampGetCurrentDialogType()
+        local did = sampGetCurrentDialogId()
+        local dcp = sampGetDialogCaption()
+        setClipboardText(string.format("Dialog ID: %d \nDialog Type: %d \nDialog Caption:\n%s\nDialog text:\n%s", did, dtp, dcp, dtx))
+        sampAddChatMessage('Успешно скопировано в буфер обмена', 0x00FF00)
     end
-    imgui.SameLine()
-    if imgui.Button('clean') then
-        textdiologid = ''
-    end   
+    if lang == "En" then
+    sampAddChatMessage('Смените язык на русский', 0xFF0000)
+    end
+end
+
+    --imgui.SameLine()
+    --if imgui.Button(u8'Очистить') then
+   --     textdiologid = ''
+   -- end   
 
     imgui.TextColoredRGBs(''..textdiologid)
 
     imgui.End()
-end).HideCursor = true -- HideCursor отвечает за то, чтобы курсор не показывался
+end).HideCursor = false -- HideCursor отвечает за то, чтобы курсор не показывался
      
             fpsID = ''
             ping = ''
@@ -1129,7 +1141,8 @@ function main()
             lua_thread.create(whobject)  
             lua_thread.create(wh3dtext)  
             lua_thread.create(autoreconectrandom)  
-            lua_thread.create(timekalashnik)  
+            lua_thread.create(timekalashnik) 
+            lua_thread.create(antilang)  
     
 
       
@@ -1145,11 +1158,69 @@ function main()
             imgui.ShowCursor = false
             posX, posY = getCursorPos() -- функция позволяет получить координаты курсора на экране           
         end
+        if wasKeyPressed(VK_F12) and not sampIsCursorActive() then -- если нажата клавиша R и не активен самп курсор
+            showdebug[0] = not showdebug[0]  
+            imgui.Process = main_window_state
+            imgui.ShowCursor = false
+            posX, posY = getCursorPos() -- функция позволяет получить координаты курсора на экране           
+        end
     end
 end
 
 local huy = require("samp.events")
 local piska = 0
+
+
+
+
+
+
+-- Индикатор
+ffi.cdef[[
+	short GetKeyState(int nVirtKey);
+	bool GetKeyboardLayoutNameA(char* pwszKLID);
+	int GetLocaleInfoA(int Locale, int LCType, char* lpLCData, int cchData);
+]]
+
+BuffSize = 32
+KeyboardLayoutName = ffi.new("char[?]", BuffSize)
+LocalInfo = ffi.new("char[?]", BuffSize)
+lang_indicator = renderCreateFont("Arial", 14, 1+1)
+-- /Индикатор
+
+function antilang()
+	local text = ""
+	local a_clock = false
+	while true do	
+			local in1 = sampGetInputInfoPtr()
+			local in1 = getStructElement(in1, 0x8, 4)
+			local in2 = getStructElement(in1, 0x8, 4)
+			local in3 = getStructElement(in1, 0xC, 4)	
+			local capsState = ffi.C.GetKeyState(20)
+			local success = ffi.C.GetKeyboardLayoutNameA(KeyboardLayoutName)
+			local errorCode = ffi.C.GetLocaleInfoA(tonumber(ffi.string(KeyboardLayoutName), 16), 0x00000003, LocalInfo, BuffSize)
+			local localName = ffi.string(LocalInfo)
+			if capsState == 0 or capsState == -128 then
+				local toprint = ""
+				 lang = capitalize(localName:sub(1, 2):lower())
+				
+				if lang == "En" then
+					toprint = toprint.."{0099FF}"..lang
+				elseif lang == "Ru" then
+                    
+					toprint = toprint.."{BB0000}"..lang
+				
+				end
+                
+				text = toprint
+			end    
+		wait(0)
+	end 
+end
+
+function capitalize(str)
+    return (str:gsub("^%l", string.upper))
+end
 
 
 
@@ -1231,29 +1302,39 @@ end
 
 function wh3dtext()
     while true do
-        wait(0)
-        if debugwh3d[0] then 
+        wait(200)
         local font = renderCreateFont("Arial", 10, 14)
         for id = 0, 2048 do
             local result = sampIs3dTextDefined(id)
             if result then
-                local text, color, posX, posY, posZ, distance, ignoreWalls, playerId, vehicleId = sampGet3dTextInfoById( id )
-                    local playerX, playerY, playerZ = getCharCoordinates(PLAYER_PED)
-                    local dist = getDistanceBetweenCoords3d(playerX, playerY, playerZ, posX, posY, posZ)
-                    if dist <= Sliderdebugwh3d[0] then
-                    local wposX, wposY = convert3DCoordsToScreen(posX,posY,posZ)
+                 text3d, color3d, posX3d, posY3d, posZ3d, distance3d, ignoreWalls3d, playerId3d, vehicleId3d = sampGet3dTextInfoById( id )
+                if debugwh3d[0] then 
+                    local wposX, wposY = convert3DCoordsToScreen(posX3d,posY3d,posZ3d)
                     local resX, resY = getScreenResolution()
-                    if wposX < resX and wposY < resY and isPointOnScreen (posX,posY,posZ,1) then
+                    local playerX, playerY, playerZ = getCharCoordinates(PLAYER_PED)
+                    local dist = getDistanceBetweenCoords3d(playerX, playerY, playerZ, posX3d, posY3d, posZ3d)
+                    if dist <= 2 then
+                    if wposX < resX and wposY < resY and isPointOnScreen (posX3d,posY3d,posZ3d,1) then
                         x2,y2,z2 = getCharCoordinates(PLAYER_PED)
+                        if isKeyDown(81) then
+                            if lang == "Ru" then
                         x10, y10 = convert3DCoordsToScreen(x2,y2,z2)
-                        renderFontDrawText(font,text, wposX, wposY,-1)
-                    end
+                        setClipboardText(text3d, color3d, posX3d, posY3d, posZ3d, distance3d, ignoreWalls3d, playerId3d, vehicleId3d)
+                        sampAddChatMessage('3D-Text Найден, сохранен в буфер', 0x00FF00)
+                        
+                            end
+                            if lang == "En" then
+                                sampAddChatMessage('Смените язык на русский', 0xFF0000)
+                            end
+                        end
+                         end                 
+                    end    
                 end
             end
         end
     end
 end
-end
+
 
 function whobject()
     while true do
@@ -1899,27 +1980,35 @@ function isKeyCheckAvailable()
 end
 
 
+
+
 function bike()
     while true do
         wait(0)
-        if speedrunning[0] then
-            if isCharOnAnyBike(playerPed) and isKeyCheckAvailable() and isKeyDown(u8:decode(str(speedrunningkey))) then	-- onBike&onMoto SpeedUP [[LSHIFT]] --
-                if getCarModel(storeCarCharIsInNoSave(playerPed)) then
-                    setGameKeyState(16, 255)
-                    wait(10)
-                    setGameKeyState(16, 0)
-                end
-            end
+        bike = {[481] = true, [509] = true, [510] = true}
+        moto = {[448] = true, [461] = true, [462] = true, [463] = true, [468] = true, [471] = true, [521] = true, [522] = true, [523] = true, [581] = true, [586] = true}
+
+        if isCharOnAnyBike(playerPed) and isKeyCheckAvailable() and isKeyDown(u8:decode(str(speedrunningkey))) then	-- onBike&onMoto SpeedUP [[LSHIFT]] --
+			if bike[getCarModel(storeCarCharIsInNoSave(playerPed))] then
+				setGameKeyState(16, 255)
+				wait(10)
+				setGameKeyState(16, 0)
+			elseif moto[getCarModel(storeCarCharIsInNoSave(playerPed))] then
+				setGameKeyState(1, -128)
+				wait(10)
+				setGameKeyState(1, 0)
+			end
+		end
+
+          
             
-            
-        if isKeyDown(u8:decode(str(speedrunningkey))) and isKeyCheckAvailable() then -- onFoot&inWater SpeedUP [[1]] --
+        if isKeyDown(u8:decode(str(speedrunningkey))) and isKeyCheckAvailable() and isCharOnFoot(playerPed) then -- onFoot&inWater SpeedUP [[1]] --
                 setGameKeyState(16, 256)
                 wait(10)
                 setGameKeyState(16, 0)  
             
         
     end
-end
 end
 end
 
