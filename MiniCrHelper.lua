@@ -1,5 +1,5 @@
 script_name('ЗАЛУПА HELPER')
-script_version("0.2.7")
+script_version("0.2.8")
 script_url('TG @IIzIIIzIVzVII')
 
 --ебаные библиотеки--
