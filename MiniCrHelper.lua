@@ -1,5 +1,5 @@
 script_name('ЗАЛУПА HELPER')
-script_version("0.2.8")
+script_version("0.2.9")
 script_url('TG @IIzIIIzIVzVII')
 
 --ебаные библиотеки--
@@ -146,11 +146,11 @@ local mainIni = inicfg.load({
         loginq = '',
         passq = '',
         mysave = false,
-    }}, 'MiniHelper-CR.ini')
+    }}, "MiniCrHelper/MiniHelper-CR.ini")
 --ебаный CFG--
 
 local jsonLog = json('Log.json'):load({})
-local jsonConfig = json('Config.json'):load({
+local jsonConfig = json("MiniCrHelper/MiniCrHelper.json"):load({
 	['script'] = {
 		scriptColor = {1.0, 1.0, 1.0},
 		lastNewsCheck = 0
@@ -236,8 +236,9 @@ local workbotton = new.bool()
 local timertrue = false
 ---Chests---
 
-local window = imgui.new.bool(true)
+local window = imgui.new.bool(false)
 local showdebug = imgui.new.bool(false)
+local idkeys = imgui.new.bool(false)
 local tab = 0 -- в этой переменной будет хранится номер открытой вкладки
 
 --local timechestto = new.char[256]() -- создаём буфер для инпута
@@ -329,7 +330,7 @@ Memory = require 'memory'
 --color--
 
 loginkey = '123'
-passkey = '456'
+passkey = '123'
 
 imgui.OnFrame(function() return window[0] end, function(player)
     local sw, sh = getScreenResolution()
@@ -401,22 +402,22 @@ imgui.OnFrame(function() return window[0] end, function(player)
             imgui.SetCursorPosY(130)
             if imgui.Checkbox(u8'Запомнить меня', mysave, imgui.SetCursorPosX((imgui.GetWindowWidth() - 150) / 2)) then
                 mainIni.main.mysave = mysave[0] 
-                inicfg.save(mainIni, "MiniHelper-CR")
+                inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
                 if mysave[0] == true then
                     mainIni.main.passq = u8:decode(str(passq))
-                    inicfg.save(mainIni, "MiniHelper-CR")
+                    inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
                     end
                 if mysave[0] == true then
                     mainIni.main.loginq = u8:decode(str(loginq))
-                    inicfg.save(mainIni, "MiniHelper-CR")
+                    inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
                     end
                 if mysave[0] == false then
                     mainIni.main.loginq = ''
-                    inicfg.save(mainIni, "MiniHelper-CR")
+                    inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
                 end
                 if mysave[0] == false then
                     mainIni.main.passq = ''
-                    inicfg.save(mainIni, "MiniHelper-CR")
+                    inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
                 end
             end
             imgui.SetCursorPosY(160)
@@ -454,34 +455,34 @@ imgui.OnFrame(function() return window[0] end, function(player)
         imgui.TextQuestion(u8("Right Shift + 3"))
         if imgui.Checkbox(u8'Авто-Удаление', autoclean) then
             mainIni.main.autoclean = autoclean[0] 
-		    inicfg.save(mainIni, "MiniHelper-CR")
+		    inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
         end
         if imgui.Checkbox(u8'Авто-Лавка', settingslavka) then
             
             mainIni.main.settingslavka = settingslavka[0] 
-		    inicfg.save(mainIni, "MiniHelper-CR")
+		    inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
         end
         if imgui.InputText(u8"name-lavka", namelavkas, 256) then 
             mainIni.main.namelavkas = u8:decode(str(namelavkas))
-            inicfg.save(mainIni, "MiniHelper-CR")
+            inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
             end
 
 		imgui.Separator()	
 		if imgui.Checkbox(u8'Авто-Еда', autoeat) then
 		mainIni.main.autoeat = autoeat[0] 
-		inicfg.save(mainIni, "MiniHelper-CR")
+		inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
 	    end
 		imgui.SameLine()
         imgui.TextQuestion(u8("Спалят будут БАН нахуй"))
 		imgui.PushItemWidth(190)
 		if imgui.SliderInt(u8'Минуты.', SliderOne, 1, 60) then -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
 		mainIni.main.autoeatmin = SliderOne[0]
-		inicfg.save(mainIni, "MiniHelper-CR")
+		inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
 		end
 		imgui.PopItemWidth()
 		if imgui.Combo(u8'##',ComboTest,ImItems, #item_list) then
 		 mainIni.main.ComboTest = ComboTest[0]
-		 inicfg.save(mainIni, "MiniHelper-CR")
+		 inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
 		end
 
         imgui.Image(imhandle, imgui.ImVec2(250, 300)) -- эта функция рендерит саму картинку
@@ -497,27 +498,27 @@ imgui.OnFrame(function() return window[0] end, function(player)
     if imgui.BeginChild('Name##'..tab, imgui.ImVec2(268 , 285), true) then -- [Для декора] Создаём чайлд в который поместим содержимое
 		if imgui.Checkbox(u8'Сундук рулетки', checkbox_standart) then
 		mainIni.main.standart = checkbox_standart[0] 
-		inicfg.save(mainIni, "MiniHelper-CR")
+		inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
         end
 		if imgui.Checkbox(u8'Сундук платиновой рулетки', checkbox_platina) then
 	    mainIni.main.platina = checkbox_platina[0] 
-		inicfg.save(mainIni, "MiniHelper-CR")
+		inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
 	    end
 		if imgui.Checkbox(u8'Сундук рулетки (донат)', checkbox_donate) then
 		mainIni.main.donate = checkbox_donate[0] 
-		inicfg.save(mainIni, "MiniHelper-CR")
+		inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
 	    end
 		if imgui.Checkbox(u8'Тайник Илона Маска', checkbox_mask) then
         mainIni.main.mask = checkbox_mask[0] 
-	    inicfg.save(mainIni, "MiniHelper-CR")
+	    inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
         end	
 		if imgui.Checkbox(u8'Тайник Лос Сантоса', checkbox_tainik) then
 	    mainIni.main.tainik = checkbox_tainik[0] 
-	    inicfg.save(mainIni, "MiniHelper-CR")
+	    inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
 	    end 	
 		if imgui.Checkbox(u8'Тайник Vice City', checkbox_vice) then
 	    mainIni.main.vice = checkbox_vice[0] 
-	    inicfg.save(mainIni, "MiniHelper-CR")
+	    inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
         end 
         
         if imgui.Checkbox(u8'Запустить Сундуки###777', workbotton) then
@@ -608,28 +609,28 @@ imgui.OnFrame(function() return window[0] end, function(player)
 
     if imgui.DragFloat(u8('Размер шрифта'), fontSize, 0.01, 0.1, 2.0, "%.1f") then
         jsonConfig['market'].fontSize = fontSize[0]
-        json('Config.json'):save(jsonConfig)
+        json("MiniCrHelper/MiniCrHelper.json"):save(jsonConfig)
     end
     --if imgui.DragFloat(u8('Прозрачность шрифта'), fontAlpha, 0.01, 0.0, 1.0, "%.2f") then
         --jsonConfig['market'].fontAlpha = fontAlpha[0]
-       -- json('Config.json'):save(jsonConfig)
+       -- json("MiniCrHelper/MiniCrHelper.json"):save(jsonConfig)
    -- end
     if imgui.DragFloat(u8('Прозрачность окна'), marketAlpha, 0.01, 0.0, 1.0, "%.2f") then
         jsonConfig['market'].marketAlpha = marketAlpha[0]
-        json('Config.json'):save(jsonConfig)
+        json("MiniCrHelper/MiniCrHelper.json"):save(jsonConfig)
     end
 
     if imgui.SliderInt(u8'Кол-во строк', stroki, 5, 30) then -- 3 аргументом является минимальное значение, а 4 аргумент задаёт максимальное значение
         mainIni.main.stroki = stroki[0]
-		inicfg.save(mainIni, "MiniHelper-CR")
+		inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
     end
     if imgui.ColorEdit3(u8('Цвет текста'), marketColor.text) then
         jsonConfig['market'].marketColor.text = {marketColor.text[0], marketColor.text[1], marketColor.text[2]}
-        json('Config.json'):save(jsonConfig)
+        json("MiniCrHelper/MiniCrHelper.json"):save(jsonConfig)
     end
     if imgui.ColorEdit3(u8('Цвет окна'), marketColor.window) then
         jsonConfig['market'].marketColor.window = {marketColor.window[0], marketColor.window[1], marketColor.window[2]}
-        json('Config.json'):save(jsonConfig)
+        json("MiniCrHelper/MiniCrHelper.json"):save(jsonConfig)
     end
     if imgui.ActiveButton(u8('Позиция'), imgui.ImVec2(85 - 2.5)) then
         sms('Нажмите {mc}ПРОБЕЛ{-1}, чтобы сохранить позицию.')
@@ -639,7 +640,7 @@ imgui.OnFrame(function() return window[0] end, function(player)
             while true do
                 marketPos = imgui.ImVec2(select(1, getCursorPos()), select(2, getCursorPos()))
                 jsonConfig['market'].marketPos = {x = marketPos.x, y = marketPos.y}
-                json('Config.json'):save(jsonConfig)
+                json("MiniCrHelper/MiniCrHelper.json"):save(jsonConfig)
                 if isKeyDown(32) then
                     sms('Местоположение сохранено.')
                     
@@ -692,7 +693,7 @@ imgui.OnFrame(function() return window[0] end, function(player)
         -- Ползунок для выбора значения pov
          if imgui.SliderInt(u8'pov', powfish, 70, 110) then 
             mainIni.main.powfish = powfish[0]
-            inicfg.save(mainIni, "MiniHelper-CR")
+            inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
         end
         imgui.SameLine()
         -- Кнопка для сброса значения pov
@@ -700,24 +701,24 @@ imgui.OnFrame(function() return window[0] end, function(player)
             cameraSetLerpFov(70.0, 70.0, 1000, 1)
             powfish[0] = 70
             mainIni.main.powfish = powfish[0]
-            inicfg.save(mainIni, "MiniHelper-CR")
+            inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
         end  
         imgui.Separator()	
         -- Поля для выбора настроек бега
         if imgui.Checkbox(u8'Бесконечный бег', running) then
             mainIni.main.running = running[0] 
-            inicfg.save(mainIni, "MiniHelper-CR")
+            inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
         end
     
         if imgui.Checkbox(u8'Быстрый бег и езда', speedrunning) then
             mainIni.main.speedrunning = speedrunning[0] 
-            inicfg.save(mainIni, "MiniHelper-CR")
+            inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
         end
         imgui.SameLine()
         imgui.PushItemWidth(40)
         if imgui.InputText(u8"HEX код", speedrunningkey, 256) then
             mainIni.main.speedrunningkey = u8:decode(str(speedrunningkey))
-            inicfg.save(mainIni, "MiniHelper-CR")
+            inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
         end
         imgui.PopItemWidth()
 
@@ -725,21 +726,21 @@ imgui.OnFrame(function() return window[0] end, function(player)
         imgui.PushItemWidth(80)
         if imgui.Checkbox(u8'Вкл/Выкл###checkboxkodbank', checkboxkodbank) then
             mainIni.main.checkboxkodbank = checkboxkodbank[0] 
-            inicfg.save(mainIni, "MiniHelper-CR")
+            inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
         end
         imgui.SameLine()
         if imgui.InputText(u8"Пароль Банк", kodbank, 256, imgui.InputTextFlags.CharsDecimal) then
             mainIni.main.kodbank = u8:decode(str(kodbank))
-            inicfg.save(mainIni, "MiniHelper-CR")
+            inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
         end
         if imgui.Checkbox(u8'Вкл/Выкл###checkboxkodsklad', checkboxkodsklad) then
             mainIni.main.checkboxkodsklad = checkboxkodsklad[0] 
-            inicfg.save(mainIni, "MiniHelper-CR")
+            inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
         end
         imgui.SameLine()
         if imgui.InputText(u8"Пароль Склад", kodsklad, 256, imgui.InputTextFlags.CharsDecimal) then
             mainIni.main.kodsklad = u8:decode(str(kodsklad))
-            inicfg.save(mainIni, "MiniHelper-CR")
+            inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
         end
         imgui.PopItemWidth()
         --[[if imgui.Button(u8'[Коды клавиш клавиатуры и мыши]') then -- размер указал потомучто так привычней
@@ -753,49 +754,49 @@ imgui.OnFrame(function() return window[0] end, function(player)
             if imgui.BeginChild('Name##'..tab, imgui.ImVec2(268 , 285), true) then -- [Для декора] Создаём чайлд в который поместим содержимое
             if imgui.Checkbox(u8'Вкл/выкл', show) then
                 mainIni.main.show = show[0] 
-                inicfg.save(mainIni, "MiniHelper-CR")
+                inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
         
             end
             imgui.SameLine()
             imgui.SetCursorPosX(135)
             if imgui.Checkbox(u8'Онлайн##1', infonline) then
             mainIni.main.infonline = infonline[0] 
-            inicfg.save(mainIni, "MiniHelper-CR")
+            inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
             end
         
             if imgui.Checkbox(u8'Рендер лавок##1', infrender) then
                 mainIni.main.infrender = infrender[0] 
-                inicfg.save(mainIni, "MiniHelper-CR")
+                inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
             end
         
             imgui.SameLine()
             imgui.SetCursorPosX(135)
             if imgui.Checkbox(u8'Радиус лавок##1', infradius) then
                 mainIni.main.infradius = infradius[0] 
-                inicfg.save(mainIni, "MiniHelper-CR")
+                inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
             end
         
             if imgui.Checkbox(u8'Удале Игроков##1', infclean) then
                 mainIni.main.infclean = infclean[0] 
-                inicfg.save(mainIni, "MiniHelper-CR")
+                inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
             end
         
             imgui.SameLine()
             imgui.SetCursorPosX(135)
             if imgui.Checkbox(u8'Авто-Удаление##1', infautoclean) then
                 mainIni.main.infautoclean = infautoclean[0] 
-                inicfg.save(mainIni, "MiniHelper-CR")
+                inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
             end
         
             if imgui.Checkbox(u8'Авто-Лавка##1', infautolavka) then
                 mainIni.main.infautolavka = infautolavka[0] 
-                inicfg.save(mainIni, "MiniHelper-CR")
+                inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
             end
             imgui.SameLine()
             imgui.SetCursorPosX(135)
             if imgui.Checkbox(u8'Time-kalash##1', timekalashnikov) then
                 mainIni.main.timekalashnikov = timekalashnikov[0] 
-                inicfg.save(mainIni, "MiniHelper-CR")
+                inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
                 if timekalashnikov[0] == false then
                     sampTextdrawDelete(222)
                 end
@@ -803,21 +804,21 @@ imgui.OnFrame(function() return window[0] end, function(player)
         
             if imgui.DragFloat(u8('Размер шрифта'), fontSizea, 0.01, 0.1, 2.0, "%.1f") then
                 jsonConfig['informer'].fontSizea = fontSizea[0]
-                json('Config.json'):save(jsonConfig)
+                json("MiniCrHelper/MiniCrHelper.json"):save(jsonConfig)
             end
         
             if imgui.DragFloat(u8('Прозрачность окна'), marketAlphaa, 0.01, 0.0, 1.0, "%.2f") then
                 jsonConfig['informer'].marketAlphaa = marketAlphaa[0]
-                json('Config.json'):save(jsonConfig)
+                json("MiniCrHelper/MiniCrHelper.json"):save(jsonConfig)
             end
         
             if imgui.ColorEdit3(u8('Цвет текста'), marketColora.text) then
                 jsonConfig['informer'].marketColora.text = {marketColora.text[0], marketColora.text[1], marketColora.text[2]}
-                json('Config.json'):save(jsonConfig)
+                json("MiniCrHelper/MiniCrHelper.json"):save(jsonConfig)
             end
             if imgui.ColorEdit3(u8('Цвет окна'), marketColora.window) then
                 jsonConfig['informer'].marketColora.window = {marketColora.window[0], marketColora.window[1], marketColora.window[2]}
-                json('Config.json'):save(jsonConfig)
+                json("MiniCrHelper/MiniCrHelper.json"):save(jsonConfig)
             end
         
             if imgui.ActiveButton(u8('Позиция'), imgui.ImVec2(85 - 2.5)) then
@@ -828,7 +829,7 @@ imgui.OnFrame(function() return window[0] end, function(player)
                     while true do
                         marketPosa = imgui.ImVec2(select(1, getCursorPos()), select(2, getCursorPos()))
                         jsonConfig['informer'].marketPosa = {x = marketPosa.x, y = marketPosa.y}
-                        json('Config.json'):save(jsonConfig)
+                        json("MiniCrHelper/MiniCrHelper.json"):save(jsonConfig)
                         if isKeyDown(32) then
                             sms('Местоположение сохранено.')
                             
@@ -850,19 +851,19 @@ imgui.OnFrame(function() return window[0] end, function(player)
         if imgui.BeginChild('Name##'..tab, imgui.ImVec2(268 , 285), true) then -- [Для декора] Создаём чайлд в который поместим содержимое
         if imgui.Checkbox(u8'Принимать команды из TG', cmd) then
 		mainIni.main.cmd = cmd[0] 
-		inicfg.save(mainIni, "MiniHelper-CR")
+		inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
 	    end
         if imgui.Checkbox(u8'Отправлять диалоги в TG', diolog) then
 		mainIni.main.diolog = diolog[0] 
-		inicfg.save(mainIni, "MiniHelper-CR")
+		inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
 	    end	
         if imgui.InputText(u8"TG ID", chat_id, 256) then 
 	    mainIni.main.chat_id = u8:decode(str(chat_id))
-		inicfg.save(mainIni, "MiniHelper-CR")
+		inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
 	    end
 	    if imgui.InputText(u8"TG TOKEN", token, 256) then
 	    mainIni.main.token = u8:decode(str(token))
-		inicfg.save(mainIni, "MiniHelper-CR")
+		inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
 	    end
 		if imgui.Button(u8'Тестовое сообщение') then
         sendTelegramNotification('Тестовое сообщение от '..sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(PLAYER_PED)))) -- отправляем сообщение юзеру
@@ -873,7 +874,7 @@ imgui.OnFrame(function() return window[0] end, function(player)
         --- 5 страница ебать ---
         if imgui.Checkbox(u8'Скип диалогов', skipdiolog) then
         mainIni.main.skipdiolog = skipdiolog[0] 
-        inicfg.save(mainIni, "MiniHelper-CR")
+        inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
         end
        
          nickrecons = new.char[256](u8(mainIni.main.nickrecons))
@@ -881,13 +882,13 @@ imgui.OnFrame(function() return window[0] end, function(player)
 
         if imgui.InputText(u8"Никнейм", nickrecons, 256) then 
             mainIni.main.nickrecons = u8:decode(str(nickrecons))
-            inicfg.save(mainIni, "MiniHelper-CR")
+            inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
             end
       
 
             if imgui.InputText(u8"ip сервера", serverrecon, 256) then 
                 mainIni.main.serverrecon = u8:decode(str(serverrecon))
-                inicfg.save(mainIni, "MiniHelper-CR")
+                inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
                 end
                 
                
@@ -951,6 +952,8 @@ imgui.OnFrame(function() return showdebug[0] end, function(player)
         textdiologid = string.format("{00BEFC}Current dialog info:\nDialog ID:{FFFFFF} %d \n{00BEFC}Dialog Type:{FFFFFF} %d \n{00BEFC}Dialog Caption:{FFFFFF}\n%s\n{00BEFC}Dialog text:{FFFFFF}\n%s", did, dtp, dcp, dtx)
    -- end
    -- imgui.SameLine()
+ 
+   
     if imgui.Button(u8'Копировать Dialog') then 
         if lang == "Ru" then               
         local dtx = sampGetDialogText()
@@ -963,6 +966,11 @@ imgui.OnFrame(function() return showdebug[0] end, function(player)
     if lang == "En" then
     sampAddChatMessage('Смените язык на русский', 0xFF0000)
     end
+    
+end
+imgui.SameLine()
+if imgui.Button(u8'Коды клавиш') then 
+idkeys[0] = not idkeys[0]
 end
 
     --imgui.SameLine()
@@ -974,6 +982,291 @@ end
 
     imgui.End()
 end).HideCursor = false -- HideCursor отвечает за то, чтобы курсор не показывался
+
+
+
+
+
+
+imgui.OnFrame(function() return idkeys[0] end, function(player)
+    local sw, sh = getScreenResolution()
+    imgui.SetNextWindowPos(imgui.ImVec2(400,sh/2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5,0.5))
+    imgui.SetNextWindowSize(imgui.ImVec2(355, 320), imgui.Cond.Always)
+    imgui.Begin('ID-keys', idkeys, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.AlwaysAutoResize)
+    local w = {
+        first = 120,
+        second = 110,
+        free = 110,
+    }
+    local filter = imgui.ImGuiTextFilter() -- Create a short alias for the filter function
+
+
+    filter:Draw(u8"Поиск", 80) -- Render the search field
+    if filter:IsActive() then -- Check if the filter is active
+        imgui.SameLine()
+        if imgui.Button("Clear") then
+            filter:Clear() -- Clear the search field if the button is pressed
+        end
+    end
+
+   
+    -- == Первая строка
+    imgui.Columns(3) -- 3 количество столбцов
+    imgui.Text(u8'Название клавиши') imgui.SetColumnWidth(-1, w.first) -- первый столбик
+    imgui.NextColumn()
+    imgui.Text(u8'HEX код клавиши') imgui.SetColumnWidth(-1, w.second) -- второй столбик
+    imgui.NextColumn()
+    imgui.Text(u8'DEC код клавиши') imgui.SetColumnWidth(-1, w.free) -- либо можете самостоятельно вписывать
+    imgui.Columns(1)
+    imgui.Separator()
+    -- == Вторая строка
+    
+
+
+local buttons = {
+    { name = 'Left Button', hexCode = '0x01', number = '1' },
+    { name = 'Right Button', hexCode = '0x02', number = '2' },
+    { name = 'Break', hexCode = '0x03', number = '3' },
+    { name = 'Middle Button', hexCode = '0x04', number = '4' },
+    { name = 'X Button 1', hexCode = '0x05', number = '5' },
+    { name = 'X Button 2', hexCode = '0x06', number = '6' },
+    { name = 'Backspace', hexCode = '0x08', number = '8' },
+    { name = 'TAB', hexCode = '0x09', number = '9' },
+    { name = 'Clear', hexCode = '0x0C', number = '12' },
+    { name = 'Enter', hexCode = '0x0D', number = '13' },
+    { name = 'Shift', hexCode = '0x10', number = '16' },
+    { name = 'Ctrl', hexCode = '0x11', number = '17' },
+    { name = 'Alt', hexCode = '0x12', number = '18' },
+    { name = 'Pause', hexCode = '0x13', number = '19' },
+    { name = 'Caps Lock', hexCode = '0x14', number = '20' },
+    { name = 'Kana', hexCode = '0x15', number = '21' },
+    { name = 'Junja', hexCode = '0x17', number = '23' },
+    { name = 'Final', hexCode = '0x18', number = '24' },
+    { name = 'Kanji', hexCode = '0x19', number = '25' },
+    { name = 'Esc', hexCode = '0x1B', number = '27' },
+    { name = 'Convert', hexCode = '0x1C', number = '28' },
+    { name = 'Non Convert', hexCode = '0x1D', number = '29' },
+    { name = 'Accept', hexCode = '0x1E', number = '30' },
+    { name = 'Mood Change', hexCode = '0x1F', number = '31' },
+    { name = 'Space', hexCode = '0x20', number = '32' },
+    { name = 'Page Up', hexCode = '0x21', number = '33' },
+    { name = 'Page Down', hexCode = '0x22', number = '34' },
+    { name = 'End', hexCode = '0x23', number = '35' },
+    { name = 'Home', hexCode = '0x24', number = '36' },
+    { name = 'Arrow Left', hexCode = '0x25', number = '37' },
+    { name = 'Arrow Up', hexCode = '0x26', number = '38' },
+    { name = 'Arrow Right', hexCode = '0x27', number = '39' },
+    { name = 'Arrow Down', hexCode = '0x28', number = '40' },
+    { name = 'Select', hexCode = '0x29', number = '41' },
+    { name = 'Print', hexCode = '0x2A', number = '42' },
+    { name = 'Execute', hexCode = '0x2B', number = '43' },
+    { name = 'Print Screen', hexCode = '0x2C', number = '44' },
+    { name = 'Insert', hexCode = '0x2D', number = '45' },
+    { name = 'Delete', hexCode = '0x2E', number = '46' },
+    { name = 'Help', hexCode = '0x2F', number = '47' },
+    { name = '0', hexCode = '0x30', number = '48' },
+    { name = '1', hexCode = '0x31', number = '49' },
+    { name = '2', hexCode = '0x32', number = '50' },
+    { name = '3', hexCode = '0x33', number = '51' },
+    { name = '4', hexCode = '0x34', number = '52' },
+    { name = '5', hexCode = '0x35', number = '53' },
+    { name = '6', hexCode = '0x36', number = '54' },
+    { name = '7', hexCode = '0x37', number = '55' },
+    { name = '8', hexCode = '0x38', number = '56' },
+    { name = '9', hexCode = '0x39', number = '57' },
+    { name = 'A', hexCode = '0x41', number = '65' },
+    { name = 'B', hexCode = '0x42', number = '66' },
+    { name = 'C', hexCode = '0x43', number = '67' },
+    { name = 'D', hexCode = '0x44', number = '68' },
+    { name = 'E', hexCode = '0x45', number = '69' },
+    { name = 'F', hexCode = '0x46', number = '70' },
+    { name = 'G', hexCode = '0x47', number = '71' },
+    { name = 'H', hexCode = '0x48', number = '72' },
+    { name = 'I', hexCode = '0x49', number = '73' },
+    { name = 'J', hexCode = '0x4A', number = '74' },
+    { name = 'K', hexCode = '0x4B', number = '75' },
+    { name = 'L', hexCode = '0x4C', number = '76' },
+    { name = 'M', hexCode = '0x4D', number = '77' },
+    { name = 'N', hexCode = '0x4E', number = '78' },
+    { name = 'O', hexCode = '0x4F', number = '79' },
+    { name = 'P', hexCode = '0x50', number = '80' },
+    { name = 'Q', hexCode = '0x51', number = '81' },
+    { name = 'R', hexCode = '0x52', number = '82' },
+    { name = 'S', hexCode = '0x53', number = '83' },
+    { name = 'T', hexCode = '0x54', number = '84' },
+    { name = 'U', hexCode = '0x55', number = '85' },
+    { name = 'V', hexCode = '0x56', number = '86' },
+    { name = 'W', hexCode = '0x57', number = '87' },
+    { name = 'X', hexCode = '0x58', number = '88' },
+    { name = 'Y', hexCode = '0x59', number = '89' },
+    { name = 'Z', hexCode = '0x5A', number = '90' },
+    { name = 'Left Win', hexCode = '0x5B', number = '91' },
+    { name = 'Right Win', hexCode = '0x5C', number = '92' },
+    { name = 'Context Menu', hexCode = '0x5D', number = '93' },
+    { name = 'Sleep', hexCode = '0x5F', number = '95' },
+    { name = 'Numpad 0', hexCode = '0x60', number = '96' },
+    { name = 'Numpad 1', hexCode = '0x61', number = '97' },
+    { name = 'Numpad 2', hexCode = '0x62', number = '98' },
+    { name = 'Numpad 3', hexCode = '0x63', number = '99' },
+    { name = 'Numpad 4', hexCode = '0x64', number = '100' },
+    { name = 'Numpad 5', hexCode = '0x65', number = '101' },
+    { name = 'Numpad 6', hexCode = '0x66', number = '102' },
+    { name = 'Numpad 7', hexCode = '0x67', number = '103' },
+    { name = 'Numpad 8', hexCode = '0x68', number = '104' },
+    { name = 'Numpad 9', hexCode = '0x69', number = '105' },
+    { name = 'Numpad *', hexCode = '0x6A', number = '106' },
+    { name = 'Numpad +', hexCode = '0x6B', number = '107' },
+    { name = 'Sep', hexCode = '0x6C', number = '108' },
+    { name = 'Num -', hexCode = '0x6D', number = '109' },
+    { name = 'Numpad .', hexCode = '0x6E', number = '110' },
+    { name = 'Numpad /', hexCode = '0x6F', number = '111' },
+    { name = 'F1', hexCode = '0x70', number = '112' },
+    { name = 'F2', hexCode = '0x71', number = '113' },
+    { name = 'F3', hexCode = '0x72', number = '114' },
+    { name = 'F4', hexCode = '0x73', number = '115' },
+    { name = 'F5', hexCode = '0x74', number = '116' },
+    { name = 'F6', hexCode = '0x75', number = '117' },
+    { name = 'F7', hexCode = '0x76', number = '118' },
+    { name = 'F8', hexCode = '0x77', number = '119' },
+    { name = 'F9', hexCode = '0x78', number = '120' },
+    { name = 'F10', hexCode = '0x79', number = '121' },
+    { name = 'F11', hexCode = '0x7A', number = '122' },
+    { name = 'F12', hexCode = '0x7B', number = '123' },
+    { name = 'F13', hexCode = '0x7C', number = '124' },
+    { name = 'F14', hexCode = '0x7D', number = '125' },
+    { name = 'F15', hexCode = '0x7E', number = '126' },
+    { name = 'F16', hexCode = '0x7F', number = '127' },
+    { name = 'F17', hexCode = '0x80', number = '128' },
+    { name = 'F18', hexCode = '0x81', number = '129' },
+    { name = 'F19', hexCode = '0x82', number = '130' },
+    { name = 'F20', hexCode = '0x83', number = '131' },
+    { name = 'F21', hexCode = '0x84', number = '132' },
+    { name = 'F22', hexCode = '0x85', number = '133' },
+    { name = 'F23', hexCode = '0x86', number = '134' },
+    { name = 'F24', hexCode = '0x87', number = '135' },
+    { name = 'Num Lock', hexCode = '0x90', number = '144' },
+    { name = 'Scrl Lock', hexCode = '0x91', number = '145' },
+    { name = 'Jisho', hexCode = '0x92', number = '146' },
+    { name = 'Mashu', hexCode = '0x93', number = '147' },
+    { name = 'Touroku', hexCode = '0x94', number = '148' },
+    { name = 'Loya', hexCode = '0x95', number = '149' },
+    { name = 'Roya', hexCode = '0x96', number = '150' },
+    { name = 'Left Shift', hexCode = '0xA0', number = '160' },
+    { name = 'Right Shift', hexCode = '0xA1', number = '161' },
+    { name = 'Left Ctrl', hexCode = '0xA2', number = '162' },
+    { name = 'Right Ctrl', hexCode = '0xA3', number = '163' },
+    { name = 'Left Alt', hexCode = '0xA4', number = '164' },
+    { name = 'Right Alt', hexCode = '0xA5', number = '165' },
+    { name = 'Browser Back', hexCode = '0xA6', number = '166' },
+    { name = 'Browser Forward', hexCode = '0xA7', number = '167' },
+    { name = 'Browser Refresh', hexCode = '0xA8', number = '168' },
+    { name = 'Browser Stop', hexCode = '0xA9', number = '169' },
+    { name = 'Browser Search', hexCode = '0xAA', number = '170' },
+    { name = 'Browser Favorites', hexCode = '0xAB', number = '171' },
+    { name = 'Browser Home', hexCode = '0xAC', number = '172' },
+    { name = 'Volume Mute', hexCode = '0xAD', number = '173' },
+    { name = 'Volume Down', hexCode = '0xAE', number = '174' },
+    { name = 'Volume Up', hexCode = '0xAF', number = '175' },
+    { name = 'Next Track', hexCode = '0xB0', number = '176' },
+    { name = 'Previous Track', hexCode = '0xB1', number = '177' },
+    { name = 'Stop', hexCode = '0xB2', number = '178' },
+    { name = 'Play / Pause', hexCode = '0xB3', number = '179' },
+    { name = 'Mail', hexCode = '0xB4', number = '180' },
+    { name = 'Mediaplayer', hexCode = '0xB5', number = '181' },
+    { name = 'App1', hexCode = '0xB6', number = '182' },
+    { name = 'App2', hexCode = '0xB7', number = '183' },
+    { name = '; :', hexCode = '0xBA', number = '186' },
+    { name = '= +', hexCode = '0xBB', number = '187' },
+    { name = ', <', hexCode = '0xBC', number = '188' },
+    { name = '- _', hexCode = '0xBD', number = '189' },
+    { name = '. >', hexCode = '0xBE', number = '190' },
+    { name = '/ ?', hexCode = '0xBF', number = '191' },
+    { name = '` ~', hexCode = '0xC0', number = '192' },
+    { name = "Abnt C1", hexCode = "0xC1", number = 193 },
+    { name = "Abnt C2", hexCode = "0xC2", number = 193 },
+    { name = "[ {", hexCode = "0xDB", number = 219 },
+    { name = "\\ |", hexCode = "0xDC", number = 220 },
+    { name = "] }", hexCode = "0xDD", number = 221 },
+    { name = "\\ \"", hexCode = "0xDE", number = 222 },
+    { name = "! В§", hexCode = "0xDF", number = 223 },
+    { name = "Ax", hexCode = "0xE1", number = 225 },
+    { name = "> <", hexCode = "0xE2", number = 226 },
+    { name = "IcoHlp", hexCode = "0xE3", number = 227 },
+    { name = "Process", hexCode = "0xE5", number = 229 },
+    { name = "IcoClr", hexCode = "0xE6", number = 230 },
+    { name = "Packet", hexCode = "0xE7", number = 231 },
+    { name = "Reset", hexCode = "0xE9", number = 233 },
+    { name = "Jump", hexCode = "0xEA", number = 234 },
+    { name = "OemPa1", hexCode = "0xEB", number = 235 },
+    { name = "OemPa2", hexCode = "0xEC", number = 236 },
+    { name = "OemPa3", hexCode = "0xED", number = 237 },
+    { name = "WsCtrl", hexCode = "0xEE", number = 238 },
+    { name = "Cu Sel", hexCode = "0xEF", number = 239 },
+    { name = "Oem Attn", hexCode = "0xF0", number = 240 },
+    { name = "Finish", hexCode = "0xF1", number = 241 },
+    { name = "Copy", hexCode = "0xF2", number = 242 },
+    { name = "Auto", hexCode = "0xF3", number = 243 },
+    { name = "Enlw", hexCode = "0xF4", number = 244 },
+    { name = "Back Tab", hexCode = "0xF5", number = 245 },
+    { name = "Attn", hexCode = "0xF6", number = 246 },
+    { name = "Cr Sel", hexCode = "0xF7", number = 247 },
+    { name = "Ex Sel", hexCode = "0xF8", number = 248 },
+    { name = "Er Eof", hexCode = "0xF9", number = 249 },
+    { name = "Play", hexCode = "0xFA", number = 250 },
+    { name = "Zoom", hexCode = "0xFB", number = 251 },
+    { name = "Pa1", hexCode = "0xFD", number = 253 },
+    { name = "OemClr", hexCode = "0xFE", number = 254 },
+
+}
+
+
+
+    for _, button in ipairs(buttons) do -- Iterate through the button data
+        -- Check if the current button matches the search filter
+        if filter:PassFilter(u8(button.name)) then
+            createButtonRow(u8(button.name), u8(button.hexCode), button.number) -- Render the button row if it matches
+        end
+    end
+    
+
+    -- == Можете задать сколько вам нужно строк
+    imgui.End()
+end)
+
+
+
+
+
+
+
+
+function createButtonRow(buttonName, hexCode, number)
+    local w = {
+        first = 120,
+        second = 110,
+        free = 110,
+    }
+    imgui.Columns(3)
+    imgui.Text(buttonName)
+    imgui.SetColumnWidth(-1, w.first)
+    imgui.NextColumn()
+    imgui.Text(hexCode)
+    imgui.SetColumnWidth(-1, w.second)
+    imgui.NextColumn()
+    imgui.Text(''..number)
+    imgui.SetColumnWidth(-1, w.free)
+    imgui.Columns(1)
+    imgui.Separator()
+end
+
+
+
+
+
+
+
+
+
      
             fpsID = ''
             ping = ''
@@ -1877,7 +2170,7 @@ while true do wait(0)
         local mouseX, mouseY = getCursorPos()
         mainIni.main.renderlavokx, mainIni.main.renderlavoky = mouseX, mouseY
         if isKeyDown(32) then
-            inicfg.save(mainIni, "MiniHelper-CR")
+            inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
             renderlavok = false
             sampAddChatMessage("Позиция сохранена", -1)
         end
@@ -1886,7 +2179,7 @@ if chestpos then
     local chestposX, chestposY = getCursorPos()
     mainIni.main.chestposx, mainIni.main.chestposy = chestposX, chestposY
     if isKeyDown(32) then
-        inicfg.save(mainIni, "MiniHelper-CR")
+        inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
         chestpos = false
         sampAddChatMessage("Позиция сохранена", -1)
     end
@@ -1895,7 +2188,7 @@ if delayedtimerpos then
     local delayedtimerpossX, delayedtimerpossY = getCursorPos()
     mainIni.main.delayedtimerposx, mainIni.main.delayedtimerposy = delayedtimerpossX, delayedtimerpossY
     if isKeyDown(32) then
-        inicfg.save(mainIni, "MiniHelper-CR")
+        inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
         delayedtimerpos = false
         sampAddChatMessage("Позиция сохранена", -1)
     end
@@ -2028,12 +2321,19 @@ function autoalts()
 		wait(450) -- задержка
 		if autoalt[0] then
 			local x, y, z = getCharCoordinates(PLAYER_PED)
-			local result, _, _, _, _, _, _, _, _, _ = Search3Dtext(x, y, z, 3, "{73B461}Для")
+			local result, _, _, _, _, _, _, _, _, _ = Search3Dtext(x, y, z, 3, "{73B461}Можно собрать")
 			if result then
 				setGameKeyState(21, 255)
 				wait(5)
 				setGameKeyState(21, 0)
 				result = false
+			end
+            local result1, _1, _1, _1, _1, _1, _1, _1, _1, _1 = Search3Dtext(x, y, z, 3, "{73B461}Для добычи ископаемого")
+            if result1 then
+				setGameKeyState(21, 255)
+				wait(5)
+				setGameKeyState(21, 0)
+				result1 = false
 			end
         end
     end
@@ -3212,13 +3512,13 @@ function sendDialog()
 	if activedia then 
         diolog[0] = true
         mainIni.main.diolog = diolog[0] 
-		inicfg.save(mainIni, "MiniHelper-CR")
+		inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
     
         sendTelegramNotification('Отправка диалогов включена.')
 	else
         diolog[0] = false
         mainIni.main.diolog = diolog[0] 
-		inicfg.save(mainIni, "MiniHelper-CR")
+		inicfg.save(mainIni, "MiniCrHelper/MiniHelper-CR")
     
         sendTelegramNotification('Отправка диалогов отключена.')
 	end
@@ -3356,7 +3656,7 @@ end
 
 function getTheme()
 	jsonConfig['script'].scriptColor = {scriptColor[0], scriptColor[1], scriptColor[2]}
-	json('Config.json'):save(jsonConfig)
+	json("MiniCrHelper/MiniCrHelper.json"):save(jsonConfig)
 
 	local dec = imgui.GetColorU32Vec4(imgui.ImVec4(scriptColor[0], scriptColor[1], scriptColor[2], 1.0))
 	local color = bit.tohex(bit.bswap(dec))
