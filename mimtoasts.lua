@@ -68,7 +68,7 @@ local newFrame = imgui.OnFrame(
         )
         
         local winSize = imgui.GetWindowSize()
-        imgui.SetWindowPosVec2(imgui.ImVec2(resX - 10 - winSize.x, 850))
+        imgui.SetWindowPosVec2(imgui.ImVec2(resX - 10 - winSize.x, 800))
         
         for k, data in ipairs(list) do
             ------------------------------------------------
