@@ -1,5 +1,5 @@
 script_name('«¿À”œ¿ HELPER.lua')
-script_version("0.3.7")
+script_version("0.3.8")
 script_url('TG @IIzIIIzIVzVII')
 
 require 'lib.moonloader'
