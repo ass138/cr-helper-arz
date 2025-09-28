@@ -1,5 +1,5 @@
 script_name('«јЋ”ѕј HELPER.lua')
-script_version("0.4.0")
+script_version("0.4.1")
 script_url('TG @IIzIIIzIVzVII')
 
 require 'lib.moonloader'
@@ -547,8 +547,44 @@ if enable_autoupdate then
     end
 end
 
-
-
+function asyncHttpRequest(method, url, args, resolve, reject)
+    local request_thread = effil.thread(function(method, url, args)
+        local requests = require 'requests'
+        local ok, response = pcall(requests.request, method, url, args)
+        if ok then
+            if response then response.json, response.xml = nil, nil end
+            return true, response
+        else
+            return false, response
+        end
+    end)(method, url, args)
+    if not resolve then resolve = function() end end
+    if not reject then reject = function() end end
+    lua_thread.create(function()
+        while true do
+            local status, err = request_thread:status()
+            if not err then
+                if status == 'completed' then
+                    local ok, response = request_thread:get()
+                    if ok then
+                        resolve(response)
+                    else
+                        reject(response)
+                    end
+                    return
+                elseif status == 'canceled' then
+                    reject(status)
+                    return
+                end
+            else
+                reject(err)
+                return
+            end
+            wait(0)
+        end
+    end)
+end
+local players = nil
 
 function sms(text)
     sampAddChatMessage(string.format('{FFFFFF}Х {00FF00}%s {FFFFFF}%s {FFFFFF}Х', thisScript().name, tostring(text):gsub('{mc}', '{00FF00}'):gsub('{%-1}', '{FFFFFF}')), 0x00FF00)
@@ -584,6 +620,7 @@ function main()
     lua_thread.create(eat)
     lua_thread.create(autoreconectrandom)
     lua_thread.create(telegramz)
+    lua_thread.create(updeteVC) 
 
     while true do
         wait(0)
@@ -595,7 +632,24 @@ function main()
         end
         cameraSetLerpFov(90, 90, 1000, 1)
         Memory.setint8(0xB7CEE4, 1)
-        
+        if players ~= nil then
+            local x = 10 -- отступ слева
+            local y = sh - 30 -- отступ снизу
+            renderFontDrawText(font, 'Vice City: ' .. players..' / 750', x, y, 0xFF00FF00)
+        end
+    end
+end
+
+function updeteVC()
+    while true do
+        wait(10000) 
+        local headers = {["Referer"] = "https://arizona-rp.com/"}
+        asyncHttpRequest('GET', "https://n-api.arizona-rp.com/api/servers/vc/online", { headers = headers },
+        function(response)
+            if response and response.text then
+                players = response.text
+            end
+        end)
     end
 end
 
